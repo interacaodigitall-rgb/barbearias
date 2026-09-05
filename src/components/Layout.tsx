@@ -62,97 +62,105 @@ export default function Layout() {
     [t('home'), t('booking'), t('appointments'), 'Gestão & Caixa', t('loyalty'), 'Planos SaaS', t('profile'), t('barber_dashboard')].includes(item.name)
   ).slice(0, 5);
 
+  const isHomePage = location.pathname === '/';
+
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col overflow-x-hidden">
       {/* SaaS Global Switcher Bar */}
       <SaaSHeaderSwitcher />
 
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Mobile Header */}
-        <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-40">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-zinc-900 border border-[#d4a338] text-[#d4a338] rounded-full overflow-hidden flex items-center justify-center shrink-0 font-black text-xs">
-              <Scissors size={14} />
-            </div>
-            <div>
-              <h1 className="text-base font-extrabold tracking-tight uppercase leading-none">{activeShop.name}</h1>
-              <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">{activeShop.unit}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button onClick={toggleLanguage} className="text-xl" title="Mudar Idioma">
-              {i18n.language === 'pt' ? '🇵🇹' : '🇪🇸'}
-            </button>
-            {user && (
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-zinc-400 font-medium">{user.name.split(' ')[0]}</span>
-                <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-white">
-                  <LogOut size={18} />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar (Desktop) */}
-        <div className="hidden md:flex flex-col w-64 bg-zinc-900 text-white min-h-[calc(100vh-37px)] p-4 sticky top-0 h-[calc(100vh-37px)] shrink-0">
-          <div className="mb-6 px-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-zinc-950 border border-[#d4a338] text-[#d4a338] rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                <Scissors size={20} />
-              </div>
-              <div>
-                <h1 className="text-lg font-black tracking-tight uppercase leading-tight">{activeShop.name}</h1>
-                <p className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest">{activeShop.city} • {activeShop.unit}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="px-4 mb-4">
-            <button 
-              onClick={toggleLanguage} 
-              className="flex items-center space-x-2 text-zinc-400 hover:text-white transition-colors bg-zinc-800/50 px-3 py-2 rounded-xl text-xs font-medium w-full"
-            >
-              <Globe size={14} />
-              <span>{i18n.language === 'pt' ? 'Português (PT)' : 'Español (ES)'}</span>
-            </button>
-          </div>
-          
-          <nav className="flex-1 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all text-xs font-bold ${
-                    isActive ? 'bg-[#d4a338] text-zinc-950 shadow-md font-extrabold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
-                  }`}
-                >
-                  <Icon size={18} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {user && (
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-3 px-4 py-3 rounded-xl text-zinc-400 hover:bg-zinc-800/50 hover:text-white transition-colors mt-auto text-xs font-semibold"
-            >
-              <LogOut size={16} />
-              <span>Sair</span>
-            </button>
-          )}
-        </div>
-
-        {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 w-full max-w-full overflow-x-hidden">
+      {isHomePage ? (
+        <main className="flex-1 w-full max-w-full overflow-x-hidden pb-16 md:pb-0">
           <Outlet />
         </main>
-      </div>
+      ) : (
+        <div className="flex-1 flex flex-col md:flex-row">
+          {/* Mobile Header */}
+          <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-40">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-zinc-900 border border-[#d4a338] text-[#d4a338] rounded-full overflow-hidden flex items-center justify-center shrink-0 font-black text-xs">
+                <Scissors size={14} />
+              </div>
+              <div>
+                <h1 className="text-base font-extrabold tracking-tight uppercase leading-none">{activeShop.name}</h1>
+                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">{activeShop.unit}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button onClick={toggleLanguage} className="text-xl" title="Mudar Idioma">
+                {i18n.language === 'pt' ? '🇵🇹' : '🇪🇸'}
+              </button>
+              {user && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-zinc-400 font-medium">{user.name.split(' ')[0]}</span>
+                  <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-white">
+                    <LogOut size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar (Desktop) */}
+          <div className="hidden md:flex flex-col w-64 bg-zinc-900 text-white min-h-[calc(100vh-37px)] p-4 sticky top-0 h-[calc(100vh-37px)] shrink-0">
+            <div className="mb-6 px-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-zinc-950 border border-[#d4a338] text-[#d4a338] rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
+                  <Scissors size={20} />
+                </div>
+                <div>
+                  <h1 className="text-lg font-black tracking-tight uppercase leading-tight">{activeShop.name}</h1>
+                  <p className="text-zinc-400 text-[10px] uppercase font-bold tracking-widest">{activeShop.city} • {activeShop.unit}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-4 mb-4">
+              <button 
+                onClick={toggleLanguage} 
+                className="flex items-center space-x-2 text-zinc-400 hover:text-white transition-colors bg-zinc-800/50 px-3 py-2 rounded-xl text-xs font-medium w-full"
+              >
+                <Globe size={14} />
+                <span>{i18n.language === 'pt' ? 'Português (PT)' : 'Español (ES)'}</span>
+              </button>
+            </div>
+            
+            <nav className="flex-1 space-y-1 overflow-y-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all text-xs font-bold ${
+                      isActive ? 'bg-[#d4a338] text-zinc-950 shadow-md font-extrabold' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-3 px-4 py-3 rounded-xl text-zinc-400 hover:bg-zinc-800/50 hover:text-white transition-colors mt-auto text-xs font-semibold"
+              >
+                <LogOut size={16} />
+                <span>Sair</span>
+              </button>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 w-full max-w-full overflow-x-hidden">
+            <Outlet />
+          </main>
+        </div>
+      )}
 
       {/* Mobile Bottom Nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 flex justify-around p-2 pb-safe z-40 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">

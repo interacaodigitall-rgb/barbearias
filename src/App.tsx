@@ -45,21 +45,35 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
-        <Route path="/" element={
-          <PrivateRoute>
-            <Layout />
-          </PrivateRoute>
-        }>
+        <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="services" element={<Services />} />
           <Route path="barbers" element={<Barbers />} />
           <Route path="booking" element={<Booking />} />
-          <Route path="appointments" element={<Appointments />} />
-          <Route path="loyalty" element={<Loyalty />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="barber-dashboard" element={<BarberDashboard />} />
           <Route path="saas" element={<SaaSLanding />} />
+          <Route path="loyalty" element={<Loyalty />} />
+
+          {/* Protected Routes */}
+          <Route path="appointments" element={
+            <PrivateRoute>
+              <Appointments />
+            </PrivateRoute>
+          } />
+          <Route path="profile" element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          } />
+          <Route path="admin" element={
+            <PrivateRoute>
+              <AdminDashboard />
+            </PrivateRoute>
+          } />
+          <Route path="barber-dashboard" element={
+            <PrivateRoute>
+              <BarberDashboard />
+            </PrivateRoute>
+          } />
         </Route>
       </Routes>
     </Router>
