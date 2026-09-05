@@ -1,0 +1,8 @@
+{
+  "name": "BarberSaaS - Gestão & App do Cliente",
+  "description": "Plataforma SaaS multi-barbearia com App do Cliente (agendamento com produtos e quiet service), Fluxo de Caixa completo com comissões, e venda de planos de acesso.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
