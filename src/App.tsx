@@ -33,6 +33,16 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/login" />;
 }
 
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuthStore();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+  
+  return user && user.role === 'superadmin' ? <>{children}</> : <Navigate to="/login" />;
+}
+
 // App initialized with WebP image support
 export default function App() {
   useEffect(() => {
@@ -52,7 +62,11 @@ export default function App() {
           <Route path="saas" element={<SaaSLanding />} />
           
           {/* Super Admin Dashboard for SaaS Owner */}
-          <Route path="super-admin" element={<SuperAdminDashboard />} />
+          <Route path="super-admin" element={
+            <SuperAdminRoute>
+              <SuperAdminDashboard />
+            </SuperAdminRoute>
+          } />
 
           {/* Standard direct routes */}
           <Route path="services" element={<Services />} />
