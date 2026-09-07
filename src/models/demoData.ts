@@ -427,6 +427,173 @@ export const demoCashFlowTransactions: CashFlowTransaction[] = [
     date: yesterday,
     paymentMethod: 'transfer',
     createdAt: Date.now() - 105000000
+  },
+
+  // Roger'X BarberShop Demo Transactions
+  {
+    id: 'tx-rogerx-1',
+    barbershopId: 'shop-rogerx',
+    type: 'income',
+    category: 'service',
+    description: 'Corte + Barba Premium (Cliente João Silva)',
+    amount: 20.00,
+    date: today,
+    paymentMethod: 'mbway',
+    barberId: 'b-rogerx-roger',
+    barberName: 'ROGER',
+    createdAt: Date.now() - 7000000
+  },
+  {
+    id: 'tx-rogerx-2',
+    barbershopId: 'shop-rogerx',
+    type: 'expense',
+    category: 'commission',
+    description: 'Comissão Roger (50% sobre Corte + Barba Premium)',
+    amount: 10.00,
+    date: today,
+    paymentMethod: 'transfer',
+    barberId: 'b-rogerx-roger',
+    barberName: 'ROGER',
+    createdAt: Date.now() - 6900000
+  },
+  {
+    id: 'tx-rogerx-3',
+    barbershopId: 'shop-rogerx',
+    type: 'income',
+    category: 'service',
+    description: 'Degradê Navalhado (Cliente Miguel Ferreira)',
+    amount: 15.00,
+    date: today,
+    paymentMethod: 'cash',
+    barberId: 'b-rogerx-vitor',
+    barberName: 'VÍTOR BITREKAS',
+    createdAt: Date.now() - 5000000
+  },
+  {
+    id: 'tx-rogerx-4',
+    barbershopId: 'shop-rogerx',
+    type: 'expense',
+    category: 'commission',
+    description: 'Comissão Vítor Bitrekas (50% sobre Degradê Navalhado)',
+    amount: 7.50,
+    date: today,
+    paymentMethod: 'transfer',
+    barberId: 'b-rogerx-vitor',
+    barberName: 'VÍTOR BITREKAS',
+    createdAt: Date.now() - 4900000
+  },
+  {
+    id: 'tx-rogerx-5',
+    barbershopId: 'shop-rogerx',
+    type: 'income',
+    category: 'service',
+    description: 'Barba Tradicional com Toalha Quente (Cliente Pedro Santos)',
+    amount: 12.00,
+    date: today,
+    paymentMethod: 'card',
+    barberId: 'b-rogerx-fernando',
+    barberName: 'FERNANDO',
+    createdAt: Date.now() - 3000000
+  },
+  {
+    id: 'tx-rogerx-6',
+    barbershopId: 'shop-rogerx',
+    type: 'expense',
+    category: 'commission',
+    description: 'Comissão Fernando (50% sobre Barba Tradicional)',
+    amount: 6.00,
+    date: today,
+    paymentMethod: 'transfer',
+    barberId: 'b-rogerx-fernando',
+    barberName: 'FERNANDO',
+    createdAt: Date.now() - 2900000
+  },
+  {
+    id: 'tx-rogerx-7',
+    barbershopId: 'shop-rogerx',
+    type: 'income',
+    category: 'service',
+    description: 'Corte Infantil (Cliente Diogo Costa)',
+    amount: 12.00,
+    date: today,
+    paymentMethod: 'mbway',
+    barberId: 'b-rogerx-barbudo',
+    barberName: 'BARBUDO',
+    createdAt: Date.now() - 1500000
+  },
+  {
+    id: 'tx-rogerx-8',
+    barbershopId: 'shop-rogerx',
+    type: 'expense',
+    category: 'commission',
+    description: 'Comissão Barbudo (50% sobre Corte Infantil)',
+    amount: 6.00,
+    date: today,
+    paymentMethod: 'transfer',
+    barberId: 'b-rogerx-barbudo',
+    barberName: 'BARBUDO',
+    createdAt: Date.now() - 1400000
+  },
+  {
+    id: 'tx-rogerx-9',
+    barbershopId: 'shop-rogerx',
+    type: 'income',
+    category: 'product',
+    description: 'Venda de Produto: Cera Efeito Matte Roger\'X',
+    amount: 18.00,
+    date: yesterday,
+    paymentMethod: 'card',
+    createdAt: Date.now() - 90000000
+  },
+  {
+    id: 'tx-rogerx-10',
+    barbershopId: 'shop-rogerx',
+    type: 'expense',
+    category: 'supplies',
+    description: 'Insumos Roger\'X (Lâminas, Toalhas e Gola Higiênica)',
+    amount: 45.00,
+    date: yesterday,
+    paymentMethod: 'card',
+    createdAt: Date.now() - 95000000
+  },
+
+  // Sherlocks Barber Club Demo Transactions
+  {
+    id: 'tx-sherlock-1',
+    barbershopId: 'shop-sherlocks',
+    type: 'income',
+    category: 'service',
+    description: 'Corte Sherlock Clássico (Cliente Gabriel Souza)',
+    amount: 22.00,
+    date: today,
+    paymentMethod: 'mbway',
+    barberId: 'b-sherlock-1',
+    barberName: 'Arthur Sherlock',
+    createdAt: Date.now() - 6000000
+  },
+  {
+    id: 'tx-sherlock-2',
+    barbershopId: 'shop-sherlocks',
+    type: 'expense',
+    category: 'commission',
+    description: 'Comissão Arthur Sherlock (50% sobre Corte)',
+    amount: 11.00,
+    date: today,
+    paymentMethod: 'transfer',
+    barberId: 'b-sherlock-1',
+    barberName: 'Arthur Sherlock',
+    createdAt: Date.now() - 5900000
+  },
+  {
+    id: 'tx-sherlock-3',
+    barbershopId: 'shop-sherlocks',
+    type: 'income',
+    category: 'product',
+    description: 'Venda de Óleo de Barba Especial',
+    amount: 16.00,
+    date: yesterday,
+    paymentMethod: 'cash',
+    createdAt: Date.now() - 80000000
   }
 ];
 

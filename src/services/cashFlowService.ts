@@ -5,11 +5,23 @@ import { saasService } from './saasService';
 
 const CASH_FLOW_KEY = 'barbersaas_cash_flow_transactions_v2';
 
+const normalizeShopId = (id?: string): string => {
+  if (!id) return '';
+  const clean = id.toLowerCase().trim();
+  if (clean === 'shop-mister-navalha' || clean === 'mister-navalha' || clean === 'shop-1') return 'shop-mister-navalha';
+  if (clean === 'shop-rogerx' || clean === 'rogerx-barbershop' || clean.includes('roger')) return 'shop-rogerx';
+  if (clean === 'shop-sherlocks' || clean === 'sherlocks') return 'shop-sherlocks';
+  return clean;
+};
+
 const getStoredTransactions = (): CashFlowTransaction[] => {
   const saved = localStorage.getItem(CASH_FLOW_KEY);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
     } catch {
       return demoCashFlowTransactions;
     }
@@ -21,11 +33,75 @@ const saveStoredTransactions = (txs: CashFlowTransaction[]) => {
   localStorage.setItem(CASH_FLOW_KEY, JSON.stringify(txs));
 };
 
+const generateInitialSeedForShop = (targetShopId: string): CashFlowTransaction[] => {
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  return [
+    {
+      id: `seed-tx-${targetShopId}-1`,
+      barbershopId: targetShopId,
+      type: 'income',
+      category: 'service',
+      description: 'Corte + Barba de Exemplo',
+      amount: 18.00,
+      date: today,
+      paymentMethod: 'mbway',
+      barberName: 'Barbeiro Principal',
+      createdAt: Date.now() - 7200000
+    },
+    {
+      id: `seed-tx-${targetShopId}-2`,
+      barbershopId: targetShopId,
+      type: 'expense',
+      category: 'commission',
+      description: 'Comissão Barbeiro Principal (50%)',
+      amount: 9.00,
+      date: today,
+      paymentMethod: 'transfer',
+      barberName: 'Barbeiro Principal',
+      createdAt: Date.now() - 7100000
+    },
+    {
+      id: `seed-tx-${targetShopId}-3`,
+      barbershopId: targetShopId,
+      type: 'income',
+      category: 'product',
+      description: 'Venda de Pomada Finalizadora',
+      amount: 15.00,
+      date: yesterday,
+      paymentMethod: 'cash',
+      createdAt: Date.now() - 80000000
+    },
+    {
+      id: `seed-tx-${targetShopId}-4`,
+      barbershopId: targetShopId,
+      type: 'expense',
+      category: 'supplies',
+      description: 'Insumos Operacionais e Descartáveis',
+      amount: 30.00,
+      date: yesterday,
+      paymentMethod: 'card',
+      createdAt: Date.now() - 90000000
+    }
+  ];
+};
+
 export const cashFlowService = {
   async getTransactions(barbershopId?: string): Promise<CashFlowTransaction[]> {
     const all = getStoredTransactions();
     if (barbershopId) {
-      return all.filter(t => t.barbershopId === barbershopId);
+      const normTarget = normalizeShopId(barbershopId);
+      const filtered = all.filter(t => normalizeShopId(t.barbershopId) === normTarget);
+
+      if (filtered.length === 0) {
+        const seed = generateInitialSeedForShop(barbershopId);
+        const updated = [...all, ...seed];
+        saveStoredTransactions(updated);
+        return seed.sort((a, b) => b.createdAt - a.createdAt);
+      }
+
+      return filtered.sort((a, b) => b.createdAt - a.createdAt);
     }
     return all.sort((a, b) => b.createdAt - a.createdAt);
   },
