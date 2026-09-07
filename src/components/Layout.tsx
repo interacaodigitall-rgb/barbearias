@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
 import { saasService } from '../services/saasService';
-import SaaSHeaderSwitcher from './SaaSHeaderSwitcher';
+import { updateTenantHeadAndPWA } from '../utils/pwaUtils';
 import { Home, Scissors, Users, Calendar, User as UserIcon, LogOut, Award, Shield, Plus, Search, Globe, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,16 +16,7 @@ export default function Layout() {
 
   React.useEffect(() => {
     if (activeShop) {
-      document.title = `${activeShop.name} - Painel`;
-      if (activeShop.logoUrl) {
-        let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-        if (!link) {
-          link = document.createElement('link');
-          link.rel = 'icon';
-          document.getElementsByTagName('head')[0].appendChild(link);
-        }
-        link.href = activeShop.logoUrl;
-      }
+      updateTenantHeadAndPWA(activeShop);
     }
   }, [activeShop]);
 
@@ -39,8 +30,10 @@ export default function Layout() {
     i18n.changeLanguage(newLang);
   };
 
+  const homePath = activeShop?.slug ? `/${activeShop.slug}` : '/';
+
   const navItems = [
-    { name: t('home'), path: '/', icon: Home },
+    { name: t('home'), path: homePath, icon: Home },
   ];
 
   if (user?.role === 'customer') {
@@ -71,13 +64,13 @@ export default function Layout() {
     { name: t('profile'), path: '/profile', icon: UserIcon }
   );
 
-  if (user?.role !== 'barber') {
-    navItems.push({ name: 'Planos SaaS', path: '/saas', icon: Globe });
+  if (user?.role === 'superadmin') {
+    navItems.push({ name: 'Super Admin', path: '/super-admin', icon: Shield });
   }
 
-  // For mobile bottom nav, we limit to 5 most important items
+  // For mobile bottom nav, limit to 5 main items
   const mobileNavItems = navItems.filter(item => 
-    [t('home'), t('booking'), t('appointments'), 'Gestão & Caixa', t('loyalty'), 'Planos SaaS', t('profile'), t('barber_dashboard')].includes(item.name)
+    [t('home'), t('booking'), t('appointments'), 'Gestão & Caixa', t('loyalty'), t('profile'), t('barber_dashboard'), 'Super Admin'].includes(item.name)
   ).slice(0, 5);
 
   const isSaaSPage = location.pathname === '/' || location.pathname === '/saas';

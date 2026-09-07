@@ -5,6 +5,7 @@ import { saasService } from '../services/saasService';
 import { appointmentService } from '../services/appointmentService';
 import { loyaltyService } from '../services/loyaltyService';
 import { firestoreService } from '../services/firestoreService';
+import { updateTenantHeadAndPWA } from '../utils/pwaUtils';
 import { Appointment, Service, Barber, SaaSBarbershop } from '../models';
 import { barberImages } from '../assets/images/barberImages';
 import { 
@@ -63,25 +64,15 @@ export default function Home() {
       const { outcome } = await deferredPrompt.userChoice;
       setDeferredPrompt(null);
     } else {
-      alert(`Para instalar o aplicativo PWA da ${activeShop.name}:\n\n• No telemóvel (Android/iOS): Toque no menu do navegador (3 pontos ou Partilhar) e selecione \"Adicionar ao Ecrã Principal\" ou \"Instalar Aplicação\".\n• No Computador: Clique no ícone de instalação na barra de endereços.`);
+      alert(`Para instalar o aplicativo PWA da ${activeShop.name}:\n\n• No telemóvel (Android/iOS): Toque no menu do navegador (3 pontos ou Partilhar) e selecione "Adicionar ao Ecrã Principal" ou "Instalar Aplicação".\n• No Computador: Clique no ícone de instalação na barra de endereços.`);
     }
   };
 
   useEffect(() => {
     if (activeShop) {
-      document.title = activeShop.name + " - Agendamento Online";
-      if (activeShop.logoUrl) {
-        let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-        if (!link) {
-          link = document.createElement("link") as HTMLLinkElement;
-          link.rel = "icon";
-          document.getElementsByTagName("head")[0].appendChild(link);
-        }
-        link.href = activeShop.logoUrl;
-      }
+      updateTenantHeadAndPWA(activeShop);
     }
   }, [activeShop]);
-
 
   useEffect(() => {
     async function resolveShop() {
@@ -154,10 +145,7 @@ export default function Home() {
           Não encontramos nenhuma barbearia ativa com o endereço <code className="text-[#d4a338] bg-zinc-900 px-2 py-0.5 rounded font-mono">/{slug}</code>.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-          <Link to="/saas" className="px-5 py-2.5 bg-[#d4a338] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl">
-            Conhecer o SaaS
-          </Link>
-          <Link to="/mister-navalha" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
+          <Link to="/mister-navalha" className="px-5 py-2.5 bg-[#d4a338] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl">
             Ver Mister Navalha
           </Link>
           <Link to="/seu-elias" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
@@ -172,15 +160,15 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full bg-[#eae5db] text-zinc-900 font-sans selection:bg-[#f5ab2b] selection:text-zinc-950">
+    <div className="w-full bg-[#eae5db] text-zinc-900 font-sans selection:bg-[#f5ab2b] selection:text-zinc-950 pb-20 md:pb-0">
       {/* ========================================================================= */}
-      {/* 1. VINTAGE HEADER (Matching pc01.png)                                    */}
+      {/* 1. VINTAGE HEADER                                                        */}
       {/* ========================================================================= */}
       <header className="w-full bg-[#eae5db] border-b border-stone-300/60 sticky top-0 z-40 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 md:h-24 flex items-center justify-between">
           
           {/* Circular Retro Vintage Badge Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to={slug ? `/${slug}` : `/${activeShop.slug}`} className="flex items-center gap-3 group">
             {activeShop.logoUrl ? (
               <div className="relative h-14 md:h-16 flex items-center justify-center group-hover:scale-105 transition-transform">
                 <img src={activeShop.logoUrl} alt={activeShop.name} className="h-full w-auto object-contain"  />
@@ -221,9 +209,6 @@ export default function Home() {
             <Link to="/loyalty" className="hover:text-stone-950 hover:underline underline-offset-8 transition-colors flex items-center gap-1">
               <Award size={14} className="text-[#d4a338]" />
               Cashback
-            </Link>
-            <Link to="/saas" className="text-[#9e741c] hover:text-stone-950 transition-colors">
-              SaaS Barbearias
             </Link>
           </nav>
 
@@ -322,14 +307,11 @@ export default function Home() {
                 <Link to="/admin" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   💼 Gestão & Fluxo de Caixa
                 </Link>
-                <Link to="/saas" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b]/90 hover:text-[#f5ab2b]">
-                  🚀 Portal SaaS (Planos Barbearia)
-                </Link>
               </div>
             </div>
 
             <div className="pt-6 border-t border-stone-800 text-[11px] text-stone-500 text-center">
-              <p>{activeShop.name} • Gestão Inteligente</p>
+              <p>{activeShop.name} • Agendamento Online</p>
             </div>
           </div>
         </div>
@@ -624,10 +606,10 @@ export default function Home() {
 
         </div>
 
-        {/* Floating Back to Top Button (pc03.png bottom right) */}
+        {/* Floating Back to Top Button (Desktop only) */}
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-40 w-11 h-11 bg-[#5c554e] hover:bg-[#332f2c] text-white flex items-center justify-center shadow-2xl transition-all rounded-xs hover:scale-110"
+          className="hidden md:flex fixed bottom-6 right-6 z-40 w-11 h-11 bg-[#5c554e] hover:bg-[#332f2c] text-white items-center justify-center shadow-2xl transition-all rounded-xs hover:scale-110"
           title="Voltar ao Topo"
           aria-label="Voltar ao Topo"
         >
@@ -1007,7 +989,6 @@ export default function Home() {
             <button onClick={() => scrollToSection('app-section')} className="hover:text-white">O App</button>
             <button onClick={() => scrollToSection('story-section')} className="hover:text-white">História</button>
             <button onClick={() => scrollToSection('services-section')} className="hover:text-white">Serviços</button>
-            <Link to="/saas" className="text-[#f5ab2b] hover:underline">SaaS Para Barbearias</Link>
           </div>
 
           <p className="text-xs text-stone-600">
@@ -1015,6 +996,20 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {/* ========================================================================= */}
+      {/* 9. FLOATING ACTION BUTTON (FAB) FOR MOBILE BOOKING                        */}
+      {/* ========================================================================= */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-40 pointer-events-none animate-in slide-in-from-bottom-5 duration-300">
+        <Link
+          to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
+          className="pointer-events-auto w-full py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] active:scale-95 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-black/80 border border-amber-300/50 flex items-center justify-center gap-2.5 transition-all"
+        >
+          <Scissors size={18} className="animate-bounce" />
+          <span>Agendar Horário Agora</span>
+          <ArrowRight size={16} />
+        </Link>
+      </div>
     </div>
   );
 }
