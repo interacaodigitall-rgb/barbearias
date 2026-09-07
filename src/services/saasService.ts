@@ -1,8 +1,121 @@
-import { SaaSBarbershop, SaaSPlan, Service, Barber } from '../models';
+import { SaaSBarbershop, SaaSPlan, Service, Barber, User } from '../models';
 import { demoSaaSBarbershops, demoSaaSPlans, demoBarbers, demoServices, rogerXBarbers, rogerXServices } from '../models/demoData';
 
 const SAAS_SHOPS_KEY = 'barbersaas_barbershops';
 const SAAS_ACTIVE_SHOP_KEY = 'barbersaas_active_shop_id';
+const SAAS_ACCOUNTS_KEY = 'barbersaas_tenant_accounts';
+
+export interface TenantAccount {
+  uid: string;
+  email: string;
+  password?: string;
+  name: string;
+  phone?: string;
+  role: 'owner' | 'barber' | 'admin';
+  companyId: string;
+  companyName?: string;
+  barberId?: string;
+  commissionPercent?: number;
+  createdAt: number;
+}
+
+const defaultTenantAccounts: TenantAccount[] = [
+  {
+    uid: 'acc-owner-rogerx',
+    email: 'roger@rogerxbarbershop.pt',
+    password: 'rogerx',
+    name: 'Roger (Dono Roger\'X)',
+    phone: '+351 910 000 123',
+    role: 'owner',
+    companyId: 'shop-rogerx',
+    companyName: "Roger'X BarberShop",
+    createdAt: Date.now() - 30 * 86400000
+  },
+  {
+    uid: 'acc-owner-navalha',
+    email: 'dono@misternavalha.pt',
+    password: 'dono123',
+    name: 'Carlos Navalha (Dono)',
+    phone: '+351 925 112 334',
+    role: 'owner',
+    companyId: 'shop-mister-navalha',
+    companyName: 'Mister Navalha',
+    createdAt: Date.now() - 45 * 86400000
+  },
+  // Real Roger'X Barbers
+  {
+    uid: 'acc-barber-roger',
+    email: 'roger.barber@rogerx.pt',
+    password: 'roger123',
+    name: 'Roger',
+    phone: '+351 910 000 123',
+    role: 'barber',
+    companyId: 'shop-rogerx',
+    companyName: "Roger'X BarberShop",
+    barberId: 'b-rogerx-roger',
+    createdAt: Date.now() - 20 * 86400000
+  },
+  {
+    uid: 'acc-barber-vitor',
+    email: 'vitor@rogerx.pt',
+    password: 'vitor123',
+    name: 'Vítor Bitrekas',
+    phone: '+351 910 000 124',
+    role: 'barber',
+    companyId: 'shop-rogerx',
+    companyName: "Roger'X BarberShop",
+    barberId: 'b-rogerx-vitor',
+    createdAt: Date.now() - 20 * 86400000
+  },
+  {
+    uid: 'acc-barber-fernando',
+    email: 'fernando@rogerx.pt',
+    password: 'fernando123',
+    name: 'Fernando',
+    phone: '+351 910 000 125',
+    role: 'barber',
+    companyId: 'shop-rogerx',
+    companyName: "Roger'X BarberShop",
+    barberId: 'b-rogerx-fernando',
+    createdAt: Date.now() - 20 * 86400000
+  },
+  {
+    uid: 'acc-barber-barbudo',
+    email: 'barbudo@rogerx.pt',
+    password: 'barbudo123',
+    name: 'Barbudo',
+    phone: '+351 910 000 126',
+    role: 'barber',
+    companyId: 'shop-rogerx',
+    companyName: "Roger'X BarberShop",
+    barberId: 'b-rogerx-barbudo',
+    createdAt: Date.now() - 20 * 86400000
+  }
+];
+
+export function getStoredTenantAccounts(): TenantAccount[] {
+  try {
+    const raw = localStorage.getItem(SAAS_ACCOUNTS_KEY);
+    if (raw) {
+      const parsed: TenantAccount[] = JSON.parse(raw);
+      // Ensure defaults exist
+      const existingEmails = new Set(parsed.map(a => a.email.toLowerCase()));
+      const missing = defaultTenantAccounts.filter(a => !existingEmails.has(a.email.toLowerCase()));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(merged));
+        return merged;
+      }
+      return parsed;
+    }
+  } catch {}
+  localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(defaultTenantAccounts));
+  return defaultTenantAccounts;
+}
+
+export function saveStoredTenantAccounts(accounts: TenantAccount[]): void {
+  localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(accounts));
+}
 
 const getStoredShops = (): SaaSBarbershop[] => {
   const saved = localStorage.getItem(SAAS_SHOPS_KEY);
@@ -64,26 +177,46 @@ export const saasService = {
     return demoSaaSPlans;
   },
 
+  getBarbershopsSync(): SaaSBarbershop[] {
+    return getStoredShops();
+  },
+
   async getBarbershops(): Promise<SaaSBarbershop[]> {
     return getStoredShops();
   },
 
-  async getBarbershopBySlug(slug: string): Promise<SaaSBarbershop | null> {
+  getBarbershopBySlugSync(slug: string): SaaSBarbershop | null {
     const shops = getStoredShops();
     const cleanSlug = slug.toLowerCase().trim();
-    const found = shops.find(s => s.slug.toLowerCase() === cleanSlug);
-    return found || null;
+    return shops.find(s => s.slug.toLowerCase() === cleanSlug || s.id.toLowerCase() === cleanSlug) || null;
+  },
+
+  async getBarbershopBySlug(slug: string): Promise<SaaSBarbershop | null> {
+    return this.getBarbershopBySlugSync(slug);
+  },
+
+  getBarbershopById(id: string): SaaSBarbershop | null {
+    const shops = getStoredShops();
+    const clean = id.toLowerCase().trim();
+    return shops.find(s => s.id.toLowerCase() === clean || s.slug.toLowerCase() === clean) || null;
   },
 
   getActiveBarbershop(): SaaSBarbershop {
     const shops = getStoredShops();
     const activeId = localStorage.getItem(SAAS_ACTIVE_SHOP_KEY);
-    const found = shops.find(s => s.id === activeId);
+    const found = shops.find(s => s.id === activeId || s.slug === activeId);
     return found || shops[0];
   },
 
-  setActiveBarbershop(id: string): void {
-    localStorage.setItem(SAAS_ACTIVE_SHOP_KEY, id);
+  setActiveBarbershop(idOrSlug: string): void {
+    const shops = getStoredShops();
+    const clean = idOrSlug.toLowerCase().trim();
+    const found = shops.find(s => s.id.toLowerCase() === clean || s.slug.toLowerCase() === clean);
+    if (found) {
+      localStorage.setItem(SAAS_ACTIVE_SHOP_KEY, found.id);
+    } else {
+      localStorage.setItem(SAAS_ACTIVE_SHOP_KEY, idOrSlug);
+    }
   },
 
   async getServicesForShop(shopIdOrSlug?: string): Promise<Service[]> {
@@ -108,10 +241,21 @@ export const saasService = {
 
   async getBarbersForShop(shopIdOrSlug?: string): Promise<Barber[]> {
     const target = (shopIdOrSlug || this.getActiveBarbershop().slug).toLowerCase().trim();
+    
+    // Roger'X BarberShop: Only the 4 real barbers (Roger, Vítor Bitrekas, Fernando, Barbudo)
     if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
+      const custom = getCustomBarbersForShop(target);
+      if (custom && custom.length > 0) {
+        return custom;
+      }
       return rogerXBarbers;
     }
+
     if (target === 'mister-navalha' || target === 'shop-1' || target === 'seu-elias') {
+      const custom = getCustomBarbersForShop(target);
+      if (custom && custom.length > 0) {
+        return custom;
+      }
       return demoBarbers;
     }
 
@@ -121,9 +265,121 @@ export const saasService = {
       return custom;
     }
 
-    // STRICT MULTI-TENANT ISOLATION:
-    // New tenants start with ONLY their explicitly registered barbers, or empty []
+    // STRICT MULTI-TENANT ISOLATION FOR NEW BARBERSHOPS:
+    // Any new barbershop starts strictly with NO mock or fictitious barbers (empty array [])
     return [];
+  },
+
+  // ==========================================================================
+  // TENANT ACCOUNTS MANAGEMENT (OWNERS & BARBERS)
+  // ==========================================================================
+
+  getTenantAccounts(companyId?: string): TenantAccount[] {
+    const accounts = getStoredTenantAccounts();
+    if (!companyId) return accounts;
+    const cleanId = companyId.toLowerCase().trim();
+    return accounts.filter(a => a.companyId.toLowerCase() === cleanId);
+  },
+
+  async createTenantOwnerAccount(data: {
+    companyId: string;
+    name: string;
+    email: string;
+    password?: string;
+    phone?: string;
+  }): Promise<TenantAccount> {
+    const accounts = getStoredTenantAccounts();
+    const cleanEmail = data.email.toLowerCase().trim();
+
+    // Check if account with this email already exists
+    const existingIndex = accounts.findIndex(a => a.email.toLowerCase() === cleanEmail);
+    const shop = this.getBarbershopById(data.companyId);
+
+    const newAccount: TenantAccount = {
+      uid: `acc-owner-${Date.now()}`,
+      email: cleanEmail,
+      password: data.password || 'owner123',
+      name: data.name.trim(),
+      phone: data.phone || '',
+      role: 'owner',
+      companyId: data.companyId,
+      companyName: shop?.name || 'Barbearia',
+      createdAt: Date.now()
+    };
+
+    let updated: TenantAccount[];
+    if (existingIndex >= 0) {
+      updated = [...accounts];
+      updated[existingIndex] = { ...updated[existingIndex], ...newAccount, uid: accounts[existingIndex].uid };
+    } else {
+      updated = [newAccount, ...accounts];
+    }
+
+    saveStoredTenantAccounts(updated);
+    return newAccount;
+  },
+
+  async createBarberAccount(data: {
+    companyId: string;
+    barberId: string;
+    name: string;
+    email: string;
+    password?: string;
+    phone?: string;
+    commissionPercent?: number;
+  }): Promise<TenantAccount> {
+    const accounts = getStoredTenantAccounts();
+    const cleanEmail = data.email.toLowerCase().trim();
+    const shop = this.getBarbershopById(data.companyId);
+
+    const existingIndex = accounts.findIndex(a => a.email.toLowerCase() === cleanEmail || (a.barberId === data.barberId && a.companyId === data.companyId));
+
+    const newAccount: TenantAccount = {
+      uid: `acc-barber-${Date.now()}`,
+      email: cleanEmail,
+      password: data.password || 'barber123',
+      name: data.name.trim(),
+      phone: data.phone || '',
+      role: 'barber',
+      companyId: data.companyId,
+      companyName: shop?.name || 'Barbearia',
+      barberId: data.barberId,
+      commissionPercent: data.commissionPercent || 50,
+      createdAt: Date.now()
+    };
+
+    let updated: TenantAccount[];
+    if (existingIndex >= 0) {
+      updated = [...accounts];
+      updated[existingIndex] = { ...updated[existingIndex], ...newAccount, uid: accounts[existingIndex].uid };
+    } else {
+      updated = [newAccount, ...accounts];
+    }
+
+    saveStoredTenantAccounts(updated);
+    return newAccount;
+  },
+
+  getBarberAccount(barberId: string): TenantAccount | null {
+    const accounts = getStoredTenantAccounts();
+    return accounts.find(a => a.barberId === barberId && a.role === 'barber') || null;
+  },
+
+  async deleteTenantAccount(uid: string): Promise<void> {
+    const accounts = getStoredTenantAccounts();
+    const filtered = accounts.filter(a => a.uid !== uid);
+    saveStoredTenantAccounts(filtered);
+  },
+
+  authenticateTenantUser(email: string, password?: string): TenantAccount | null {
+    const accounts = getStoredTenantAccounts();
+    const cleanEmail = email.toLowerCase().trim();
+    const found = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+    if (!found) return null;
+    if (password && found.password && found.password !== password) {
+      return null;
+    }
+    return found;
   },
 
   generateSlug(name: string): string {

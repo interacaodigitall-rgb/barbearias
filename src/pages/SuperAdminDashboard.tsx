@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { saasService } from '../services/saasService';
+import { saasService, TenantAccount } from '../services/saasService';
+import { authService } from '../services/authService';
 import { SaaSBarbershop } from '../models';
 import { 
   Building2, Plus, ExternalLink, Copy, Check, TrendingUp, 
   DollarSign, Users, ShieldCheck, Database, Code, Search, 
-  Trash2, Edit3, Sparkles, ArrowRight, Smartphone, Scissors, AlertCircle
+  Trash2, Edit3, Sparkles, ArrowRight, Smartphone, Scissors, AlertCircle,
+  Shield, Key, UserCheck, Lock, LogIn
 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const [shops, setShops] = useState<SaaSBarbershop[]>([]);
+  const [tenantAccounts, setTenantAccounts] = useState<TenantAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [copiedAccountUid, setCopiedAccountUid] = useState<string | null>(null);
   const [copiedSql, setCopiedSql] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tenants' | 'sql'>('tenants');
+  const [activeTab, setActiveTab] = useState<'tenants' | 'accounts' | 'sql'>('tenants');
 
   // Metrics
   const [metrics, setMetrics] = useState({
@@ -39,6 +43,17 @@ export default function SuperAdminDashboard() {
   });
   const [createdTenantAlert, setCreatedTenantAlert] = useState<SaaSBarbershop | null>(null);
 
+  // Modal State for "+ Criar Acesso do Cliente" (Owner)
+  const [isCreateAccessModalOpen, setIsCreateAccessModalOpen] = useState(false);
+  const [accessForm, setAccessForm] = useState({
+    companyId: '',
+    name: '',
+    email: '',
+    password: '',
+    phone: ''
+  });
+  const [createdAccessAlert, setCreatedAccessAlert] = useState<TenantAccount | null>(null);
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -46,6 +61,8 @@ export default function SuperAdminDashboard() {
       setShops(allShops);
       const m = await saasService.getSuperAdminMetrics();
       setMetrics(m);
+      const accs = saasService.getTenantAccounts();
+      setTenantAccounts(accs);
     } catch (err) {
       console.error('Erro ao carregar dados do Super Admin:', err);
     } finally {
@@ -100,6 +117,66 @@ export default function SuperAdminDashboard() {
     } catch (err) {
       alert('Erro ao cadastrar barbearia.');
     }
+  };
+
+  const handleCreateClientAccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessForm.email.trim() || !accessForm.name.trim()) {
+      alert('Preencha o nome e o email do cliente.');
+      return;
+    }
+    const targetCompanyId = accessForm.companyId || shops[0]?.id || 'shop-rogerx';
+
+    try {
+      const newAcc = await saasService.createTenantOwnerAccount({
+        companyId: targetCompanyId,
+        name: accessForm.name.trim(),
+        email: accessForm.email.trim(),
+        password: accessForm.password.trim() || 'owner123',
+        phone: accessForm.phone.trim()
+      });
+
+      setIsCreateAccessModalOpen(false);
+      setCreatedAccessAlert(newAcc);
+      await loadData();
+
+      setAccessForm({
+        companyId: '',
+        name: '',
+        email: '',
+        password: '',
+        phone: ''
+      });
+    } catch (err) {
+      alert('Erro ao criar acesso do cliente.');
+    }
+  };
+
+  const handleCopyAccessCredentials = (account: TenantAccount) => {
+    const text = `Credenciais de Acesso ao Painel:\nEmpresa: ${account.companyName || account.companyId}\nEmail: ${account.email}\nSenha: ${account.password || 'owner123'}\nLink de Login: ${window.location.origin}/login`;
+    navigator.clipboard.writeText(text);
+    setCopiedAccountUid(account.uid);
+    setTimeout(() => setCopiedAccountUid(null), 2500);
+  };
+
+  const handleLoginAsOwner = async (account: TenantAccount) => {
+    saasService.setActiveBarbershop(account.companyId);
+    await authService.loginDirect({
+      uid: account.uid,
+      name: account.name,
+      email: account.email,
+      phone: account.phone || '',
+      role: 'owner',
+      companyId: account.companyId,
+      createdAt: account.createdAt
+    });
+    navigate('/admin');
+  };
+
+  const handleDeleteAccount = async (uid: string, name: string) => {
+    if (!window.confirm(`Deseja remover o acesso de "${name}"?`)) return;
+    await saasService.deleteTenantAccount(uid);
+    await loadData();
   };
 
   const handleCopyLink = (slug: string) => {
@@ -194,6 +271,23 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
             </Link>
 
             <button
+              onClick={() => {
+                setAccessForm({
+                  companyId: shops[0]?.id || 'shop-rogerx',
+                  name: '',
+                  email: '',
+                  password: 'owner' + Math.floor(100 + Math.random() * 900),
+                  phone: '+351 '
+                });
+                setIsCreateAccessModalOpen(true);
+              }}
+              className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-amber-500/50 text-amber-300 hover:text-white rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(212,163,56,0.15)] flex items-center gap-2"
+            >
+              <Shield size={16} className="text-[#d4a338]" />
+              + Criar Acesso do Cliente
+            </button>
+
+            <button
               onClick={() => setIsCreateModalOpen(true)}
               className="px-5 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-[0_0_20px_rgba(212,163,56,0.3)] hover:scale-105 flex items-center gap-2"
             >
@@ -202,6 +296,40 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
             </button>
           </div>
         </div>
+
+        {/* Success Alert when a client access (owner) is created */}
+        {createdAccessAlert && (
+          <div className="p-4 rounded-2xl bg-amber-950/70 border border-amber-500/40 text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#d4a338] text-zinc-950 flex items-center justify-center font-black">
+                <Key size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">
+                  Acesso de Dono criado com sucesso para "{createdAccessAlert.name}"!
+                </p>
+                <p className="text-xs text-amber-300">
+                  Email: <strong className="text-white">{createdAccessAlert.email}</strong> | Barbearia: <strong className="text-white">{createdAccessAlert.companyName || createdAccessAlert.companyId}</strong> | Senha: <code className="bg-zinc-900 px-1.5 py-0.5 rounded text-white font-mono">{createdAccessAlert.password}</code>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleCopyAccessCredentials(createdAccessAlert)}
+                className="px-3 py-1.5 bg-amber-800/80 hover:bg-amber-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+              >
+                {copiedAccountUid === createdAccessAlert.uid ? <Check size={14} /> : <Copy size={14} />}
+                {copiedAccountUid === createdAccessAlert.uid ? 'Copiado!' : 'Copiar Acesso'}
+              </button>
+              <button
+                onClick={() => handleLoginAsOwner(createdAccessAlert)}
+                className="px-3 py-1.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 text-xs font-black rounded-lg transition-colors flex items-center gap-1"
+              >
+                Entrar como Dono <LogIn size={13} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Success Alert when a new tenant is created */}
         {createdTenantAlert && (
@@ -304,21 +432,30 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
           </div>
         </div>
 
-        {/* Tabs: Tenants vs Supabase Schema */}
-        <div className="flex items-center gap-3 border-b border-zinc-800 pb-2">
+        {/* Tabs: Tenants vs Accounts vs Supabase Schema */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 border-b border-zinc-800 pb-2">
           <button
             onClick={() => setActiveTab('tenants')}
             className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 rounded-lg ${
-              activeTab === 'tenants' ? 'bg-[#d4a338] text-zinc-950' : 'text-zinc-400 hover:text-white'
+              activeTab === 'tenants' ? 'bg-[#d4a338] text-zinc-950 font-black' : 'text-zinc-400 hover:text-white'
             }`}
           >
             <Building2 size={16} />
             Barbearias Cadastradas ({shops.length})
           </button>
           <button
+            onClick={() => setActiveTab('accounts')}
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 rounded-lg ${
+              activeTab === 'accounts' ? 'bg-[#d4a338] text-zinc-950 font-black' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Key size={16} />
+            Acessos de Clientes ({tenantAccounts.length})
+          </button>
+          <button
             onClick={() => setActiveTab('sql')}
             className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 rounded-lg ${
-              activeTab === 'sql' ? 'bg-[#d4a338] text-zinc-950' : 'text-zinc-400 hover:text-white'
+              activeTab === 'sql' ? 'bg-[#d4a338] text-zinc-950 font-black' : 'text-zinc-400 hover:text-white'
             }`}
           >
             <Code size={16} />
@@ -455,7 +592,152 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
           </div>
         )}
 
-        {/* TAB 2: Supabase Schema & RLS */}
+        {/* TAB 2: Client & Barber Accounts List */}
+        {activeTab === 'accounts' && (
+          <div className="space-y-6">
+            <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Key size={20} className="text-[#d4a338]" />
+                    Contas e Acessos de Clientes (Owners & Barbeiros)
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Credenciais vinculadas estritamente ao <code className="text-[#d4a338] bg-zinc-950 px-1 py-0.5 rounded">company_id</code> de cada barbearia.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setAccessForm({
+                      companyId: shops[0]?.id || 'shop-rogerx',
+                      name: '',
+                      email: '',
+                      password: 'owner' + Math.floor(100 + Math.random() * 900),
+                      phone: '+351 '
+                    });
+                    setIsCreateAccessModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0"
+                >
+                  <Plus size={16} />
+                  + Criar Acesso do Cliente
+                </button>
+              </div>
+
+              {/* Table of Accounts */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-zinc-300">
+                  <thead className="bg-zinc-950/60 text-zinc-500 uppercase font-black text-[10px] tracking-wider border-b border-zinc-800">
+                    <tr>
+                      <th className="px-6 py-3.5">Nome / Titular</th>
+                      <th className="px-6 py-3.5">Email de Login</th>
+                      <th className="px-6 py-3.5">Barbearia Vinculada</th>
+                      <th className="px-6 py-3.5">Nível / Role</th>
+                      <th className="px-6 py-3.5">Senha Provisória</th>
+                      <th className="px-6 py-3.5 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800/60">
+                    {tenantAccounts.map(acc => {
+                      const shop = shops.find(s => s.id === acc.companyId);
+                      const isOwner = acc.role === 'owner';
+
+                      return (
+                        <tr key={acc.uid} className="hover:bg-zinc-800/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                                isOwner ? 'bg-[#d4a338]/20 text-[#d4a338]' : 'bg-blue-500/20 text-blue-400'
+                              }`}>
+                                {isOwner ? <Shield size={14} /> : <Scissors size={14} />}
+                              </div>
+                              <div>
+                                <span className="font-bold text-white text-sm block">{acc.name}</span>
+                                {acc.phone && <span className="text-[11px] text-zinc-400">{acc.phone}</span>}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4 font-mono text-zinc-200">
+                            {acc.email}
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <span className="font-semibold text-white">
+                              {shop?.name || acc.companyName || acc.companyId}
+                            </span>
+                            <span className="block text-[10px] text-zinc-500 font-mono">
+                              ID: {acc.companyId}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              isOwner 
+                                ? 'bg-amber-500/10 text-[#d4a338] border border-amber-500/30' 
+                                : 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                            }`}>
+                              {isOwner ? 'Dono (Owner)' : 'Barbeiro'}
+                            </span>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <code className="bg-zinc-950 px-2 py-1 rounded border border-zinc-800 text-amber-200 font-mono text-xs">
+                              {acc.password || '••••••••'}
+                            </code>
+                          </td>
+
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleCopyAccessCredentials(acc)}
+                                className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                                title="Copiar Credenciais de Acesso"
+                              >
+                                {copiedAccountUid === acc.uid ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                                {copiedAccountUid === acc.uid ? 'Copiado' : 'Copiar'}
+                              </button>
+
+                              {isOwner && (
+                                <button
+                                  onClick={() => handleLoginAsOwner(acc)}
+                                  className="px-2.5 py-1.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 rounded-lg text-xs font-black transition-colors flex items-center gap-1"
+                                  title="Acessar Painel como este Dono"
+                                >
+                                  <LogIn size={13} />
+                                  Entrar
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => handleDeleteAccount(acc.uid, acc.name)}
+                                className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors rounded-lg hover:bg-zinc-800"
+                                title="Remover Acesso"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {tenantAccounts.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
+                          Nenhum acesso de cliente cadastrado ainda. Clique em "+ Criar Acesso do Cliente" acima para gerar o primeiro acesso.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: Supabase Schema & RLS */}
         {activeTab === 'sql' && (
           <div className="space-y-6">
             <div className="bg-zinc-900/70 border border-zinc-800 p-6 rounded-2xl space-y-4">
@@ -652,6 +934,139 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
                 >
                   <Plus size={16} />
                   Criar Barbearia & Ativar Link
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: + Criar Acesso do Cliente (Owner) */}
+      {isCreateAccessModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#d4a338]/20 text-[#d4a338] flex items-center justify-center font-black">
+                  <Shield size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Criar Acesso do Cliente</h3>
+                  <p className="text-xs text-zinc-400">Gera credenciais de Dono (Owner) vinculadas ao tenant</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCreateAccessModalOpen(false)}
+                className="text-zinc-400 hover:text-white text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateClientAccess} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Barbearia / Empresa (Tenant)
+                </label>
+                <select
+                  value={accessForm.companyId}
+                  onChange={e => setAccessForm({ ...accessForm, companyId: e.target.value })}
+                  className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-[#d4a338]"
+                  required
+                >
+                  <option value="">Selecione uma Barbearia...</option>
+                  {shops.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} (/{s.slug})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Nome do Dono / Responsável
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: Roger Santos"
+                  value={accessForm.name}
+                  onChange={e => setAccessForm({ ...accessForm, name: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#d4a338]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                  Email de Login (Acesso ao Painel)
+                </label>
+                <input
+                  type="email"
+                  placeholder="Ex: roger@rogerxbarbershop.pt"
+                  value={accessForm.email}
+                  onChange={e => setAccessForm({ ...accessForm, email: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#d4a338]"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                    Senha Provisória
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: rogerx2026"
+                    value={accessForm.password}
+                    onChange={e => setAccessForm({ ...accessForm, password: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#d4a338]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                    WhatsApp / Telefone
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+351 912 345 678"
+                    value={accessForm.phone}
+                    onChange={e => setAccessForm({ ...accessForm, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#d4a338]"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-zinc-950/70 border border-zinc-800/80 rounded-xl text-[11px] text-zinc-400 space-y-1">
+                <p className="font-bold text-amber-300 flex items-center gap-1.5">
+                  <ShieldCheck size={14} />
+                  Permissões do Usuário Criado:
+                </p>
+                <p>
+                  • Acesso completo como <strong>Dono (Owner)</strong> ao Painel da Barbearia selecionada.
+                </p>
+                <p>
+                  • Isolamento estrito por <code className="text-[#d4a338]">company_id</code>: não tem acesso a dados de outras empresas.
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateAccessModalOpen(false)}
+                  className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+                >
+                  <Key size={16} />
+                  Gerar Acesso & Salvar
                 </button>
               </div>
             </form>

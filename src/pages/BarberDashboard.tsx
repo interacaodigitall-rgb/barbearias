@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { appointmentService } from '../services/appointmentService';
 import { firestoreService } from '../services/firestoreService';
+import { saasService } from '../services/saasService';
 import { Appointment, Service, Barber, User } from '../models';
-import { Calendar, Clock, Scissors, CheckCircle, XCircle, DollarSign, Phone, Mail } from 'lucide-react';
+import { Calendar, Clock, Scissors, CheckCircle, XCircle, DollarSign, Phone, Mail, User as UserIcon, Shield, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -15,9 +16,10 @@ export default function BarberDashboard() {
   const [barberProfile, setBarberProfile] = useState<Barber | null>(null);
   const [loading, setLoading] = useState(true);
   const [newCancellations, setNewCancellations] = useState<Appointment[]>([]);
-  const [viewMode, setViewMode] = useState<'mine' | 'all'>('mine');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+
+  const activeShop = saasService.getActiveBarbershop();
 
   const handleCancel = async () => {
     if (!cancellingId || !cancelReason.trim()) return;
@@ -44,52 +46,72 @@ export default function BarberDashboard() {
       const sMap = sList.reduce((acc, s) => ({ ...acc, [s.id]: s }), {});
       const uMap = uList.reduce((acc, u) => ({ ...acc, [u.uid]: u }), {});
       
-      // Find barber profile
-      const profile = bList.find(b => b.id === user.uid || (user.uid === 'demo-barber' && b.id === 'b1'));
+      // Match barber profile strictly to this authenticated barber user
+      const profile = bList.find(b => 
+        (user.barberId && b.id === user.barberId) ||
+        b.id === user.uid ||
+        (user.name && b.name.toLowerCase() === user.name.toLowerCase()) ||
+        (user.email && b.name && user.email.toLowerCase().includes(b.name.toLowerCase().replace(/[^a-z0-9]/g, ''))) ||
+        (user.uid === 'demo-barber' && (b.id === 'b1' || b.id === 'b-rogerx-roger'))
+      ) || bList[0];
+
       setBarberProfile(profile || null);
 
-      // Filter appointments for this barber
-      const barberAppts = appts.filter(a => a.barberId === user.uid || (user.uid === 'demo-barber' && a.barberId === 'b1'));
+      // Target barber ID for strict individual isolation
+      const targetBarberId = profile?.id || user.barberId || user.uid;
+
+      // Filter appointments ESTRITAMENTE for this barber
+      const barberAppts = appts.filter(a => 
+        a.barberId === targetBarberId || 
+        (user.barberId && a.barberId === user.barberId) ||
+        (user.uid === 'demo-barber' && (a.barberId === 'b1' || a.barberId === 'b-rogerx-roger'))
+      );
       
       // Check for recent cancellations
       const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-      const recentCancellations = (viewMode === 'all' ? appts : barberAppts).filter(a => a.status === 'cancelled' && a.createdAt > tenMinutesAgo);
+      const recentCancellations = barberAppts.filter(a => a.status === 'cancelled' && a.createdAt > tenMinutesAgo);
       setNewCancellations(recentCancellations);
 
       setServices(sMap);
       setCustomers(uMap);
-      setAppointments(viewMode === 'all' ? appts : barberAppts);
+      setAppointments(barberAppts);
       setLoading(false);
     }
     loadData();
-  }, [user, viewMode]);
+  }, [user]);
 
   const handleStatusUpdate = async (id: string, status: Appointment['status'], customerId: string) => {
     await appointmentService.updateAppointmentStatus(id, status, customerId);
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
   };
 
+  const commissionPercent = barberProfile?.compensationValue || (user as any)?.commissionPercent || 50;
+
+  const completedAppts = appointments.filter(a => a.status === 'completed');
+  const completedRevenue = completedAppts.reduce((sum, appt) => {
+    const service = services[appt.serviceId];
+    return sum + (service?.price || 0);
+  }, 0);
+
   const calculateEarnings = () => {
-    if (!barberProfile) return 0;
-    
-    if (barberProfile.compensationType === 'salary') {
+    if (barberProfile?.compensationType === 'salary') {
       return barberProfile.compensationValue;
     }
-
-    // Calculate percentage based on completed appointments
-    const completedAppts = appointments.filter(a => a.status === 'completed' && (a.barberId === user?.uid || (user?.uid === 'demo-barber' && a.barberId === 'b1')));
-    const totalRevenue = completedAppts.reduce((sum, appt) => {
-      const service = services[appt.serviceId];
-      return sum + (service?.price || 0);
-    }, 0);
-
-    return (totalRevenue * barberProfile.compensationValue) / 100;
+    return (completedRevenue * commissionPercent) / 100;
   };
 
-  if (loading && appointments.length === 0) return <div className="flex justify-center items-center h-full">Carregando Agenda...</div>;
+  if (loading && appointments.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64 text-zinc-500 font-medium">
+        Carregando sua agenda individual...
+      </div>
+    );
+  }
+
+  const barberDisplayName = barberProfile?.name || user?.name || 'Barbeiro Profissional';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8 pb-20">
       {/* Cancellation Notifications */}
       {newCancellations.length > 0 && (
         <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full">
@@ -114,163 +136,228 @@ export default function BarberDashboard() {
         </div>
       )}
 
-      {/* Earnings Summary */}
-      {barberProfile && (
-        <div className="bg-zinc-900 text-white p-6 rounded-3xl shadow-sm flex items-center justify-between">
+      {/* Individual Barber Header Card */}
+      <div className="bg-zinc-950 text-white p-6 md:p-8 rounded-3xl border border-zinc-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#d4a338]/20 border border-[#d4a338]/30 flex items-center justify-center overflow-hidden shrink-0">
+            {barberProfile?.photoUrl ? (
+              <img src={barberProfile.photoUrl} alt={barberDisplayName} className="w-full h-full object-cover" />
+            ) : (
+              <Scissors size={28} className="text-[#d4a338]" />
+            )}
+          </div>
           <div>
-            <p className="text-zinc-400 text-sm font-medium mb-1">
-              {barberProfile.compensationType === 'salary' ? 'Salário Fixo' : 'Ganhos (Comissão)'}
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#d4a338] text-zinc-950">
+                Barbeiro Oficial
+              </span>
+              <span className="text-xs text-zinc-400">@{activeShop.name}</span>
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">{barberDisplayName}</h2>
+            <p className="text-xs text-zinc-400">
+              Painel Individual • Acesso restrito e exclusivo à sua agenda de atendimentos.
             </p>
-            <h3 className="text-3xl font-bold tracking-tight">€{calculateEarnings().toFixed(2)}</h3>
-            <p className="text-xs text-zinc-500 mt-1">
-              {barberProfile.compensationType === 'percentage' 
-                ? `${barberProfile.compensationValue}% sobre serviços concluídos` 
-                : 'Valor fixo mensal'}
-            </p>
-          </div>
-          <div className="p-4 bg-zinc-800 rounded-2xl">
-            <DollarSign size={32} className="text-zinc-300" />
           </div>
         </div>
-      )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">Minha Agenda</h2>
-          <p className="text-zinc-500 text-sm md:text-base">Visualize e gerencie seus atendimentos.</p>
-        </div>
-        <div className="flex bg-white border border-zinc-200 p-1 rounded-2xl shadow-sm self-start md:self-center">
-          <button 
-            onClick={() => setViewMode('mine')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'mine' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            Meus
-          </button>
-          <button 
-            onClick={() => setViewMode('all')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'all' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            Todos
-          </button>
+        <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-2xl flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+            <TrendingUp size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-bold text-zinc-400">Taxa de Comissão</p>
+            <p className="text-lg font-bold text-[#d4a338]">{commissionPercent}% <span className="text-xs font-normal text-zinc-400">por corte</span></p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        {appointments.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-zinc-100 shadow-sm">
-            <Calendar size={48} className="mx-auto text-zinc-300 mb-4" />
-            <h3 className="text-lg font-medium text-zinc-900">Nenhum agendamento</h3>
-            <p className="text-zinc-500">Você não tem atendimentos marcados para hoje.</p>
+      {/* Individual Stat Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Ganhos em Comissões</span>
+            <h3 className="text-3xl font-black text-zinc-950 mt-1">€{calculateEarnings().toFixed(2)}</h3>
           </div>
-        ) : (
-          appointments.map((appt) => {
-            const service = services[appt.serviceId];
-            const customer = customers[appt.customerId];
-            return (
-              <div key={appt.id} className="bg-white rounded-3xl p-4 md:p-6 shadow-sm border border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                   <div className="bg-zinc-900 text-white p-3 md:p-4 rounded-2xl text-center min-w-[70px] md:min-w-[80px]">
-                    <span className="block text-[10px] font-bold uppercase opacity-60">
-                      {format(new Date(appt.date), 'EEE', { locale: ptBR })}
-                    </span>
-                    <span className="block text-lg md:text-xl font-bold">
-                      {appt.time}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-zinc-900 text-sm md:text-base">{service?.name || 'Serviço'}</h4>
-                    {customer ? (
-                      <div className="mt-1 space-y-0.5">
-                        <p className="text-xs font-medium text-zinc-700">{customer.name}</p>
-                        <p className="text-[10px] text-zinc-500 flex items-center"><Phone size={10} className="mr-1" /> {customer.phone}</p>
-                        <p className="text-[10px] text-zinc-500 flex items-center"><Mail size={10} className="mr-1" /> {customer.email}</p>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-zinc-500 mt-1">Cliente: {appt.customerId.slice(0, 8)}</p>
-                    )}
-                  </div>
-                </div>
+          <p className="text-xs text-emerald-600 font-medium mt-3 flex items-center gap-1">
+            <CheckCircle size={13} />
+            {barberProfile?.compensationType === 'salary' 
+              ? 'Salário fixo acordado' 
+              : `${commissionPercent}% sobre cortes concluídos`}
+          </p>
+        </div>
 
-                <div className="flex items-center justify-between md:justify-end space-x-3 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-zinc-50">
-                  <div className="text-left md:text-right">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold border ${
-                      appt.status === 'completed' ? 'bg-green-50 text-green-700 border-green-100' :
-                      appt.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-100' :
-                      appt.status === 'confirmed' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                      'bg-yellow-50 text-yellow-700 border-yellow-200'
-                    }`}>
-                      {appt.status}
-                    </span>
-                    {appt.status === 'cancelled' && appt.cancellationReason && (
-                      <p className="text-[10px] text-red-400 mt-1 italic max-w-[120px] truncate" title={appt.cancellationReason}>
-                        Motivo: {appt.cancellationReason}
-                      </p>
-                    )}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Cortes Concluídos</span>
+            <h3 className="text-3xl font-black text-zinc-950 mt-1">{completedAppts.length}</h3>
+          </div>
+          <p className="text-xs text-zinc-500 mt-3">
+            Faturamento bruto gerado: <strong>€{completedRevenue.toFixed(2)}</strong>
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex flex-col justify-between">
+          <div>
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Agendamentos na Agenda</span>
+            <h3 className="text-3xl font-black text-zinc-950 mt-1">{appointments.length}</h3>
+          </div>
+          <p className="text-xs text-zinc-500 mt-3">
+            Pendentes / Confirmados: <strong>{appointments.filter(a => a.status !== 'completed' && a.status !== 'cancelled').length}</strong>
+          </p>
+        </div>
+      </div>
+
+      {/* Appointments List Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-bold tracking-tight text-zinc-900">Sua Agenda de Atendimentos</h3>
+            <p className="text-xs text-zinc-500">Exibindo exclusivamente clientes agendados com você.</p>
+          </div>
+          <span className="text-xs font-mono font-bold bg-zinc-100 text-zinc-700 px-3 py-1 rounded-full border border-zinc-200">
+            {appointments.length} {appointments.length === 1 ? 'cliente' : 'clientes'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {appointments.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-zinc-100 shadow-sm space-y-3">
+              <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-800 flex items-center justify-center mx-auto">
+                <Calendar size={32} />
+              </div>
+              <h4 className="text-base font-bold text-zinc-900">Nenhum agendamento marcado</h4>
+              <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+                Você ainda não possui atendimentos na sua agenda. Assim que um cliente selecionar seu perfil na barbearia, ele aparecerá aqui automaticamente.
+              </p>
+            </div>
+          ) : (
+            appointments.map((appt) => {
+              const service = services[appt.serviceId];
+              const customer = customers[appt.customerId];
+              const servicePrice = service?.price || 0;
+              const cutCommission = (servicePrice * commissionPercent) / 100;
+
+              return (
+                <div key={appt.id} className="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-zinc-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-amber-200 transition-all">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-zinc-950 text-white p-3 md:p-4 rounded-2xl text-center min-w-[70px] md:min-w-[80px] shadow-sm">
+                      <span className="block text-[10px] font-bold uppercase tracking-wider text-[#d4a338]">
+                        {format(new Date(appt.date), 'EEE', { locale: ptBR })}
+                      </span>
+                      <span className="block text-lg md:text-xl font-bold">
+                        {appt.time}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-zinc-900 text-sm md:text-base">{service?.name || 'Corte'}</h4>
+                        <span className="text-xs font-mono font-bold text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-md">
+                          €{servicePrice.toFixed(2)}
+                        </span>
+                      </div>
+                      {customer ? (
+                        <div className="mt-1 space-y-0.5">
+                          <p className="text-xs font-semibold text-zinc-800">{customer.name}</p>
+                          <p className="text-[11px] text-zinc-500 flex items-center"><Phone size={11} className="mr-1" /> {customer.phone || 'Sem telefone'}</p>
+                          <p className="text-[11px] text-zinc-500 flex items-center"><Mail size={11} className="mr-1" /> {customer.email}</p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-zinc-500 mt-1">Cliente ID: {appt.customerId.slice(0, 8)}</p>
+                      )}
+                      
+                      <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                        <span>Sua comissão:</span>
+                        <strong className="text-amber-950">€{cutCommission.toFixed(2)}</strong>
+                        <span className="text-amber-700 font-normal">({commissionPercent}%)</span>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="flex gap-2">
-                    {appt.status === 'confirmed' && (
-                      <button 
-                        onClick={() => handleStatusUpdate(appt.id, 'completed', appt.customerId)}
-                        className="p-2 bg-green-900 text-white rounded-xl hover:bg-green-800 transition-colors"
-                        title="Concluir Atendimento"
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    )}
-                    {appt.status === 'pending' && (
-                      <button 
-                        onClick={() => handleStatusUpdate(appt.id, 'confirmed', appt.customerId)}
-                        className="p-2 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 transition-colors"
-                        title="Confirmar"
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                    )}
-                    {(appt.status === 'pending' || appt.status === 'confirmed') && (
-                      <button 
-                        onClick={() => setCancellingId(appt.id)}
-                        className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
-                        title="Desmarcar"
-                      >
-                        <XCircle size={18} />
-                      </button>
-                    )}
+
+                  <div className="flex items-center justify-between md:justify-end space-x-3 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-zinc-100">
+                    <div className="text-left md:text-right">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
+                        appt.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        appt.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                        appt.status === 'confirmed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        'bg-amber-50 text-amber-800 border-amber-200'
+                      }`}>
+                        {appt.status === 'completed' ? 'Concluído' :
+                         appt.status === 'cancelled' ? 'Cancelado' :
+                         appt.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                      </span>
+                      {appt.status === 'cancelled' && appt.cancellationReason && (
+                        <p className="text-[10px] text-red-500 mt-1 italic max-w-[140px] truncate" title={appt.cancellationReason}>
+                          Motivo: {appt.cancellationReason}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      {appt.status === 'confirmed' && (
+                        <button 
+                          onClick={() => handleStatusUpdate(appt.id, 'completed', appt.customerId)}
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                          title="Concluir Atendimento"
+                        >
+                          <CheckCircle size={15} />
+                          Concluir
+                        </button>
+                      )}
+                      {appt.status === 'pending' && (
+                        <button 
+                          onClick={() => handleStatusUpdate(appt.id, 'confirmed', appt.customerId)}
+                          className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                          title="Confirmar"
+                        >
+                          <CheckCircle size={15} />
+                          Confirmar
+                        </button>
+                      )}
+                      {(appt.status === 'pending' || appt.status === 'confirmed') && (
+                        <button 
+                          onClick={() => setCancellingId(appt.id)}
+                          className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-colors"
+                          title="Cancelar Atendimento"
+                        >
+                          <XCircle size={18} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Cancellation Modal */}
       {cancellingId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60] backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-            <h3 className="text-2xl font-bold text-zinc-900 mb-2">Cancelar Agendamento</h3>
-            <p className="text-zinc-500 mb-6">Por favor, informe o motivo do cancelamento.</p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60] backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-zinc-900 mb-2">Cancelar Atendimento</h3>
+            <p className="text-xs text-zinc-500 mb-4">Por favor, informe o motivo do cancelamento para o cliente.</p>
             
             <textarea
-              className="w-full h-32 p-4 rounded-2xl border border-zinc-200 focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none resize-none mb-6"
-              placeholder="Motivo do cancelamento..."
+              className="w-full h-28 p-3 rounded-xl border border-zinc-200 text-xs focus:ring-2 focus:ring-zinc-900 outline-none resize-none mb-4"
+              placeholder="Ex: Imprevisto com horário, cliente remarcou..."
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
             />
             
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 onClick={() => setCancellingId(null)}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-zinc-500 hover:bg-zinc-100 transition-colors"
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors"
               >
                 Voltar
               </button>
               <button
                 onClick={handleCancel}
                 disabled={!cancelReason.trim()}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
               >
-                Confirmar
+                Confirmar Cancelamento
               </button>
             </div>
           </div>

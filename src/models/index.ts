@@ -5,6 +5,7 @@ export interface User {
   phone: string;
   role: 'customer' | 'barber' | 'admin' | 'owner' | 'superadmin';
   companyId?: string;
+  barberId?: string;
   photoUrl?: string;
   createdAt: number;
 }

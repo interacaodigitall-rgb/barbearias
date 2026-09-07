@@ -3,7 +3,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc, addDoc, getDoc 
 import { Service, Barber, CompanySettings, User, BlockedTime } from '../models';
 import { useAuthStore } from '../store/authStore';
 import { demoServices, demoBarbers, demoCompanySettings, rogerXBarbers, rogerXServices } from '../models/demoData';
-import { saasService } from './saasService';
+import { saasService, saveCustomBarbersForShop, getCustomBarbersForShop, saveCustomServicesForShop, getCustomServicesForShop } from './saasService';
 
 const DEMO_SERVICES_KEY = 'barbearia_demo_services';
 const DEMO_BARBERS_KEY = 'barbearia_demo_barbers';
@@ -29,7 +29,7 @@ const getDemoBarbers = (): Barber[] => {
         const photoUrl = demoBarber.photoUrl;
         return { 
           ...b, 
-          name: demoBarber.name, // Override name
+          name: demoBarber.name,
           photoUrl: photoUrl?.startsWith('/') ? photoUrl.replace('.png', '.webp').toLowerCase() : photoUrl
         };
       }
@@ -87,112 +87,97 @@ export const firestoreService = {
   },
 
   async getServices(shopIdOrSlug?: string): Promise<Service[]> {
-    if (useAuthStore.getState().isDemo) {
-      if (shopIdOrSlug) {
-        return saasService.getServicesForShop(shopIdOrSlug);
-      }
-      return getDemoServices();
-    }
-    const snapshot = await getDocs(collection(db, 'services'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Service));
+    const target = shopIdOrSlug || saasService.getActiveBarbershop().slug;
+    return saasService.getServicesForShop(target);
   },
 
-  async addService(service: Omit<Service, 'id'>): Promise<Service> {
-    if (useAuthStore.getState().isDemo) {
-      const services = getDemoServices();
-      const newService = { ...service, id: `s-${Date.now()}` };
-      saveDemoServices([...services, newService]);
-      return newService;
-    }
-    const docRef = await addDoc(collection(db, 'services'), service);
-    return { id: docRef.id, ...service } as Service;
+  async addService(service: Omit<Service, 'id'>, shopIdOrSlug?: string): Promise<Service> {
+    const target = shopIdOrSlug || service.companyId || saasService.getActiveBarbershop().slug;
+    const newService: Service = {
+      ...service,
+      id: `s-${Date.now()}`
+    };
+    const current = await saasService.getServicesForShop(target);
+    const updated = [...current, newService];
+    saveCustomServicesForShop(target, updated);
+    return newService;
   },
 
-  async updateService(id: string, service: Partial<Service>): Promise<void> {
-    if (useAuthStore.getState().isDemo) {
-      const services = getDemoServices();
-      const updated = services.map(s => s.id === id ? { ...s, ...service } : s);
-      saveDemoServices(updated);
-      return;
-    }
-    await updateDoc(doc(db, 'services', id), service);
+  async updateService(id: string, service: Partial<Service>, shopIdOrSlug?: string): Promise<void> {
+    const target = shopIdOrSlug || saasService.getActiveBarbershop().slug;
+    const current = await saasService.getServicesForShop(target);
+    const updated = current.map(s => s.id === id ? { ...s, ...service } : s);
+    saveCustomServicesForShop(target, updated);
   },
 
-  async deleteService(id: string): Promise<void> {
-    if (useAuthStore.getState().isDemo) {
-      const services = getDemoServices();
-      saveDemoServices(services.filter(s => s.id !== id));
-      return;
-    }
-    await deleteDoc(doc(db, 'services', id));
+  async deleteService(id: string, shopIdOrSlug?: string): Promise<void> {
+    const target = shopIdOrSlug || saasService.getActiveBarbershop().slug;
+    const current = await saasService.getServicesForShop(target);
+    const updated = current.filter(s => s.id !== id);
+    saveCustomServicesForShop(target, updated);
   },
 
   async getBarbers(shopIdOrSlug?: string): Promise<Barber[]> {
-    if (useAuthStore.getState().isDemo) {
-      if (shopIdOrSlug) {
-        return saasService.getBarbersForShop(shopIdOrSlug);
-      }
-      return getDemoBarbers();
-    }
-    const snapshot = await getDocs(collection(db, 'barbers'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Barber));
+    const target = shopIdOrSlug || saasService.getActiveBarbershop().slug;
+    return saasService.getBarbersForShop(target);
   },
 
   async getUsers(): Promise<User[]> {
-    if (useAuthStore.getState().isDemo) {
-      return [
-        {
-          uid: 'demo-customer',
-          name: 'Cliente Demo',
-          email: 'cliente@demo.com',
-          phone: '123456789',
-          role: 'customer',
-          createdAt: Date.now(),
-        }
-      ];
-    }
-    const snapshot = await getDocs(collection(db, 'users'));
-    return snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as User));
+    const tenantAccounts = saasService.getTenantAccounts();
+    const mappedAccounts: User[] = tenantAccounts.map(a => ({
+      uid: a.uid,
+      name: a.name,
+      email: a.email,
+      phone: a.phone || '',
+      role: a.role,
+      companyId: a.companyId,
+      barberId: a.barberId,
+      createdAt: a.createdAt
+    }));
+
+    return [
+      {
+        uid: 'demo-customer',
+        name: 'Cliente Demo',
+        email: 'cliente@demo.com',
+        phone: '123456789',
+        role: 'customer',
+        createdAt: Date.now(),
+      },
+      ...mappedAccounts
+    ];
   },
 
-  async addBarber(barber: Omit<Barber, 'id'>): Promise<Barber> {
-    const processedBarber = {
+  async addBarber(barber: Omit<Barber, 'id'>, shopIdOrSlug?: string): Promise<Barber> {
+    const target = shopIdOrSlug || barber.companyId || saasService.getActiveBarbershop().slug;
+    const processedBarber: Barber = {
       ...barber,
+      id: `b-${Date.now()}`,
       photoUrl: barber.photoUrl?.startsWith('/') ? barber.photoUrl.replace('.png', '.webp').toLowerCase() : barber.photoUrl
     };
 
-    if (useAuthStore.getState().isDemo) {
-      const barbers = getDemoBarbers();
-      const newBarber = { ...processedBarber, id: `b-${Date.now()}` };
-      saveDemoBarbers([...barbers, newBarber]);
-      return newBarber;
-    }
-    const docRef = await addDoc(collection(db, 'barbers'), processedBarber);
-    return { id: docRef.id, ...processedBarber } as Barber;
+    const currentBarbers = await saasService.getBarbersForShop(target);
+    const updated = [...currentBarbers, processedBarber];
+    saveCustomBarbersForShop(target, updated);
+    return processedBarber;
   },
 
-  async updateBarber(id: string, barber: Partial<Barber>): Promise<void> {
-    const processedBarber = {
+  async updateBarber(id: string, barber: Partial<Barber>, shopIdOrSlug?: string): Promise<void> {
+    const target = shopIdOrSlug || saasService.getActiveBarbershop().slug;
+    const currentBarbers = await saasService.getBarbersForShop(target);
+    const updated = currentBarbers.map(b => b.id === id ? {
+      ...b,
       ...barber,
-      photoUrl: barber.photoUrl?.startsWith('/') ? barber.photoUrl.replace('.png', '.webp').toLowerCase() : barber.photoUrl
-    };
-
-    if (useAuthStore.getState().isDemo) {
-      const barbers = getDemoBarbers();
-      const updated = barbers.map(b => b.id === id ? { ...b, ...processedBarber } : b);
-      saveDemoBarbers(updated);
-      return;
-    }
-    await updateDoc(doc(db, 'barbers', id), processedBarber);
+      photoUrl: barber.photoUrl?.startsWith('/') ? barber.photoUrl.replace('.png', '.webp').toLowerCase() : (barber.photoUrl || b.photoUrl)
+    } : b);
+    saveCustomBarbersForShop(target, updated);
   },
 
-  async deleteBarber(id: string): Promise<void> {
-    if (useAuthStore.getState().isDemo) {
-      const barbers = getDemoBarbers();
-      saveDemoBarbers(barbers.filter(b => b.id !== id));
-      return;
-    }
-    await deleteDoc(doc(db, 'barbers', id));
+  async deleteBarber(id: string, shopIdOrSlug?: string): Promise<void> {
+    const target = shopIdOrSlug || saasService.getActiveBarbershop().slug;
+    const currentBarbers = await saasService.getBarbersForShop(target);
+    const updated = currentBarbers.filter(b => b.id !== id);
+    saveCustomBarbersForShop(target, updated);
   },
 
   async getCompanySettings(): Promise<CompanySettings | null> {
