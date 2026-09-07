@@ -9,7 +9,8 @@ const SESSION_KEY = 'barbersaas_current_session';
 
 export const authService = {
   async register(email: string, password: string, name: string, phone: string) {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const cleanEmail = email.toLowerCase().trim();
+    let userUid = 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     
     const barberEmails = [
       'barbeiro01@sherlocks.pt',
@@ -21,21 +22,44 @@ export const authService = {
     ];
     
     let role: 'customer' | 'admin' | 'barber' | 'owner' = 'customer';
-    if (email.toLowerCase() === 'adm@sherlocks.pt') {
+    if (cleanEmail === 'adm@sherlocks.pt') {
       role = 'admin';
-    } else if (barberEmails.includes(email.toLowerCase())) {
+    } else if (barberEmails.includes(cleanEmail)) {
       role = 'barber';
     }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      userUid = userCredential.user.uid;
+    } catch (authErr: any) {
+      if (authErr.code === 'auth/email-already-in-use') {
+        throw new Error('Este e-mail já está cadastrado. Faça login para acessar.');
+      } else if (authErr.code === 'auth/weak-password') {
+        throw new Error('A senha deve ter pelo menos 6 caracteres.');
+      } else if (authErr.code === 'auth/invalid-email') {
+        throw new Error('Formato de e-mail inválido.');
+      }
+      console.warn('Firebase Auth creation warning on mobile, proceeding with session:', authErr);
+    }
     
+    const activeShop = saasService.getActiveBarbershop();
+
     const user: User = {
-      uid: userCredential.user.uid,
+      uid: userUid,
       name,
-      email,
+      email: cleanEmail,
       phone,
       role,
+      companyId: activeShop?.id || 'shop-rogerx',
       createdAt: Date.now(),
     };
-    await setDoc(doc(db, 'users', user.uid), user);
+
+    try {
+      await setDoc(doc(db, 'users', user.uid), user, { merge: true });
+    } catch (dbErr) {
+      console.warn('Firestore setDoc warning on register:', dbErr);
+    }
+
     useAuthStore.getState().setUser(user, false);
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
@@ -88,19 +112,50 @@ export const authService = {
     }
 
     // 2. Otherwise authenticate via Firebase Auth
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-    const user = userDoc.data() as User;
-    
-    // Auto-promote to admin if it's the admin email
-    if (user.email.toLowerCase() === 'adm@sherlocks.pt' && user.role !== 'admin') {
-      user.role = 'admin';
-      await setDoc(doc(db, 'users', user.uid), { role: 'admin' }, { merge: true });
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      let user: User | null = null;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+        if (userDoc.exists()) {
+          user = userDoc.data() as User;
+        }
+      } catch (docErr) {
+        console.warn('Could not fetch user document from Firestore:', docErr);
+      }
+
+      if (!user) {
+        user = {
+          uid: userCredential.user.uid,
+          name: cleanEmail.split('@')[0],
+          email: cleanEmail,
+          phone: '',
+          role: cleanEmail === 'adm@sherlocks.pt' ? 'admin' : 'customer',
+          createdAt: Date.now()
+        };
+      }
+
+      // Auto-promote to admin if it's the admin email
+      if (cleanEmail === 'adm@sherlocks.pt' && user.role !== 'admin') {
+        user.role = 'admin';
+        try {
+          await setDoc(doc(db, 'users', user.uid), { role: 'admin' }, { merge: true });
+        } catch {}
+      }
+
+      useAuthStore.getState().setUser(user, false);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      return user;
+    } catch (authErr: any) {
+      if (authErr.code === 'auth/user-not-found' || authErr.code === 'auth/wrong-password' || authErr.code === 'auth/invalid-credential') {
+        throw new Error('E-mail ou senha incorretos.');
+      } else if (authErr.code === 'auth/invalid-email') {
+        throw new Error('E-mail em formato inválido.');
+      } else if (authErr.code === 'auth/too-many-requests') {
+        throw new Error('Muitas tentativas malsucedidas. Tente novamente mais tarde.');
+      }
+      throw new Error(authErr.message || 'Erro ao realizar login.');
     }
-    
-    useAuthStore.getState().setUser(user, false);
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return user;
   },
 
   async loginDirect(user: User) {

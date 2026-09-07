@@ -1,5 +1,4 @@
 import { CashFlowTransaction, Appointment, Barber, Service } from '../models';
-import { demoCashFlowTransactions } from '../models/demoData';
 import { useAuthStore } from '../store/authStore';
 import { saasService } from './saasService';
 
@@ -19,72 +18,19 @@ const getStoredTransactions = (): CashFlowTransaction[] => {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      if (Array.isArray(parsed)) {
+        // Filter out old fake seed transactions if present
+        return parsed.filter(t => !t.id.startsWith('seed-tx') && !t.id.startsWith('tx-demo'));
       }
     } catch {
-      return demoCashFlowTransactions;
+      return [];
     }
   }
-  return demoCashFlowTransactions;
+  return [];
 };
 
 const saveStoredTransactions = (txs: CashFlowTransaction[]) => {
   localStorage.setItem(CASH_FLOW_KEY, JSON.stringify(txs));
-};
-
-const generateInitialSeedForShop = (targetShopId: string): CashFlowTransaction[] => {
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-  return [
-    {
-      id: `seed-tx-${targetShopId}-1`,
-      barbershopId: targetShopId,
-      type: 'income',
-      category: 'service',
-      description: 'Corte + Barba de Exemplo',
-      amount: 18.00,
-      date: today,
-      paymentMethod: 'mbway',
-      barberName: 'Barbeiro Principal',
-      createdAt: Date.now() - 7200000
-    },
-    {
-      id: `seed-tx-${targetShopId}-2`,
-      barbershopId: targetShopId,
-      type: 'expense',
-      category: 'commission',
-      description: 'Comissão Barbeiro Principal (50%)',
-      amount: 9.00,
-      date: today,
-      paymentMethod: 'transfer',
-      barberName: 'Barbeiro Principal',
-      createdAt: Date.now() - 7100000
-    },
-    {
-      id: `seed-tx-${targetShopId}-3`,
-      barbershopId: targetShopId,
-      type: 'income',
-      category: 'product',
-      description: 'Venda de Pomada Finalizadora',
-      amount: 15.00,
-      date: yesterday,
-      paymentMethod: 'cash',
-      createdAt: Date.now() - 80000000
-    },
-    {
-      id: `seed-tx-${targetShopId}-4`,
-      barbershopId: targetShopId,
-      type: 'expense',
-      category: 'supplies',
-      description: 'Insumos Operacionais e Descartáveis',
-      amount: 30.00,
-      date: yesterday,
-      paymentMethod: 'card',
-      createdAt: Date.now() - 90000000
-    }
-  ];
 };
 
 export const cashFlowService = {
@@ -93,14 +39,6 @@ export const cashFlowService = {
     if (barbershopId) {
       const normTarget = normalizeShopId(barbershopId);
       const filtered = all.filter(t => normalizeShopId(t.barbershopId) === normTarget);
-
-      if (filtered.length === 0) {
-        const seed = generateInitialSeedForShop(barbershopId);
-        const updated = [...all, ...seed];
-        saveStoredTransactions(updated);
-        return seed.sort((a, b) => b.createdAt - a.createdAt);
-      }
-
       return filtered.sort((a, b) => b.createdAt - a.createdAt);
     }
     return all.sort((a, b) => b.createdAt - a.createdAt);

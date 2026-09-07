@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { saasService } from '../services/saasService';
+import { useAuthStore } from '../store/authStore';
 import { SaaSPlan, SaaSBarbershop } from '../models';
 import { 
   Scissors, Smartphone, TrendingUp, DollarSign, Users, Sparkles, Check, 
@@ -34,7 +35,7 @@ const PARTNER_BARBERSHOPS = [
     highlight: '100% digital',
     rating: '5.0',
     initials: 'RX',
-    slug: 'roger-x',
+    slug: 'rogerx-barbershop',
     quote: 'Os clientes adoram o agendamento PWA sem precisar baixar nada da App Store.'
   },
   {
@@ -68,8 +69,17 @@ const PARTNER_BARBERSHOPS = [
 
 export default function SaaSLanding() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [plans] = useState<SaaSPlan[]>(saasService.getPlans());
+
+  useEffect(() => {
+    if (user?.role === 'customer') {
+      const activeShop = saasService.getActiveBarbershop();
+      const targetSlug = activeShop?.slug || 'rogerx-barbershop';
+      navigate(`/${targetSlug}`, { replace: true });
+    }
+  }, [user, navigate]);
   
   // Registration modal
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);

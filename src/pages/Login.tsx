@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { saasService } from '../services/saasService';
 import { User, Shield, Scissors, Users as UsersIcon, Play, Search } from 'lucide-react';
 
 type Role = 'customer' | 'barber' | 'admin';
@@ -12,6 +13,11 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const getCustomerHomePath = () => {
+    const activeShop = saasService.getActiveBarbershop();
+    return activeShop?.slug ? `/${activeShop.slug}` : '/mister-navalha';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +33,7 @@ export default function Login() {
       } else if (user.role === 'barber') {
         navigate('/barber-dashboard');
       } else {
-        navigate('/');
+        navigate(getCustomerHomePath());
       }
     } catch (err: any) {
       const barberEmails = [
@@ -44,11 +50,11 @@ export default function Login() {
           // Attempt to register on first access
           const name = `Barbeiro ${email.match(/\d+/)?.[0] || ''}`;
           await authService.register(email, password, name, '');
-          navigate('/');
+          navigate('/barber-dashboard');
           return;
         } catch (regErr: any) {
           if (regErr.code === 'auth/email-already-in-use') {
-            setError('Senha incorreta. Se esqueceu a senha, contate interacaodigitall@gmail.com');
+            setError('Senha incorreta. Se esqueceu a senha, contate o administrador.');
           } else {
             setError(regErr.message || 'Erro ao fazer login');
           }
@@ -72,7 +78,7 @@ export default function Login() {
     ];
     
     if (barberEmails.includes(email.toLowerCase())) {
-      alert('Para redefinir sua senha de barbeiro, por favor solicite ao administrador pelo e-mail: interacaodigitall@gmail.com');
+      alert('Para redefinir sua senha de barbeiro, por favor solicite ao administrador.');
       return;
     }
     
@@ -92,8 +98,14 @@ export default function Login() {
   const handleDemoLogin = async (demoRole: Role) => {
     setLoading(true);
     try {
-      await authService.loginDemo(demoRole);
-      navigate('/');
+      const user = await authService.loginDemo(demoRole);
+      if (user.role === 'admin' || user.role === 'owner') {
+        navigate('/admin');
+      } else if (user.role === 'barber') {
+        navigate('/barber-dashboard');
+      } else {
+        navigate(getCustomerHomePath());
+      }
     } catch (err: any) {
       setError('Erro ao entrar no modo demo');
     } finally {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { saasService } from '../services/saasService';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -17,7 +18,9 @@ export default function Register() {
     setLoading(true);
     try {
       await authService.register(email, password, name, phone);
-      navigate('/');
+      const activeShop = saasService.getActiveBarbershop();
+      const targetSlug = activeShop?.slug || 'rogerx-barbershop';
+      navigate(`/${targetSlug}`);
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta');
     } finally {
