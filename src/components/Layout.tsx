@@ -62,16 +62,17 @@ export default function Layout() {
     [t('home'), t('booking'), t('appointments'), 'Gestão & Caixa', t('loyalty'), 'Planos SaaS', t('profile'), t('barber_dashboard')].includes(item.name)
   ).slice(0, 5);
 
+  const isSaaSPage = location.pathname === '/' || location.pathname === '/saas';
   const isDashboardRoute = ['/admin', '/barber-dashboard', '/profile', '/appointments'].includes(location.pathname);
   const isFullWidthPage = !isDashboardRoute;
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col overflow-x-hidden">
-      {/* SaaS Global Switcher Bar */}
-      <SaaSHeaderSwitcher />
+    <div className={`min-h-screen flex flex-col overflow-x-hidden ${isSaaSPage ? 'bg-[#0F0F10] text-zinc-100' : 'bg-zinc-50'}`}>
+      {/* SaaS Global Switcher Bar (only shown on internal or client demo pages, hidden on commercial SaaS page) */}
+      {!isSaaSPage && <SaaSHeaderSwitcher />}
 
       {isFullWidthPage ? (
-        <main className="flex-1 w-full max-w-full overflow-x-hidden pb-16 md:pb-0">
+        <main className="flex-1 w-full max-w-full overflow-x-hidden">
           <Outlet />
         </main>
       ) : (
@@ -163,25 +164,27 @@ export default function Layout() {
         </div>
       )}
 
-      {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 flex justify-around p-2 pb-safe z-40 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-        {mobileNavItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-w-[64px] ${
-                isActive ? 'text-zinc-900 bg-zinc-50' : 'text-zinc-400'
-              }`}
-            >
-              <Icon size={20} />
-              <span className="text-[10px] font-bold mt-1 tracking-tight">{item.name}</span>
-            </Link>
-          );
-        })}
-      </div>
+      {/* Mobile Bottom Nav (hidden on SaaS commercial page) */}
+      {!isSaaSPage && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 flex justify-around p-2 pb-safe z-40 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-w-[64px] ${
+                  isActive ? 'text-zinc-900 bg-zinc-50' : 'text-zinc-400'
+                }`}
+              >
+                <Icon size={20} />
+                <span className="text-[10px] font-bold mt-1 tracking-tight">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
