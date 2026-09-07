@@ -912,7 +912,7 @@ export default function Booking() {
             <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/80 text-left text-xs text-zinc-700 space-y-2">
               <div className="flex items-center gap-2 font-bold text-zinc-900">
                 <CheckCircle2 size={16} className="text-[#d4a338] shrink-0" />
-                <span>Ganha pontos em cada euro gasto</span>
+                <span>Ganha pontos em cada {activeShop?.country?.toLowerCase().includes('brasil') || activeShop?.country?.toLowerCase().includes('br') ? 'real' : 'euro'} gasto</span>
               </div>
               <div className="flex items-center gap-2 font-bold text-zinc-900">
                 <CheckCircle2 size={16} className="text-[#d4a338] shrink-0" />

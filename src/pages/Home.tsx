@@ -160,6 +160,10 @@ export default function Home() {
     );
   }
 
+  const isBrazil = activeShop?.country?.toLowerCase().includes('brasil') || activeShop?.country?.toLowerCase().includes('br');
+  const currencyUnit = isBrazil ? 'real' : 'euro';
+  const currencySymbol = isBrazil ? 'R$' : '€';
+
   return (
     <div className="w-full bg-[#eae5db] text-zinc-900 font-sans selection:bg-[#f5ab2b] selection:text-zinc-950 pb-20 md:pb-0">
       {/* ========================================================================= */}
@@ -353,7 +357,7 @@ export default function Home() {
             </div>
 
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-6 max-w-sm">
-              Receba cashback em cada real gasto em nossas barbearias.
+              Receba cashback em cada {currencyUnit} gasto em nossas barbearias.
             </h2>
 
             <p className="text-stone-400 text-xs sm:text-sm leading-relaxed max-w-xs mb-8">
@@ -370,7 +374,7 @@ export default function Home() {
                 <div className="w-full bg-stone-800 rounded-full h-1.5 overflow-hidden">
                   <div className="bg-[#f5ab2b] h-full" style={{ width: `${Math.min(100, (points / 200) * 100)}%` }} />
                 </div>
-                <p className="text-[10px] text-stone-400 mt-2">Equivalente a <strong className="text-white">€ {(points * 0.1).toFixed(2)}</strong> em descontos em serviços ou produtos.</p>
+                <p className="text-[10px] text-stone-400 mt-2">Equivalente a <strong className="text-white">{currencySymbol} {(points * 0.1).toFixed(2)}</strong> em descontos em serviços ou produtos.</p>
               </div>
             ) : null}
 
