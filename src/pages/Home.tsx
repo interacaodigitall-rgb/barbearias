@@ -5,7 +5,7 @@ import { saasService } from '../services/saasService';
 import { appointmentService } from '../services/appointmentService';
 import { loyaltyService } from '../services/loyaltyService';
 import { firestoreService } from '../services/firestoreService';
-import { Appointment, Service, SaaSBarbershop } from '../models';
+import { Appointment, Service, Barber, SaaSBarbershop } from '../models';
 import { barberImages } from '../assets/images/barberImages';
 import { 
   Scissors, 
@@ -23,7 +23,8 @@ import {
   ShieldCheck, 
   User as UserIcon,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Star
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -37,6 +38,8 @@ export default function Home() {
   const [shopNotFound, setShopNotFound] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [points, setPoints] = useState<number>(120);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -66,8 +69,13 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const sList = await firestoreService.getServices();
+        setLoading(true);
+        const [sList, bList] = await Promise.all([
+          firestoreService.getServices(activeShop.slug),
+          firestoreService.getBarbers(activeShop.slug)
+        ]);
         setServices(sList);
+        setBarbers(bList);
 
         if (user) {
           const [appts, pts] = await Promise.all([
@@ -84,7 +92,7 @@ export default function Home() {
       }
     }
     loadData();
-  }, [user]);
+  }, [activeShop.slug, user]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -179,7 +187,7 @@ export default function Home() {
           {/* Right Action & Hamburger Menu Icon */}
           <div className="flex items-center gap-3">
             <Link 
-              to="/booking" 
+              to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`} 
               className="hidden sm:inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg"
             >
               <Scissors size={14} />
@@ -242,7 +250,7 @@ export default function Home() {
 
               {/* Links */}
               <div className="space-y-2 text-sm font-bold tracking-wider uppercase">
-                <Link to="/booking" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b]">
+                <Link to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b]">
                   ✂️ Novo Agendamento
                 </Link>
                 <Link to="/appointments" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
@@ -328,7 +336,7 @@ export default function Home() {
             ) : null}
 
             <Link
-              to="/booking"
+              to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
               className="inline-block px-8 py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-widest transition-transform hover:scale-105 shadow-xl"
             >
               Agendar & Acumular
@@ -574,44 +582,200 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. SERVICES SHOWCASE WIDE BANNER (Matching pc04.png)                      */}
+      {/* 5. SERVICES SHOWCASE & CATEGORIZED CATALOG                                */}
       {/* ========================================================================= */}
-      <section id="services-section" className="relative w-full min-h-[480px] lg:min-h-[560px] bg-zinc-950 flex items-center overflow-hidden">
-        {/* Full-width Barber Interior Photography */}
-        <img 
-          src={barberImages.interiorWide} 
-          alt="Interior Barbearia" 
-          referrerPolicy="no-referrer"
-          className="absolute inset-0 w-full h-full object-cover opacity-60 contrast-125" 
-        />
-        {/* Dark to Transparent Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/95 via-zinc-950/80 to-transparent z-10" />
-
-        {/* Typographic Block (pc04.png) */}
-        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full">
-          <div className="max-w-2xl space-y-1">
-            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight text-white leading-none">
-              CORTE DE CABELO
-            </h3>
-            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight text-[#f5ab2b] leading-none">
-              BARBA
-            </h3>
-            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight text-white leading-none">
-              RELAXAMENTO
-            </h3>
-            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight text-[#f5ab2b] leading-none">
-              HIDRATAÇÃO
-            </h3>
-
-            <div className="pt-8">
-              <button
-                onClick={() => setServicesModalOpen(true)}
-                className="px-8 py-4 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-widest transition-transform hover:scale-105 shadow-2xl inline-block cursor-pointer"
-              >
-                CONHEÇA TODOS OS SERVIÇOS
-              </button>
+      <section id="services-section" className="relative w-full bg-zinc-950 text-white overflow-hidden py-16 md:py-24 border-t border-stone-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 border border-[#f5ab2b]/60 px-4 py-1 text-[11px] font-black tracking-widest text-[#f5ab2b] uppercase mb-4 bg-[#f5ab2b]/10 rounded-full">
+              <Scissors size={13} />
+              Catálogo Oficial de Serviços & Preços
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-3">
+              {activeShop.name}
+            </h2>
+            <p className="text-stone-400 text-sm md:text-base leading-relaxed">
+              {activeShop.tagline || 'Cortes de precisão, barboterapia de alto padrão e cuidados masculinos exclusivos.'}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-4 mt-4 text-xs text-stone-400">
+              <span className="flex items-center gap-1.5 bg-stone-900 border border-stone-800 px-3 py-1.5 rounded-lg">
+                <MapPin size={14} className="text-[#f5ab2b]" />
+                {activeShop.city}, {activeShop.country}
+              </span>
+              <span className="flex items-center gap-1.5 bg-stone-900 border border-stone-800 px-3 py-1.5 rounded-lg">
+                <Clock size={14} className="text-[#f5ab2b]" />
+                Segunda a Sábado | 9h–20h
+              </span>
             </div>
           </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+            {[
+              { id: 'all', label: 'Todos os Serviços' },
+              { id: 'Cortes & Cabelo', label: 'Cortes & Cabelo' },
+              { id: 'Barba & Rosto', label: 'Barba & Rosto' },
+              { id: 'Estética & Rosto', label: 'Estética & Rosto' },
+              { id: 'Combos & Packs', label: 'Combos & Packs' },
+            ].map(cat => {
+              const isActive = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+                    isActive 
+                      ? 'bg-[#f5ab2b] text-zinc-950 shadow-lg shadow-[#f5ab2b]/20 scale-105' 
+                      : 'bg-zinc-900/80 text-stone-400 hover:text-white hover:bg-zinc-800 border border-stone-800'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Services Grid with Direct MARCAÇÃO CTA */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services
+              .filter(s => {
+                if (selectedCategory === 'all') return true;
+                const cat = s.category || (
+                  s.name.toLowerCase().includes('barba') && (s.name.toLowerCase().includes('corte') || s.name.toLowerCase().includes('pack')) ? 'Combos & Packs' :
+                  s.name.toLowerCase().includes('barba') || s.name.toLowerCase().includes('barboterapia') ? 'Barba & Rosto' :
+                  s.name.toLowerCase().includes('pele') || s.name.toLowerCase().includes('sobrancelha') ? 'Estética & Rosto' :
+                  s.name.toLowerCase().includes('pack') ? 'Combos & Packs' : 'Cortes & Cabelo'
+                );
+                return cat === selectedCategory;
+              })
+              .map((service) => (
+                <div 
+                  key={service.id}
+                  className="bg-stone-900/90 hover:bg-stone-900 border border-stone-800 hover:border-[#f5ab2b]/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-black/60 flex flex-col justify-between group"
+                >
+                  <div>
+                    {/* Top Row: Category tag and duration */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#f5ab2b] bg-[#f5ab2b]/10 px-2.5 py-1 rounded-md border border-[#f5ab2b]/20">
+                        {service.category || 'Procedimento'}
+                      </span>
+                      <span className="flex items-center gap-1 text-[11px] font-medium text-stone-400 bg-stone-950 px-2 py-0.5 rounded-md border border-stone-800">
+                        <Clock size={12} className="text-[#f5ab2b]" />
+                        {service.durationMinutes || service.duration || 30} min
+                      </span>
+                    </div>
+
+                    {/* Service Name */}
+                    <h3 className="text-xl font-black text-white group-hover:text-[#f5ab2b] transition-colors mb-2">
+                      {service.name}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-xs text-stone-400 leading-relaxed mb-6">
+                      {service.description || 'Procedimento profissional executado com equipamentos higienizados e produtos de alta qualidade.'}
+                    </p>
+                  </div>
+
+                  {/* Bottom Row: Price + MARCAÇÃO Button */}
+                  <div className="pt-4 border-t border-stone-800/80 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider block">Valor</span>
+                      <span className="text-2xl font-black text-[#f5ab2b]">
+                        € {service.price.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <Link
+                      to={`/${activeShop.slug}/booking?serviceId=${service.id}`}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md hover:scale-105 active:scale-95"
+                    >
+                      <Scissors size={14} />
+                      Marcação
+                    </Link>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {/* Quick Notice */}
+          <div className="mt-12 text-center">
+            <p className="text-xs text-stone-400">
+              Precisa de ajuda ou agendamento para eventos? Contacte a barbearia diretamente pelo telefone <span className="text-white font-bold">{activeShop.phone || '+351 910 000 123'}</span>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5B. EQUIPE DE PROFISSIONAIS (BARBEIROS)                                    */}
+      {/* ========================================================================= */}
+      <section id="barbers-section" className="w-full bg-[#181615] text-white py-16 md:py-24 border-t border-stone-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 border border-[#f5ab2b]/60 px-4 py-1 text-[11px] font-black tracking-widest text-[#f5ab2b] uppercase mb-4 bg-[#f5ab2b]/10 rounded-full">
+              <Award size={13} />
+              Especialistas em Navalha & Tesoura
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-3">
+              Nossa Equipe de Barbeiros
+            </h2>
+            <p className="text-stone-400 text-sm md:text-base leading-relaxed">
+              Profissionais experientes, dedicados a proporcionar o melhor corte e atendimento da região.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {barbers.map((barber) => (
+              <div 
+                key={barber.id}
+                className="bg-stone-900 border border-stone-800 rounded-2xl p-6 text-center hover:border-[#f5ab2b]/50 transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  {/* Barber Avatar */}
+                  <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-[#f5ab2b] shadow-xl group-hover:scale-105 transition-transform bg-stone-950">
+                    <img 
+                      src={barber.photoUrl || barberImages.modelSide} 
+                      alt={barber.name} 
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover object-top"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  </div>
+
+                  {/* Rating Stars */}
+                  <div className="flex items-center justify-center gap-1 text-[#f5ab2b] mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} fill="currentColor" />
+                    ))}
+                    <span className="text-xs font-bold text-white ml-1">{barber.rating ? barber.rating.toFixed(1) : '5.0'}</span>
+                  </div>
+
+                  {/* Barber Name */}
+                  <h3 className="text-lg font-black uppercase tracking-tight text-white group-hover:text-[#f5ab2b] transition-colors mb-1">
+                    {barber.name}
+                  </h3>
+
+                  {/* Bio */}
+                  <p className="text-xs text-stone-400 line-clamp-3 mb-6">
+                    {barber.bio || 'Barbeiro especialista com anos de dedicação ao estilo masculino clássico e contemporâneo.'}
+                  </p>
+                </div>
+
+                {/* Direct Booking CTA */}
+                <Link
+                  to={`/${activeShop.slug}/booking?barberId=${barber.id}`}
+                  className="w-full py-2.5 bg-stone-800 hover:bg-[#f5ab2b] text-white hover:text-zinc-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all inline-flex items-center justify-center gap-2"
+                >
+                  <Calendar size={13} />
+                  Agendar com {barber.name.split(' ')[0]}
+                </Link>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 
@@ -661,7 +825,7 @@ export default function Home() {
             <h3 className="text-2xl font-black uppercase text-white mb-4">A Essência do {activeShop.name}</h3>
             <div className="space-y-4 text-stone-300 text-sm leading-relaxed">
               <p>
-                Nossa barbearia nasceu da paixão pelo ofício clássico da navalha, tesoura e toalha quente, aliada a técnicas contemporâneas de visagismo masculino e produtos de alta performance.
+                {activeShop.storyText || 'Nossa barbearia nasceu da paixão pelo ofício clássico da navalha, tesoura e toalha quente, aliada a técnicas contemporâneas de visagismo masculino e produtos de alta performance.'}
               </p>
               <p>
                 Acreditamos que cada homem merece um refúgio onde o atendimento não seja apenas uma necessidade diária, mas uma pausa relaxante com café espresso, cerveja gelada, boa conversa e cuidado impecável.
@@ -703,10 +867,17 @@ export default function Home() {
                   <div>
                     <h4 className="font-bold text-base text-white group-hover:text-[#f5ab2b] transition-colors">{s.name}</h4>
                     <p className="text-xs text-stone-400 mt-0.5">{s.description || 'Cuidado especializado com acabamento impecável.'}</p>
-                    <span className="text-[10px] text-stone-500 font-medium">{s.duration} minutos</span>
+                    <span className="text-[10px] text-stone-500 font-medium">{s.durationMinutes || s.duration || 30} minutos</span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex items-center gap-4">
                     <span className="font-black text-base text-[#f5ab2b]">€ {s.price.toFixed(2)}</span>
+                    <Link
+                      to={`/${activeShop.slug}/booking?serviceId=${s.id}`}
+                      onClick={() => setServicesModalOpen(false)}
+                      className="px-3 py-1.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-bold text-xs uppercase rounded-lg transition-transform hover:scale-105"
+                    >
+                      Marcação
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -714,7 +885,7 @@ export default function Home() {
 
             <div className="mt-8 pt-4 border-t border-stone-800 flex justify-between items-center">
               <Link 
-                to="/booking"
+                to={`/${activeShop.slug}/booking`}
                 onClick={() => setServicesModalOpen(false)}
                 className="px-6 py-3 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-transform hover:scale-105"
               >

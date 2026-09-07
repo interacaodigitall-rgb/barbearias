@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { firestoreService } from '../services/firestoreService';
 import { appointmentService } from '../services/appointmentService';
@@ -18,6 +18,7 @@ export default function Booking() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const [searchParams] = useSearchParams();
 
   // Active Barbershop
   const [activeShop, setActiveShop] = useState<SaaSBarbershop>(saasService.getActiveBarbershop());
@@ -80,17 +81,39 @@ export default function Booking() {
   // Load initial services, barbers, products
   useEffect(() => {
     async function loadData() {
+      const targetShop = slug || activeShop.slug;
       const [s, b, p] = await Promise.all([
-        firestoreService.getServices(),
-        firestoreService.getBarbers(),
+        firestoreService.getServices(targetShop),
+        firestoreService.getBarbers(targetShop),
         productService.getProducts()
       ]);
-      setServices(s.filter(srv => srv.isActive !== false));
-      setBarbers(b.filter(brb => brb.isActive !== false));
+      const activeServices = s.filter(srv => srv.isActive !== false);
+      const activeBarbers = b.filter(brb => brb.isActive !== false);
+
+      setServices(activeServices);
+      setBarbers(activeBarbers);
       setProducts(p.filter(prd => prd.isActive !== false));
+
+      // Handle direct pre-selection via URL search query
+      const serviceIdParam = searchParams.get('serviceId');
+      if (serviceIdParam) {
+        const foundService = activeServices.find(srv => srv.id === serviceIdParam);
+        if (foundService) {
+          setSelectedService(foundService);
+          setStep(2); // Advance directly to Barber Selection
+        }
+      }
+
+      const barberIdParam = searchParams.get('barberId');
+      if (barberIdParam) {
+        const foundBarber = activeBarbers.find(brb => brb.id === barberIdParam);
+        if (foundBarber) {
+          setSelectedBarber(foundBarber);
+        }
+      }
     }
     loadData();
-  }, []);
+  }, [slug, activeShop.slug, searchParams]);
 
   // Load booked times when date or barber changes
   useEffect(() => {

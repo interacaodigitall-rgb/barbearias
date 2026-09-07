@@ -198,6 +198,27 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     quietServiceEnabled: true,
     cashFlowBalance: 7120.00,
     active: true
+  },
+  {
+    id: 'shop-rogerx',
+    name: "ROGER'X BARBERSHOP",
+    slug: 'rogerx-barbershop',
+    tagline: 'Barber | Tattoos | Piercings | Formação de Barbeiros',
+    unit: 'BELAS',
+    city: 'Belas',
+    country: 'Portugal',
+    address: 'Belas, Sintra, Portugal',
+    phone: '+351 910 000 123',
+    plan: 'pro',
+    planStatus: 'active',
+    trialDaysLeft: 14,
+    monthlyFee: 59.00,
+    rating: 5.0,
+    primaryColor: '#d4a338',
+    storyText: 'Referência em Belas, Portugal. Especialistas em corte masculino contemporâneo, visagismo, arte capilar na lâmina, barboterapia relaxante, tattoos, piercings e formação de novos barbeiros profissionais.',
+    quietServiceEnabled: true,
+    cashFlowBalance: 4620.00,
+    active: true
   }
 ];
 
@@ -407,4 +428,168 @@ export const demoCompanySettings = {
   ownerName: 'Ernando Silva & Gestores',
   updatedAt: Date.now()
 };
+
+export const rogerXBarbers: Barber[] = [
+  {
+    id: 'b-rogerx-roger',
+    name: 'ROGER',
+    bio: 'Master Barber & Fundador da Roger\'X. Especialista em arte capilar, visagismo e formação de barbeiros.',
+    rating: 5.0,
+    isActive: true,
+    branch: 'PT',
+    compensationType: 'percentage',
+    compensationValue: 60,
+    photoUrl: '/almir.webp',
+    companyId: 'shop-rogerx'
+  },
+  {
+    id: 'b-rogerx-vitor',
+    name: 'VÍTOR BITREKAS',
+    bio: 'Barbeiro especialista em degradês milimétricos, barboterapia e cortes modernos.',
+    rating: 5.0,
+    isActive: true,
+    branch: 'PT',
+    compensationType: 'percentage',
+    compensationValue: 50,
+    photoUrl: '/adriano.webp',
+    companyId: 'shop-rogerx'
+  },
+  {
+    id: 'b-rogerx-fernando',
+    name: 'FERNANDO',
+    bio: 'Barbeiro profissional com domínio em cortes clássicos, pigmentação capilar e navalha afiada.',
+    rating: 5.0,
+    isActive: true,
+    branch: 'PT',
+    compensationType: 'percentage',
+    compensationValue: 50,
+    photoUrl: '/almir.webp',
+    companyId: 'shop-rogerx'
+  },
+  {
+    id: 'b-rogerx-barbudo',
+    name: 'BARBUDO',
+    bio: 'Barbeiro mestre em barboterapia com toalha quente, alinhamento de barba e tratamentos faciais.',
+    rating: 5.0,
+    isActive: true,
+    branch: 'PT',
+    compensationType: 'percentage',
+    compensationValue: 50,
+    photoUrl: '/adriano.webp',
+    companyId: 'shop-rogerx'
+  }
+];
+
+export const rogerXServices: Service[] = [
+  {
+    id: 'rx-corte',
+    name: 'Corte',
+    description: 'Corte tradicional ou contemporâneo com acabamento na navalha e finalização de alto padrão.',
+    price: 13.00,
+    durationMinutes: 30,
+    category: 'Cortes & Cabelo',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-barba',
+    name: 'Barba',
+    description: 'Alinhamento, toalha quente, navalha e hidratação com óleo especial para barba.',
+    price: 10.00,
+    durationMinutes: 20,
+    category: 'Barba & Rosto',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-corte-barba',
+    name: 'Corte e Barba',
+    description: 'Combo completo de corte e barba com alinhamento na navalha e toalha quente relaxante.',
+    price: 20.00,
+    durationMinutes: 60,
+    category: 'Combos & Packs',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-barboterapia',
+    name: 'Barboterapia',
+    description: 'Tratamento de alto padrão com toalha quente, esfoliação facial, hidratação profunda e massagem.',
+    price: 20.00,
+    durationMinutes: 40,
+    category: 'Barba & Rosto',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-limpeza-pele',
+    name: 'Limpeza de Pele',
+    description: 'Higienização facial profunda com remoção de impurezas, cravos e máscara restauradora.',
+    price: 15.00,
+    durationMinutes: 30,
+    category: 'Estética & Rosto',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-coloracao',
+    name: 'Coloração',
+    description: 'Procedimento químico completo de descoloração, platinado uniforme ou tingimento capilar.',
+    price: 30.00,
+    durationMinutes: 125,
+    category: 'Cortes & Cabelo',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-arte-capilar',
+    name: 'Arte Capilar',
+    description: 'Desenhos artísticos, freestyle, riscos geométricos e alinhamentos milimétricos na lâmina.',
+    price: 5.00,
+    durationMinutes: 20,
+    category: 'Cortes & Cabelo',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-sobrancelha',
+    name: 'Design de Sobrancelha',
+    description: 'Alinhamento facial, limpeza e desenho milimétrico na navalha ou pinça.',
+    price: 5.00,
+    durationMinutes: 15,
+    category: 'Estética & Rosto',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-rapar',
+    name: 'Rapar',
+    description: 'Corte rente na máquina zero ou raspado com lâmina e loção pós-barba refrescante.',
+    price: 5.00,
+    durationMinutes: 15,
+    category: 'Cortes & Cabelo',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-pack-servicos',
+    name: 'Pack de Serviços',
+    description: 'Experiência completa VIP na Roger\'X: corte, barba alinhada, tratamento facial e sobrancelha.',
+    price: 30.00,
+    durationMinutes: 80,
+    category: 'Combos & Packs',
+    companyId: 'shop-rogerx',
+    isActive: true
+  },
+  {
+    id: 'rx-corte-pigmentacao',
+    name: 'Corte com Pigmentação',
+    description: 'Corte degradê de alta definição acompanhado de pigmentação para destacar contornos e preenchimento.',
+    price: 18.00,
+    durationMinutes: 40,
+    category: 'Cortes & Cabelo',
+    companyId: 'shop-rogerx',
+    isActive: true
+  }
+];
 

@@ -1,5 +1,5 @@
-import { SaaSBarbershop, SaaSPlan } from '../models';
-import { demoSaaSBarbershops, demoSaaSPlans } from '../models/demoData';
+import { SaaSBarbershop, SaaSPlan, Service, Barber } from '../models';
+import { demoSaaSBarbershops, demoSaaSPlans, demoBarbers, demoServices, rogerXBarbers, rogerXServices } from '../models/demoData';
 
 const SAAS_SHOPS_KEY = 'barbersaas_barbershops';
 const SAAS_ACTIVE_SHOP_KEY = 'barbersaas_active_shop_id';
@@ -8,7 +8,16 @@ const getStoredShops = (): SaaSBarbershop[] => {
   const saved = localStorage.getItem(SAAS_SHOPS_KEY);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed: SaaSBarbershop[] = JSON.parse(saved);
+      // Ensure default/new demo shops (like Roger'X) are always present
+      const existingSlugs = new Set(parsed.map(s => s.slug.toLowerCase()));
+      const missing = demoSaaSBarbershops.filter(s => !existingSlugs.has(s.slug.toLowerCase()));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(merged));
+        return merged;
+      }
+      return parsed;
     } catch {
       return demoSaaSBarbershops;
     }
@@ -45,6 +54,22 @@ export const saasService = {
 
   setActiveBarbershop(id: string): void {
     localStorage.setItem(SAAS_ACTIVE_SHOP_KEY, id);
+  },
+
+  async getServicesForShop(shopIdOrSlug?: string): Promise<Service[]> {
+    const target = (shopIdOrSlug || this.getActiveBarbershop().slug).toLowerCase().trim();
+    if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
+      return rogerXServices;
+    }
+    return demoServices;
+  },
+
+  async getBarbersForShop(shopIdOrSlug?: string): Promise<Barber[]> {
+    const target = (shopIdOrSlug || this.getActiveBarbershop().slug).toLowerCase().trim();
+    if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
+      return rogerXBarbers;
+    }
+    return demoBarbers;
   },
 
   generateSlug(name: string): string {

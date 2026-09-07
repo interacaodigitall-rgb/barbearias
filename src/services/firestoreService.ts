@@ -2,7 +2,7 @@ import { db } from '../lib/firebase';
 import { collection, getDocs, doc, setDoc, deleteDoc, updateDoc, addDoc, getDoc } from 'firebase/firestore';
 import { Service, Barber, CompanySettings, User, BlockedTime } from '../models';
 import { useAuthStore } from '../store/authStore';
-import { demoServices, demoBarbers, demoCompanySettings } from '../models/demoData';
+import { demoServices, demoBarbers, demoCompanySettings, rogerXBarbers, rogerXServices } from '../models/demoData';
 
 const DEMO_SERVICES_KEY = 'barbearia_demo_services';
 const DEMO_BARBERS_KEY = 'barbearia_demo_barbers';
@@ -85,8 +85,14 @@ export const firestoreService = {
     }
   },
 
-  async getServices(): Promise<Service[]> {
+  async getServices(shopIdOrSlug?: string): Promise<Service[]> {
     if (useAuthStore.getState().isDemo) {
+      if (shopIdOrSlug) {
+        const clean = shopIdOrSlug.toLowerCase();
+        if (clean === 'shop-rogerx' || clean === 'rogerx-barbershop' || clean.includes('roger')) {
+          return rogerXServices;
+        }
+      }
       return getDemoServices();
     }
     const snapshot = await getDocs(collection(db, 'services'));
@@ -123,8 +129,14 @@ export const firestoreService = {
     await deleteDoc(doc(db, 'services', id));
   },
 
-  async getBarbers(): Promise<Barber[]> {
+  async getBarbers(shopIdOrSlug?: string): Promise<Barber[]> {
     if (useAuthStore.getState().isDemo) {
+      if (shopIdOrSlug) {
+        const clean = shopIdOrSlug.toLowerCase();
+        if (clean === 'shop-rogerx' || clean === 'rogerx-barbershop' || clean.includes('roger')) {
+          return rogerXBarbers;
+        }
+      }
       return getDemoBarbers();
     }
     const snapshot = await getDocs(collection(db, 'barbers'));

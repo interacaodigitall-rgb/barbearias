@@ -42,7 +42,9 @@ export interface Service {
   description: string;
   price: number;
   durationMinutes: number;
+  category?: string;
   imageUrl?: string;
+  companyId?: string;
   isActive?: boolean;
 }
 
@@ -67,6 +69,7 @@ export interface Barber {
   branch: 'PT' | 'ES' | 'BOTH';
   compensationType: 'salary' | 'percentage';
   compensationValue: number;
+  companyId?: string;
 }
 
 export interface LoyaltyPoint {
