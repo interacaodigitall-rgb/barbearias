@@ -45,7 +45,7 @@ export default function SaaSHeaderSwitcher() {
                 src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
                 alt="ProBarbearia" 
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+                
               />
             </div>
             <span className="font-black text-white text-[11px] uppercase tracking-tight hidden sm:inline">

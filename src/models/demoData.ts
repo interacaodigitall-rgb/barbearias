@@ -214,7 +214,7 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     trialDaysLeft: 14,
     monthlyFee: 59.00,
     rating: 5.0,
-    logoUrl: 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png',
+    logoUrl: '/logo-roger.png',
     primaryColor: '#d4a338',
     storyText: 'Referência em Belas, Portugal. Especialistas em corte masculino contemporâneo, visagismo, arte capilar na lâmina, barboterapia relaxante, tattoos, piercings e formação de novos barbeiros profissionais.',
     quietServiceEnabled: true,
@@ -440,7 +440,7 @@ export const rogerXBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 60,
-    photoUrl: 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png',
+    photoUrl: '/logo-roger.png',
     companyId: 'shop-rogerx'
   },
   {
@@ -452,7 +452,7 @@ export const rogerXBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 50,
-    photoUrl: 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png',
+    photoUrl: '/logo-roger.png',
     companyId: 'shop-rogerx'
   },
   {
@@ -464,7 +464,7 @@ export const rogerXBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 50,
-    photoUrl: 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png',
+    photoUrl: '/logo-roger.png',
     companyId: 'shop-rogerx'
   },
   {
@@ -476,7 +476,7 @@ export const rogerXBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 50,
-    photoUrl: 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png',
+    photoUrl: '/logo-roger.png',
     companyId: 'shop-rogerx'
   }
 ];

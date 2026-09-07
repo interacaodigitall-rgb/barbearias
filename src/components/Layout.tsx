@@ -69,7 +69,7 @@ export default function Layout() {
   return (
     <div className={`min-h-screen flex flex-col overflow-x-hidden ${isSaaSPage ? 'bg-[#0F0F10] text-zinc-100' : 'bg-zinc-50'}`}>
       {/* SaaS Global Switcher Bar (only shown on internal or client demo pages, hidden on commercial SaaS page and tenant dashboards) */}
-      {!isSaaSPage && (!user || user.role === 'admin') && <SaaSHeaderSwitcher />}
+      
 
       {isFullWidthPage ? (
         <main className="flex-1 w-full max-w-full overflow-x-hidden">
@@ -85,7 +85,7 @@ export default function Layout() {
                   src={activeShop.logoUrl || "https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg"}
                   alt={activeShop.name} 
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
+                  
                 />
               </div>
               <div>
@@ -117,7 +117,7 @@ export default function Layout() {
                     src={activeShop.logoUrl || "https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg"}
                     alt={activeShop.name} 
                     className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
+                    
                   />
                 </div>
                 <div>

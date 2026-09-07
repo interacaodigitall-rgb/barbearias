@@ -118,7 +118,7 @@ export default function SaaSLanding() {
                 src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
                 alt="ProBarbearia Logo" 
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+                
               />
             </div>
             <div className="flex flex-col">
@@ -661,7 +661,7 @@ export default function SaaSLanding() {
                 src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
                 alt="ProBarbearia Logo" 
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+                
               />
             </div>
             <div>
@@ -698,7 +698,7 @@ export default function SaaSLanding() {
                   src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
                   alt="ProBarbearia Logo" 
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
+                  
                 />
               </div>
               <h3 className="text-xl font-extrabold text-white">Cadastre Sua Barbearia no ProBarbearia</h3>

@@ -249,7 +249,7 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
                   src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
                   alt="ProBarbearia" 
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
+                  
                 />
               </div>
               <div>

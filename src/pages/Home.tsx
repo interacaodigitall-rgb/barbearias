@@ -146,7 +146,7 @@ export default function Home() {
           <Link to="/" className="flex items-center gap-3 group">
             {activeShop.logoUrl ? (
               <div className="relative h-14 md:h-16 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <img src={activeShop.logoUrl} alt={activeShop.name} className="h-full w-auto object-contain" referrerPolicy="no-referrer" />
+                <img src={activeShop.logoUrl} alt={activeShop.name} className="h-full w-auto object-contain"  />
               </div>
             ) : (
               <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-stone-800 flex flex-col items-center justify-center p-1 bg-[#f4f0e8] shadow-sm group-hover:scale-105 transition-transform">
@@ -306,7 +306,7 @@ export default function Home() {
             <img 
               src={barberImages.modelSide} 
               alt="Estilo Pompadour Barbearia" 
-              referrerPolicy="no-referrer"
+              
               className="relative z-10 w-full h-[380px] md:h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-20 pointer-events-none" />
@@ -361,7 +361,7 @@ export default function Home() {
             <img 
               src={barberImages.modelAfro} 
               alt="Estilo Afro Fade Barbearia" 
-              referrerPolicy="no-referrer"
+              
               className="relative z-10 w-full h-[380px] md:h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-20 pointer-events-none" />
@@ -443,9 +443,9 @@ export default function Home() {
                     <div className="my-auto text-center space-y-2">
                       <div className="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]/60 shadow-lg">
                         <img 
-                          src="https://i.postimg.cc/pLGNWyw8/logo-roger-png.png" 
+                          src="/logo-roger.png" 
                           alt="Barbeiro" 
-                          referrerPolicy="no-referrer"
+                          
                           className="w-full h-full object-cover" 
                         />
                       </div>
@@ -487,9 +487,9 @@ export default function Home() {
                     <div className="my-auto text-center space-y-2">
                       <div className="relative w-16 h-16 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]">
                         <img 
-                          src="https://i.postimg.cc/pLGNWyw8/logo-roger-png.png" 
+                          src="/logo-roger.png" 
                           alt="Cliente" 
-                          referrerPolicy="no-referrer"
+                          
                           className="w-full h-full object-cover" 
                         />
                       </div>
@@ -758,7 +758,7 @@ export default function Home() {
                       <img 
                         src={barber.photoUrl || barberImages.modelSide} 
                         alt={barber.name} 
-                        referrerPolicy="no-referrer"
+                        
                         className="w-full h-full object-cover object-top"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />

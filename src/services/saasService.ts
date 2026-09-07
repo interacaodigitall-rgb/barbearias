@@ -136,7 +136,7 @@ const getStoredShops = (): SaaSBarbershop[] => {
       // Force update rogerx to ensure it has the logo
       const rogerx = finalShops.find(s => s.slug === 'rogerx-barbershop');
       if (rogerx) {
-        rogerx.logoUrl = 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png';
+        rogerx.logoUrl = '/logo-roger.png';
       }
 
       localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(finalShops));

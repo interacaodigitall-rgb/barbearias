@@ -109,10 +109,10 @@ export default function Login() {
                 src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
                 alt="ProBarbearia Logo" 
                 className="w-full h-full object-cover" 
-                referrerPolicy="no-referrer"
+                
               />
             </div>
-            <h2 className="text-3xl font-black tracking-tight text-zinc-900 uppercase">
+            <h2 className="text-3xl font-black tracking-tight text-zinc-900 bg-white uppercase">
               Pro<span className="text-[#d4a338]">Barbearia</span>
             </h2>
             <p className="text-zinc-500 mt-2 text-sm">Entre na sua conta ou use o modo demo</p>
@@ -126,7 +126,7 @@ export default function Login() {
                   key={r.id}
                   onClick={() => setRole(r.id as Role)}
                   className={`flex-1 flex items-center justify-center space-x-2 py-2 rounded-xl text-sm font-medium transition-all ${
-                    role === r.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                    role === r.id ? 'bg-white text-zinc-900 bg-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
                   }`}
                 >
                   <Icon size={16} />
@@ -142,7 +142,7 @@ export default function Login() {
               <input
                 type="email"
                 required
-                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 sm:text-sm"
+                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 bg-white focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 sm:text-sm"
                 placeholder="Seu email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -150,7 +150,7 @@ export default function Login() {
               <input
                 type="password"
                 required
-                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 sm:text-sm"
+                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 bg-white focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 sm:text-sm"
                 placeholder="Sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -159,7 +159,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+                  className="text-xs font-medium text-zinc-500 hover:text-zinc-900 bg-white"
                 >
                   Esqueceu a senha?
                 </button>
@@ -176,7 +176,7 @@ export default function Login() {
             
             <div className="text-center text-sm">
               <span className="text-zinc-600">Não tem uma conta? </span>
-              <Link to="/register" className="font-medium text-zinc-900 hover:text-zinc-700">
+              <Link to="/register" className="font-medium text-zinc-900 bg-white hover:text-zinc-700">
                 Cadastre-se (Apenas Clientes)
               </Link>
             </div>
@@ -201,8 +201,8 @@ export default function Login() {
                   disabled={loading}
                   className="flex flex-col items-center justify-center p-3 rounded-2xl bg-zinc-50 border border-zinc-100 hover:bg-zinc-100 transition-all group"
                 >
-                  <Icon size={20} className="text-zinc-500 group-hover:text-zinc-900 mb-1" />
-                  <span className="text-[10px] font-bold text-zinc-600 group-hover:text-zinc-900">{r.label}</span>
+                  <Icon size={20} className="text-zinc-500 group-hover:text-zinc-900 bg-white mb-1" />
+                  <span className="text-[10px] font-bold text-zinc-600 group-hover:text-zinc-900 bg-white">{r.label}</span>
                 </button>
               );
             })}
