@@ -14,6 +14,21 @@ export default function Layout() {
   const { t, i18n } = useTranslation();
   const activeShop = saasService.getActiveBarbershop();
 
+  React.useEffect(() => {
+    if (activeShop) {
+      document.title = `${activeShop.name} - Painel`;
+      if (activeShop.logoUrl) {
+        let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+        link.href = activeShop.logoUrl;
+      }
+    }
+  }, [activeShop]);
+
   const handleLogout = async () => {
     await authService.logout();
     navigate('/login');
@@ -53,9 +68,12 @@ export default function Layout() {
 
   navItems.push(
     { name: t('loyalty'), path: '/loyalty', icon: Award },
-    { name: 'Planos SaaS', path: '/saas', icon: Globe },
     { name: t('profile'), path: '/profile', icon: UserIcon }
   );
+
+  if (user?.role !== 'barber') {
+    navItems.push({ name: 'Planos SaaS', path: '/saas', icon: Globe });
+  }
 
   // For mobile bottom nav, we limit to 5 most important items
   const mobileNavItems = navItems.filter(item => 

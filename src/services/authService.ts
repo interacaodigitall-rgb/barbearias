@@ -49,6 +49,7 @@ export const authService = {
         name: 'Super Admin ProBarbearias',
         email: 'probarbearias@probarbearias.pt',
         role: 'superadmin',
+        phone: '+351 900 000 000',
         createdAt: Date.now()
       };
       useAuthStore.getState().setUser(superAdminUser, false);

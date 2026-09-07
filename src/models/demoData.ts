@@ -109,7 +109,7 @@ export const demoBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 50,
-    photoUrl: '/almir.webp'
+    photoUrl: 'https://i.postimg.cc/Pq7BMWmW/MISTER-VETOR-removebg-preview.png'
   },
   {
     id: 'b1',
@@ -120,7 +120,7 @@ export const demoBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 50,
-    photoUrl: '/almir.webp'
+    photoUrl: 'https://i.postimg.cc/Pq7BMWmW/MISTER-VETOR-removebg-preview.png'
   },
   {
     id: 'b2',
@@ -131,7 +131,7 @@ export const demoBarbers: Barber[] = [
     branch: 'PT',
     compensationType: 'percentage',
     compensationValue: 50,
-    photoUrl: '/adriano.webp'
+    photoUrl: 'https://i.postimg.cc/Pq7BMWmW/MISTER-VETOR-removebg-preview.png'
   }
 ];
 
@@ -139,6 +139,7 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
   {
     id: 'shop-mister-navalha',
     name: 'MISTER NAVALHA',
+    logoUrl: 'https://i.postimg.cc/Pq7BMWmW/MISTER-VETOR-removebg-preview.png',
     slug: 'mister-navalha',
     tagline: 'Cortes nobres, barba de respeito & tradição',
     unit: 'GUARDA',
@@ -158,29 +159,9 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     active: true
   },
   {
-    id: 'shop-seu-elias',
-    name: 'BARBEARIA SEU ELIAS',
-    slug: 'seu-elias',
-    tagline: 'Barba, Cabelo & Bigode com alto padrão e estilo',
-    unit: 'PRIME',
-    city: 'Porto',
-    country: 'Portugal',
-    address: 'Avenida dos Aliados, 88',
-    phone: '+351 933 888 123',
-    plan: 'pro',
-    planStatus: 'active',
-    trialDaysLeft: 18,
-    monthlyFee: 59.00,
-    rating: 4.9,
-    primaryColor: '#f5ab2b',
-    storyText: 'Barbeiro desde os 13 anos por influência familiar, Seu Elias sempre gostou de mudanças e desafios. Pioneiro no estilo sofisticado de barbearias.',
-    quietServiceEnabled: true,
-    cashFlowBalance: 5290.00,
-    active: true
-  },
-  {
     id: 'shop-sherlocks',
     name: 'SHERLOCKS BARBER CLUB',
+    logoUrl: 'https://i.postimg.cc/pd8V4QCH/logo.png',
     slug: 'sherlocks',
     tagline: 'O clube exclusivo para o homem moderno',
     unit: 'CHIADO',
@@ -287,12 +268,13 @@ export const demoAppointments: Appointment[] = [
     id: 'a-rogerx-1',
     customerId: 'demo-customer',
     barberId: 'b-rogerx-roger',
-    serviceId: 's1', // we might need to use real service id for rogerx but let's just use whatever
+    serviceId: 's1',
     date: today,
     time: '14:30',
     status: 'completed',
     paymentMethod: 'mbway',
     paymentStatus: 'paid',
+    branch: 'PT',
     createdAt: Date.now() - 1000000
   },
   {
@@ -305,6 +287,7 @@ export const demoAppointments: Appointment[] = [
     status: 'pending',
     paymentMethod: 'cash',
     paymentStatus: 'pending',
+    branch: 'PT',
     createdAt: Date.now() - 500000
   },
 
@@ -456,6 +439,34 @@ export const demoCompanySettings = {
   ownerName: 'Ernando Silva & Gestores',
   updatedAt: Date.now()
 };
+
+
+export const sherlocksBarbers: Barber[] = [
+  {
+    id: "b-sherlock-1",
+    name: "Arthur Sherlock",
+    bio: "Mestre barbeiro especialista em estilo britânico e barbas clássicas.",
+    rating: 5.0,
+    isActive: true,
+    branch: "PT",
+    compensationType: "percentage",
+    compensationValue: 50,
+    photoUrl: "https://i.postimg.cc/pd8V4QCH/logo.png",
+    companyId: "shop-sherlocks"
+  },
+  {
+    id: "b-sherlock-2",
+    name: "Oliver Watson",
+    bio: "Especialista em fades modernos e visagismo.",
+    rating: 4.9,
+    isActive: true,
+    branch: "PT",
+    compensationType: "percentage",
+    compensationValue: 50,
+    photoUrl: "https://i.postimg.cc/pd8V4QCH/logo.png",
+    companyId: "shop-sherlocks"
+  }
+];
 
 export const rogerXBarbers: Barber[] = [
   {

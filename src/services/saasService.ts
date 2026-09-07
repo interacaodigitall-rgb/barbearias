@@ -1,5 +1,5 @@
 import { SaaSBarbershop, SaaSPlan, Service, Barber, User } from '../models';
-import { demoSaaSBarbershops, demoSaaSPlans, demoBarbers, demoServices, rogerXBarbers, rogerXServices } from '../models/demoData';
+import { demoSaaSBarbershops, demoSaaSPlans, demoBarbers, demoServices, rogerXBarbers, rogerXServices, sherlocksBarbers } from '../models/demoData';
 
 const SAAS_SHOPS_KEY = 'barbersaas_barbershops';
 const SAAS_ACTIVE_SHOP_KEY = 'barbersaas_active_shop_id';
@@ -234,7 +234,12 @@ export const saasService = {
     if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
       return rogerXServices;
     }
-    if (target === 'mister-navalha' || target === 'shop-1' || target === 'seu-elias') {
+    if (target === 'shop-sherlocks' || target === 'sherlocks') {
+      const custom = getCustomServicesForShop(target);
+      if (custom && custom.length > 0) return custom;
+      return demoServices;
+    }
+    if (target === 'mister-navalha' || target === 'shop-1') {
       return demoServices;
     }
 

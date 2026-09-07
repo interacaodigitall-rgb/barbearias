@@ -1,6 +1,7 @@
 import { CashFlowTransaction, Appointment, Barber, Service } from '../models';
 import { demoCashFlowTransactions } from '../models/demoData';
 import { useAuthStore } from '../store/authStore';
+import { saasService } from './saasService';
 
 const CASH_FLOW_KEY = 'barbersaas_cash_flow_transactions_v2';
 

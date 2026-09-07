@@ -4,6 +4,7 @@ import { Appointment } from '../models';
 import { loyaltyService } from './loyaltyService';
 import { cashFlowService } from './cashFlowService';
 import { firestoreService } from './firestoreService';
+import { saasService } from './saasService';
 import { useAuthStore } from '../store/authStore';
 import { demoAppointments } from '../models/demoData';
 

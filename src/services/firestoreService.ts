@@ -168,7 +168,7 @@ export const firestoreService = {
     const updated = currentBarbers.map(b => b.id === id ? {
       ...b,
       ...barber,
-      photoUrl: barber.photoUrl?.startsWith('/') ? barber.photoUrl.replace('.png', '.webp').toLowerCase() : (barber.photoUrl || b.photoUrl)
+      photoUrl: barber.photoUrl || b.photoUrl
     } : b);
     saveCustomBarbersForShop(target, updated);
   },

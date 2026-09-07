@@ -46,6 +46,43 @@ export default function Home() {
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallPwa = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+    } else {
+      alert(`Para instalar o aplicativo PWA da ${activeShop.name}:\n\n• No telemóvel (Android/iOS): Toque no menu do navegador (3 pontos ou Partilhar) e selecione \"Adicionar ao Ecrã Principal\" ou \"Instalar Aplicação\".\n• No Computador: Clique no ícone de instalação na barra de endereços.`);
+    }
+  };
+
+  useEffect(() => {
+    if (activeShop) {
+      document.title = activeShop.name + " - Agendamento Online";
+      if (activeShop.logoUrl) {
+        let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+        if (!link) {
+          link = document.createElement("link") as HTMLLinkElement;
+          link.rel = "icon";
+          document.getElementsByTagName("head")[0].appendChild(link);
+        }
+        link.href = activeShop.logoUrl;
+      }
+    }
+  }, [activeShop]);
+
+
   useEffect(() => {
     async function resolveShop() {
       if (slug) {
@@ -193,12 +230,20 @@ export default function Home() {
           {/* Right Action & Hamburger Menu Icon */}
           <div className="flex items-center gap-3">
             <Link 
-              to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`} 
-              className="hidden sm:inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg"
+               to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
+               className="hidden sm:inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg"
             >
               <Scissors size={14} />
               Agendar Horário
             </Link>
+            <button
+              onClick={handleInstallPwa}
+              className="hidden md:inline-flex items-center gap-1.5 bg-[#f5ab2b]/10 hover:bg-[#f5ab2b]/20 text-[#f5ab2b] border border-[#f5ab2b]/30 font-bold px-4 py-2.5 text-xs uppercase tracking-wider rounded-xl transition-all"
+              title="Baixar App PWA"
+            >
+              <Smartphone size={14} />
+              Baixar App PWA
+            </button>
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -259,6 +304,9 @@ export default function Home() {
                 <Link to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b]">
                   ✂️ Novo Agendamento
                 </Link>
+                <button onClick={() => { setMenuOpen(false); handleInstallPwa(); }} className="w-full text-left py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b] flex items-center gap-2">
+                  📱 Baixar App PWA (Instalar)
+                </button>
                 <Link to="/appointments" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   📅 Meus Agendamentos
                 </Link>
