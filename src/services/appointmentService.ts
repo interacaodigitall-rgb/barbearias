@@ -48,8 +48,16 @@ export const appointmentService = {
       return created;
     }
 
-    const docRef = await addDoc(collection(db, 'appointments'), newAppointment);
-    return { id: docRef.id, ...newAppointment } as Appointment;
+    try {
+      const docRef = await addDoc(collection(db, 'appointments'), newAppointment);
+      return { id: docRef.id, ...newAppointment } as Appointment;
+    } catch (err) {
+      console.warn('Firestore write error, falling back to local storage:', err);
+      const appts = getDemoAppts();
+      const created: Appointment = { ...newAppointment, id: `demo-${Date.now()}` } as Appointment;
+      saveDemoAppts([...appts, created]);
+      return created;
+    }
   },
 
   async cancelAppointment(appointmentId: string, reason: string): Promise<void> {
@@ -82,9 +90,14 @@ export const appointmentService = {
     if (useAuthStore.getState().isDemo) {
       return getDemoAppts();
     }
-    const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
+    try {
+      const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
+    } catch (err) {
+      console.warn('Firestore permission or network error, falling back to local demo appointments:', err);
+      return getDemoAppts();
+    }
   },
 
   async updateAppointmentStatus(appointmentId: string, status: Appointment['status'], customerId: string): Promise<void> {

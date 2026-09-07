@@ -60,7 +60,7 @@ export const authService = {
         saasService.setActiveBarbershop(user.companyId);
       }
 
-      useAuthStore.getState().setUser(user, true);
+      useAuthStore.getState().setUser(user, false);
       localStorage.setItem(SESSION_KEY, JSON.stringify(user));
       return user;
     }
@@ -85,7 +85,7 @@ export const authService = {
     if (user.companyId) {
       saasService.setActiveBarbershop(user.companyId);
     }
-    useAuthStore.getState().setUser(user, true);
+    useAuthStore.getState().setUser(user, false);
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
   },
@@ -161,7 +161,7 @@ export const authService = {
       try {
         const parsed: User = JSON.parse(saved);
         if (parsed && parsed.uid) {
-          useAuthStore.getState().setUser(parsed, true);
+          useAuthStore.getState().setUser(parsed, false);
           useAuthStore.getState().setLoading(false);
           return () => {};
         }

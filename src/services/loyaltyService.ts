@@ -19,21 +19,29 @@ export const loyaltyService = {
     if (useAuthStore.getState().isDemo) {
       return getDemoLoyalty()[customerId] || 0;
     }
-    const docRef = doc(db, 'loyalty_points', customerId);
-    const snapshot = await getDoc(docRef);
-    if (snapshot.exists()) {
-      return snapshot.data().points;
+    try {
+      const docRef = doc(db, 'loyalty_points', customerId);
+      const snapshot = await getDoc(docRef);
+      if (snapshot.exists()) {
+        return snapshot.data().points;
+      }
+      return 0;
+    } catch {
+      return getDemoLoyalty()[customerId] || 0;
     }
-    return 0;
   },
 
   async getAllLoyaltyPoints(): Promise<Record<string, number>> {
     if (useAuthStore.getState().isDemo) {
       return getDemoLoyalty();
     }
-    const { collection, getDocs } = await import('firebase/firestore');
-    const snapshot = await getDocs(collection(db, 'loyalty_points'));
-    return snapshot.docs.reduce((acc, doc) => ({ ...acc, [doc.id]: doc.data().points }), {});
+    try {
+      const { collection, getDocs } = await import('firebase/firestore');
+      const snapshot = await getDocs(collection(db, 'loyalty_points'));
+      return snapshot.docs.reduce((acc, doc) => ({ ...acc, [doc.id]: doc.data().points }), {});
+    } catch {
+      return getDemoLoyalty();
+    }
   },
 
   async addPoints(customerId: string, points: number): Promise<void> {
@@ -43,21 +51,26 @@ export const loyaltyService = {
       saveDemoLoyalty(data);
       return;
     }
-
-    const docRef = doc(db, 'loyalty_points', customerId);
-    const snapshot = await getDoc(docRef);
-    
-    if (snapshot.exists()) {
-      await updateDoc(docRef, {
-        points: increment(points),
-        updatedAt: Date.now()
-      });
-    } else {
-      await setDoc(docRef, {
-        customerId,
-        points,
-        updatedAt: Date.now()
-      });
+    try {
+      const docRef = doc(db, 'loyalty_points', customerId);
+      const snapshot = await getDoc(docRef);
+      
+      if (snapshot.exists()) {
+        await updateDoc(docRef, {
+          points: increment(points),
+          updatedAt: Date.now()
+        });
+      } else {
+        await setDoc(docRef, {
+          customerId,
+          points,
+          updatedAt: Date.now()
+        });
+      }
+    } catch {
+      const data = getDemoLoyalty();
+      data[customerId] = (data[customerId] || 0) + points;
+      saveDemoLoyalty(data);
     }
   }
 };
