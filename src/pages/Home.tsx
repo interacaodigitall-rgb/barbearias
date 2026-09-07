@@ -6,6 +6,7 @@ import { appointmentService } from '../services/appointmentService';
 import { loyaltyService } from '../services/loyaltyService';
 import { firestoreService } from '../services/firestoreService';
 import { updateTenantHeadAndPWA } from '../utils/pwaUtils';
+import { PwaInstallBanner } from '../components/PwaInstallBanner';
 import { Appointment, Service, Barber, SaaSBarbershop } from '../models';
 import { barberImages } from '../assets/images/barberImages';
 import { 
@@ -41,7 +42,7 @@ export default function Home() {
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [points, setPoints] = useState<number>(120);
+  const [points, setPoints] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
@@ -304,9 +305,11 @@ export default function Home() {
                 <Link to="/loyalty" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   ⭐ Programa Seu Estilo (Cashback)
                 </Link>
-                <Link to="/admin" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
-                  💼 Gestão & Fluxo de Caixa
-                </Link>
+                {user && (user.role === 'admin' || user.role === 'owner' || user.role === 'superadmin') && (
+                  <Link to="/admin" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
+                    💼 Gestão & Fluxo de Caixa
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -1010,6 +1013,14 @@ export default function Home() {
           <ArrowRight size={16} />
         </Link>
       </div>
+
+      {/* PWA MOBILE INSTALL BANNER */}
+      <PwaInstallBanner 
+        shopName={activeShop.name} 
+        shopLogo={activeShop.logoUrl} 
+        shopSlug={activeShop.slug} 
+        primaryColor={activeShop.primaryColor} 
+      />
     </div>
   );
 }

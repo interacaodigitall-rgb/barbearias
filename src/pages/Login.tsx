@@ -33,6 +33,18 @@ export default function Login() {
       } else if (user.role === 'barber') {
         navigate('/barber-dashboard');
       } else {
+        const pendingSaved = localStorage.getItem('pending_booking');
+        if (pendingSaved) {
+          try {
+            const parsed = JSON.parse(pendingSaved);
+            if (parsed?.shopSlug) {
+              navigate(`/${parsed.shopSlug}/booking`);
+              return;
+            }
+          } catch (e) {
+            console.error('Error reading pending booking:', e);
+          }
+        }
         navigate(getCustomerHomePath());
       }
     } catch (err: any) {
@@ -104,6 +116,18 @@ export default function Login() {
       } else if (user.role === 'barber') {
         navigate('/barber-dashboard');
       } else {
+        const pendingSaved = localStorage.getItem('pending_booking');
+        if (pendingSaved) {
+          try {
+            const parsed = JSON.parse(pendingSaved);
+            if (parsed?.shopSlug) {
+              navigate(`/${parsed.shopSlug}/booking`);
+              return;
+            }
+          } catch (e) {
+            console.error('Error reading pending booking:', e);
+          }
+        }
         navigate(getCustomerHomePath());
       }
     } catch (err: any) {

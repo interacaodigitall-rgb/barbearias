@@ -1,11 +1,42 @@
 import { SaaSBarbershop } from '../models';
 
+export function isIOS(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+export function isStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true ||
+    document.referrer.includes('android-app://')
+  );
+}
+
+export function registerServiceWorker() {
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(
+        (reg) => {
+          console.log('PWA ServiceWorker registrado com sucesso:', reg.scope);
+        },
+        (err) => {
+          console.warn('Falha no registro do ServiceWorker:', err);
+        }
+      );
+    });
+  }
+}
+
 export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
   if (!shop) return;
 
   const logo = shop.logoUrl || "https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg";
   const shopName = shop.name;
   const tagline = shop.tagline || 'Agendamento Online de Barbearia';
+  const primaryColor = shop.primaryColor || '#d4a338';
 
   // 1. Page Title
   document.title = `${shopName} - Agendamento Online`;
@@ -22,7 +53,7 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
     link.href = logo;
   });
 
-  // 3. Apple & App Titles
+  // 3. Apple & Theme Metas
   let appNameMeta = document.querySelector("meta[name='application-name']") as HTMLMetaElement;
   if (!appNameMeta) {
     appNameMeta = document.createElement('meta');
@@ -39,15 +70,41 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
   }
   appleMeta.content = shopName;
 
+  let appleCapableMeta = document.querySelector("meta[name='apple-mobile-web-app-capable']") as HTMLMetaElement;
+  if (!appleCapableMeta) {
+    appleCapableMeta = document.createElement('meta');
+    appleCapableMeta.name = 'apple-mobile-web-app-capable';
+    document.head.appendChild(appleCapableMeta);
+  }
+  appleCapableMeta.content = 'yes';
+
+  let appleStatusMeta = document.querySelector("meta[name='apple-mobile-web-app-status-bar-style']") as HTMLMetaElement;
+  if (!appleStatusMeta) {
+    appleStatusMeta = document.createElement('meta');
+    appleStatusMeta.name = 'apple-mobile-web-app-status-bar-style';
+    document.head.appendChild(appleStatusMeta);
+  }
+  appleStatusMeta.content = 'black-translucent';
+
+  let themeMeta = document.querySelector("meta[name='theme-color']") as HTMLMetaElement;
+  if (!themeMeta) {
+    themeMeta = document.createElement('meta');
+    themeMeta.name = 'theme-color';
+    document.head.appendChild(themeMeta);
+  }
+  themeMeta.content = primaryColor;
+
   // 4. Dynamic Web App Manifest
   const manifestObj = {
     name: shopName,
     short_name: shopName,
     description: `${shopName} - ${tagline}`,
     start_url: `/${shop.slug}`,
+    scope: `/${shop.slug}`,
     display: "standalone",
-    background_color: "#181615",
-    theme_color: shop.primaryColor || "#d4a338",
+    orientation: "portrait",
+    background_color: "#0f0f10",
+    theme_color: primaryColor,
     icons: [
       {
         src: logo,
@@ -80,3 +137,4 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
     console.error('Error updating PWA manifest:', err);
   }
 }
+

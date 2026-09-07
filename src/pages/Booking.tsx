@@ -9,7 +9,7 @@ import { Service, Barber, Product, AppointmentProductItem, SaaSBarbershop } from
 import { 
   ArrowLeft, ChevronRight, Clock, Calendar as CalendarIcon, CheckCircle2, 
   Scissors, Sparkles, User as UserIcon, UserCheck, Plus, Minus, ShoppingBag, 
-  VolumeX, Check, AlertCircle, ShieldCheck
+  VolumeX, Check, AlertCircle, ShieldCheck, X 
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -59,6 +59,43 @@ export default function Booking() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Restore pending booking if saved
+  useEffect(() => {
+    const saved = localStorage.getItem('pending_booking');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed) {
+          if (services.length > 0 && parsed.serviceId) {
+            const foundService = services.find(s => s.id === parsed.serviceId);
+            if (foundService) setSelectedService(foundService);
+          }
+          if (barbers.length > 0 && parsed.barberId) {
+            if (parsed.barberId === 'no-preference') {
+              setSelectedBarber('no-preference');
+            } else {
+              const foundBarber = barbers.find(b => b.id === parsed.barberId);
+              if (foundBarber) setSelectedBarber(foundBarber);
+            }
+          }
+          if (parsed.date) setSelectedDate(parsed.date);
+          if (parsed.time) setSelectedTime(parsed.time);
+          if (parsed.products) setSelectedProducts(parsed.products);
+          if (parsed.quietService !== undefined) setQuietService(parsed.quietService);
+          if (parsed.notes) setNotes(parsed.notes);
+          if (parsed.step) setStep(parsed.step);
+
+          if (user) {
+            localStorage.removeItem('pending_booking');
+          }
+        }
+      } catch (e) {
+        console.error('Error restoring pending booking:', e);
+      }
+    }
+  }, [services, barbers, user]);
 
   // Next 14 days list for the date carousel
   const nextDays = Array.from({ length: 14 }).map((_, i) => {
@@ -168,12 +205,25 @@ export default function Booking() {
   });
 
   const handleSubmitBooking = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     if (!selectedService || !selectedDate || !selectedTime) {
       setError('Por favor preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (!user) {
+      const pendingData = {
+        shopSlug: slug || activeShop.slug,
+        serviceId: selectedService.id,
+        barberId: selectedBarber === 'no-preference' || !selectedBarber ? 'no-preference' : selectedBarber.id,
+        date: selectedDate,
+        time: selectedTime,
+        products: selectedProducts,
+        quietService,
+        notes,
+        step: 5
+      };
+      localStorage.setItem('pending_booking', JSON.stringify(pendingData));
+      setShowAuthModal(true);
       return;
     }
 
@@ -792,6 +842,23 @@ export default function Booking() {
             <span>O pagamento será realizado no local (Dinheiro, MB WAY ou Multibanco).</span>
           </div>
 
+          {/* Loyalty Banner for guest users */}
+          {!user && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 p-4 rounded-2xl flex items-start gap-3 shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-[#d4a338] text-zinc-950 flex items-center justify-center shrink-0 font-extrabold shadow-xs mt-0.5">
+                <Sparkles size={20} />
+              </div>
+              <div className="space-y-1 text-xs">
+                <h4 className="font-extrabold text-zinc-900 uppercase tracking-tight flex items-center gap-1">
+                  Clube de Pontos & Cashback ⭐
+                </h4>
+                <p className="text-zinc-600 leading-relaxed">
+                  Para acumular pontos neste corte e trocar por descontos futuros, crie sua conta ao confirmar!
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Submit and Home actions */}
           <div className="space-y-2 pt-2">
             <button
@@ -811,6 +878,96 @@ export default function Booking() {
             >
               Voltar ao Início
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* AUTH & LOYALTY MODAL FOR GUEST BOOKING */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-5 shadow-2xl border border-amber-200 relative">
+            <button 
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-700 p-1.5 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-16 h-16 bg-amber-100 text-[#d4a338] rounded-2xl mx-auto flex items-center justify-center shadow-inner border border-amber-200">
+              <Sparkles size={32} />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#d4a338] bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                ⭐ Clube de Pontos & Cashback
+              </span>
+              <h3 className="text-xl font-extrabold text-zinc-900 mt-2 leading-tight">
+                Crie a sua Conta para Agendar!
+              </h3>
+              <p className="text-zinc-500 text-xs mt-2 leading-relaxed">
+                Para confirmar o agendamento de <strong className="text-zinc-800">{selectedService?.name}</strong> e acumular pontos de cashback no nosso Clube de Fidelidade, crie a sua conta ou faça login.
+              </p>
+            </div>
+
+            <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200/80 text-left text-xs text-zinc-700 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <CheckCircle2 size={16} className="text-[#d4a338] shrink-0" />
+                <span>Ganha pontos em cada euro gasto</span>
+              </div>
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <CheckCircle2 size={16} className="text-[#d4a338] shrink-0" />
+                <span>Troque pontos por cortes e produtos grátis</span>
+              </div>
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <CheckCircle2 size={16} className="text-[#d4a338] shrink-0" />
+                <span>Gestão fácil no App PWA sem complicação</span>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                onClick={() => {
+                  const pendingData = {
+                    shopSlug: slug || activeShop.slug,
+                    serviceId: selectedService?.id,
+                    barberId: selectedBarber === 'no-preference' || !selectedBarber ? 'no-preference' : selectedBarber.id,
+                    date: selectedDate,
+                    time: selectedTime,
+                    products: selectedProducts,
+                    quietService,
+                    notes,
+                    step: 5
+                  };
+                  localStorage.setItem('pending_booking', JSON.stringify(pendingData));
+                  navigate('/register');
+                }}
+                className="w-full py-3.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <Sparkles size={16} />
+                Criar Conta & Ganhar Pontos
+              </button>
+
+              <button
+                onClick={() => {
+                  const pendingData = {
+                    shopSlug: slug || activeShop.slug,
+                    serviceId: selectedService?.id,
+                    barberId: selectedBarber === 'no-preference' || !selectedBarber ? 'no-preference' : selectedBarber.id,
+                    date: selectedDate,
+                    time: selectedTime,
+                    products: selectedProducts,
+                    quietService,
+                    notes,
+                    step: 5
+                  };
+                  localStorage.setItem('pending_booking', JSON.stringify(pendingData));
+                  navigate('/login');
+                }}
+                className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all"
+              >
+                Já tenho conta (Fazer Login)
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -18,6 +18,20 @@ export default function Register() {
     setLoading(true);
     try {
       await authService.register(email, password, name, phone);
+      
+      const pendingSaved = localStorage.getItem('pending_booking');
+      if (pendingSaved) {
+        try {
+          const parsed = JSON.parse(pendingSaved);
+          if (parsed?.shopSlug) {
+            navigate(`/${parsed.shopSlug}/booking`);
+            return;
+          }
+        } catch (e) {
+          console.error('Error reading pending booking:', e);
+        }
+      }
+
       const activeShop = saasService.getActiveBarbershop();
       const targetSlug = activeShop?.slug || 'rogerx-barbershop';
       navigate(`/${targetSlug}`);

@@ -33,6 +33,20 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/login" />;
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuthStore();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+  
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'customer') return <Navigate to="/appointments" replace />;
+  if (user.role === 'barber') return <Navigate to="/barber-dashboard" replace />;
+  
+  return <>{children}</>;
+}
+
 function SuperAdminRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
   
@@ -86,9 +100,9 @@ export default function App() {
             </PrivateRoute>
           } />
           <Route path="admin" element={
-            <PrivateRoute>
+            <AdminRoute>
               <AdminDashboard />
-            </PrivateRoute>
+            </AdminRoute>
           } />
           <Route path="barber-dashboard" element={
             <PrivateRoute>

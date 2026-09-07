@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import { appointmentService } from '../services/appointmentService';
 import { firestoreService } from '../services/firestoreService';
 import { loyaltyService } from '../services/loyaltyService';
@@ -15,6 +17,12 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function AdminDashboard() {
+  const { user } = useAuthStore();
+
+  if (!user || (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'superadmin')) {
+    return <Navigate to="/" replace />;
+  }
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);

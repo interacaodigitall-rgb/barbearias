@@ -7,7 +7,7 @@ const DEMO_LOYALTY_KEY = 'barbearia_demo_loyalty';
 
 const getDemoLoyalty = (): Record<string, number> => {
   const saved = localStorage.getItem(DEMO_LOYALTY_KEY);
-  return saved ? JSON.parse(saved) : { 'demo-customer': 20 };
+  return saved ? JSON.parse(saved) : {};
 };
 
 const saveDemoLoyalty = (data: Record<string, number>) => {
