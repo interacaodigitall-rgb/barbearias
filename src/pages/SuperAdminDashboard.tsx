@@ -7,7 +7,7 @@ import {
   Building2, Plus, ExternalLink, Copy, Check, TrendingUp, 
   DollarSign, Users, ShieldCheck, Database, Code, Search, 
   Trash2, Edit3, Sparkles, ArrowRight, Smartphone, Scissors, AlertCircle,
-  Shield, Key, UserCheck, Lock, LogIn
+  Shield, Key, UserCheck, Lock, LogIn, Save
 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
@@ -53,6 +53,69 @@ export default function SuperAdminDashboard() {
     phone: ''
   });
   const [createdAccessAlert, setCreatedAccessAlert] = useState<TenantAccount | null>(null);
+
+  // Editing States for Super Admin
+  const [editingShop, setEditingShop] = useState<SaaSBarbershop | null>(null);
+  const [shopEditForm, setShopEditForm] = useState<Partial<SaaSBarbershop>>({});
+
+  const handleOpenEditShop = (shop: SaaSBarbershop) => {
+    setEditingShop(shop);
+    setShopEditForm({
+      name: shop.name,
+      tagline: shop.tagline || '',
+      slug: shop.slug,
+      unit: shop.unit || '',
+      address: shop.address || '',
+      city: shop.city || '',
+      country: shop.country || 'Portugal',
+      phone: shop.phone || '',
+      logoUrl: shop.logoUrl || '',
+      coverImageUrl: shop.coverImageUrl || '',
+      primaryColor: shop.primaryColor || '#d4a338',
+      plan: shop.plan,
+      monthlyFee: shop.monthlyFee
+    });
+  };
+
+  const handleSaveShopEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingShop) return;
+    try {
+      await saasService.updateBarbershop(editingShop.id, shopEditForm);
+      setEditingShop(null);
+      await loadData();
+      alert('Perfil da Barbearia atualizado com sucesso!');
+    } catch (err) {
+      alert('Erro ao atualizar barbearia.');
+    }
+  };
+
+  const [editingAccount, setEditingAccount] = useState<TenantAccount | null>(null);
+  const [accountEditForm, setAccountEditForm] = useState<Partial<TenantAccount>>({});
+
+  const handleOpenEditAccount = (acc: TenantAccount) => {
+    setEditingAccount(acc);
+    setAccountEditForm({
+      name: acc.name,
+      email: acc.email,
+      password: acc.password || '',
+      phone: acc.phone || '',
+      commissionPercent: acc.commissionPercent || 50
+    });
+  };
+
+  const handleSaveAccountEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAccount) return;
+    try {
+      await saasService.updateTenantAccount(editingAccount.uid, accountEditForm);
+      setEditingAccount(null);
+      await loadData();
+      alert('Acesso do utilizador/barbeiro atualizado com sucesso!');
+    } catch (err) {
+      alert('Erro ao atualizar conta de acesso.');
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -572,6 +635,15 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
                         <td className="py-4 px-6 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
+                              onClick={() => handleOpenEditShop(shop)}
+                              className="px-3 py-1.5 bg-amber-500/20 text-[#d4a338] hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                              title="Editar Perfil e Configurações da Barbearia"
+                            >
+                              <Edit3 size={13} />
+                              Editar
+                            </button>
+
+                            <button
                               onClick={() => handleSelectShopForManagement(shop)}
                               className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
                               title="Gerenciar Painel desta Barbearia"
@@ -695,6 +767,15 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
 
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleOpenEditAccount(acc)}
+                                className="px-2.5 py-1.5 bg-amber-500/20 text-[#d4a338] hover:bg-amber-500/30 border border-amber-500/30 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                                title="Editar Dados de Acesso / Perfil"
+                              >
+                                <Edit3 size={13} />
+                                Editar
+                              </button>
+
                               <button
                                 onClick={() => handleCopyAccessCredentials(acc)}
                                 className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
@@ -1072,6 +1153,276 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
                 >
                   <Key size={16} />
                   Gerar Acesso & Salvar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Shop Modal (Super Admin) */}
+      {editingShop && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[70] backdrop-blur-sm overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full text-white my-8 shadow-2xl">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-800">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Building2 size={20} className="text-[#d4a338]" />
+                  Editar Barbearia: {editingShop.name}
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">Alterações administrativas de perfil e plano SaaS.</p>
+              </div>
+              <button 
+                onClick={() => setEditingShop(null)}
+                className="text-zinc-500 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveShopEdit} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Nome da Barbearia</label>
+                  <input
+                    type="text"
+                    required
+                    value={shopEditForm.name || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, name: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Slug (Link público)</label>
+                  <input
+                    type="text"
+                    required
+                    value={shopEditForm.slug || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, slug: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-amber-200 font-mono focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Slogan / Tagline</label>
+                  <input
+                    type="text"
+                    value={shopEditForm.tagline || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, tagline: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Unidade / Filial</label>
+                  <input
+                    type="text"
+                    value={shopEditForm.unit || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, unit: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Telefone / WhatsApp</label>
+                  <input
+                    type="text"
+                    value={shopEditForm.phone || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, phone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Cidade e País</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Cidade"
+                      value={shopEditForm.city || ''}
+                      onChange={e => setShopEditForm({ ...shopEditForm, city: e.target.value })}
+                      className="w-1/2 px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      placeholder="País"
+                      value={shopEditForm.country || ''}
+                      onChange={e => setShopEditForm({ ...shopEditForm, country: e.target.value })}
+                      className="w-1/2 px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Endereço Completo</label>
+                  <input
+                    type="text"
+                    value={shopEditForm.address || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, address: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">URL Logótipo / Favicon</label>
+                  <input
+                    type="url"
+                    value={shopEditForm.logoUrl || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, logoUrl: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">URL Imagem Capa</label>
+                  <input
+                    type="url"
+                    value={shopEditForm.coverImageUrl || ''}
+                    onChange={e => setShopEditForm({ ...shopEditForm, coverImageUrl: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Plano SaaS</label>
+                  <select
+                    value={shopEditForm.plan || 'pro'}
+                    onChange={e => setShopEditForm({ ...shopEditForm, plan: e.target.value as any })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  >
+                    <option value="starter">Starter (€29/mês)</option>
+                    <option value="pro">Pro (€59/mês)</option>
+                    <option value="imperio">Império (€99/mês)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Mensalidade (€)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={shopEditForm.monthlyFee || 59}
+                    onChange={e => setShopEditForm({ ...shopEditForm, monthlyFee: parseFloat(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingShop(null)}
+                  className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+                >
+                  <Save size={16} />
+                  Salvar Alterações
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Tenant Account Modal (Super Admin) */}
+      {editingAccount && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[70] backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-800">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Key size={20} className="text-[#d4a338]" />
+                  Editar Conta de Acesso
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Atualize credenciais do {editingAccount.role === 'owner' ? 'Dono' : 'Barbeiro'}: <strong>{editingAccount.name}</strong>
+                </p>
+              </div>
+              <button 
+                onClick={() => setEditingAccount(null)}
+                className="text-zinc-500 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAccountEdit} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-zinc-400 font-bold uppercase mb-1">Nome Completo</label>
+                <input
+                  type="text"
+                  required
+                  value={accountEditForm.name || ''}
+                  onChange={e => setAccountEditForm({ ...accountEditForm, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-bold uppercase mb-1">Email de Login</label>
+                <input
+                  type="email"
+                  required
+                  value={accountEditForm.email || ''}
+                  onChange={e => setAccountEditForm({ ...accountEditForm, email: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-amber-200 font-mono focus:border-[#d4a338] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-bold uppercase mb-1">Senha de Acesso</label>
+                <input
+                  type="text"
+                  value={accountEditForm.password || ''}
+                  onChange={e => setAccountEditForm({ ...accountEditForm, password: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-mono focus:border-[#d4a338] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-bold uppercase mb-1">Telefone de Contato</label>
+                <input
+                  type="text"
+                  value={accountEditForm.phone || ''}
+                  onChange={e => setAccountEditForm({ ...accountEditForm, phone: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                />
+              </div>
+
+              {editingAccount.role === 'barber' && (
+                <div>
+                  <label className="block text-zinc-400 font-bold uppercase mb-1">Comissão (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={accountEditForm.commissionPercent || 50}
+                    onChange={e => setAccountEditForm({ ...accountEditForm, commissionPercent: parseInt(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-[#d4a338] focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-zinc-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingAccount(null)}
+                  className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+                >
+                  <Save size={16} />
+                  Salvar Alterações
                 </button>
               </div>
             </form>

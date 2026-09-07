@@ -4,7 +4,7 @@ import { appointmentService } from '../services/appointmentService';
 import { firestoreService } from '../services/firestoreService';
 import { saasService } from '../services/saasService';
 import { Appointment, Service, Barber, User } from '../models';
-import { Calendar, Clock, Scissors, CheckCircle, XCircle, DollarSign, Phone, Mail, User as UserIcon, Shield, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, Scissors, CheckCircle, XCircle, DollarSign, Phone, Mail, User as UserIcon, Shield, TrendingUp, Edit2, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -18,6 +18,56 @@ export default function BarberDashboard() {
   const [newCancellations, setNewCancellations] = useState<Appointment[]>([]);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+
+  // Profile Edit State
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    photoUrl: '',
+    bio: '',
+    phone: ''
+  });
+
+  const handleOpenEditProfile = () => {
+    setProfileForm({
+      name: barberProfile?.name || user?.name || '',
+      photoUrl: barberProfile?.photoUrl || '',
+      bio: barberProfile?.bio || '',
+      phone: user?.phone || ''
+    });
+    setIsEditProfileOpen(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!barberProfile) return;
+    try {
+      await firestoreService.updateBarber(barberProfile.id, {
+        name: profileForm.name,
+        photoUrl: profileForm.photoUrl,
+        bio: profileForm.bio
+      });
+
+      if (user?.uid) {
+        await saasService.updateTenantAccount(user.uid, {
+          name: profileForm.name,
+          phone: profileForm.phone
+        });
+      }
+
+      setBarberProfile(prev => prev ? {
+        ...prev,
+        name: profileForm.name,
+        photoUrl: profileForm.photoUrl,
+        bio: profileForm.bio
+      } : null);
+
+      setIsEditProfileOpen(false);
+      alert('Seu perfil foi atualizado com sucesso!');
+    } catch (err) {
+      alert('Erro ao atualizar seu perfil.');
+    }
+  };
 
   const activeShop = saasService.getActiveBarbershop();
 
@@ -160,13 +210,23 @@ export default function BarberDashboard() {
           </div>
         </div>
 
-        <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-2xl flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
-            <TrendingUp size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-bold text-zinc-400">Taxa de Comissão</p>
-            <p className="text-lg font-bold text-[#d4a338]">{commissionPercent}% <span className="text-xs font-normal text-zinc-400">por corte</span></p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleOpenEditProfile}
+            className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-sm"
+          >
+            <Edit2 size={15} />
+            Editar Meu Perfil
+          </button>
+
+          <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-2xl flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+              <TrendingUp size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-zinc-400">Taxa de Comissão</p>
+              <p className="text-lg font-bold text-[#d4a338]">{commissionPercent}% <span className="text-xs font-normal text-zinc-400">por corte</span></p>
+            </div>
           </div>
         </div>
       </div>
@@ -360,6 +420,98 @@ export default function BarberDashboard() {
                 Confirmar Cancelamento
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {isEditProfileOpen && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60] backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-zinc-100">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-zinc-900">Editar Meu Perfil de Barbeiro</h3>
+                <p className="text-xs text-zinc-500">Atualize suas informações visíveis para os clientes no agendamento.</p>
+              </div>
+              <button 
+                onClick={() => setIsEditProfileOpen(false)}
+                className="text-zinc-400 hover:text-zinc-700 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="flex items-center gap-4 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-200 border border-zinc-300 overflow-hidden shrink-0 flex items-center justify-center font-bold text-zinc-500 text-sm">
+                  {profileForm.photoUrl ? (
+                    <img src={profileForm.photoUrl} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    profileForm.name.slice(0, 2).toUpperCase() || 'Foto'
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">URL da Foto de Perfil</label>
+                  <input
+                    type="url"
+                    placeholder="https://exemplo.com/minha-foto.jpg"
+                    value={profileForm.photoUrl}
+                    onChange={(e) => setProfileForm({ ...profileForm, photoUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-xs focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Nome Profissional</label>
+                <input
+                  type="text"
+                  required
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Especialidade / Biografia Curta</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Especialista em Degradê Navalhado e Barba Terapia"
+                  value={profileForm.bio}
+                  onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Telefone de Contato</label>
+                <input
+                  type="text"
+                  placeholder="+351 912 345 678"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditProfileOpen(false)}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Save size={14} />
+                  Salvar Perfil
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

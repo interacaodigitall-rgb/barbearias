@@ -9,7 +9,7 @@ import CashFlowDashboard from '../components/CashFlowDashboard';
 import { 
   Users, Calendar, TrendingUp, CheckCircle, XCircle, Clock, Scissors, 
   User as UserIcon, Plus, Trash2, Edit2, Save, Award, Phone, Mail, 
-  DollarSign, Package, VolumeX, ShoppingBag, Wallet, Key, Copy, Check, Shield, UserPlus
+  DollarSign, Package, VolumeX, ShoppingBag, Wallet, Key, Copy, Check, Shield, UserPlus, Building2, Image as ImageIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -22,9 +22,26 @@ export default function AdminDashboard() {
   const [customers, setCustomers] = useState<Record<string, User>>({});
   const [loyaltyPoints, setLoyaltyPoints] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'cashFlow' | 'appointments' | 'products' | 'services' | 'barbers' | 'loyalty' | 'blockedTimes'>('cashFlow');
+  const [activeTab, setActiveTab] = useState<'cashFlow' | 'appointments' | 'products' | 'services' | 'barbers' | 'loyalty' | 'blockedTimes' | 'companyProfile'>('cashFlow');
   const [newCancellations, setNewCancellations] = useState<Appointment[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([]);
+
+  // Company Profile Form State
+  const [activeShopState, setActiveShopState] = useState(saasService.getActiveBarbershop());
+  const [companyForm, setCompanyForm] = useState({
+    name: activeShopState.name,
+    tagline: activeShopState.tagline || '',
+    unit: activeShopState.unit || '',
+    address: activeShopState.address || '',
+    phone: activeShopState.phone || '',
+    city: activeShopState.city || '',
+    country: activeShopState.country || 'Portugal',
+    logoUrl: activeShopState.logoUrl || '',
+    coverImageUrl: activeShopState.coverImageUrl || '',
+    primaryColor: activeShopState.primaryColor || '#d4a338',
+    storyText: activeShopState.storyText || '',
+    quietServiceEnabled: activeShopState.quietServiceEnabled ?? true
+  });
 
   // Barber Accounts & Access Management
   const [barberAccounts, setBarberAccounts] = useState<TenantAccount[]>([]);
@@ -74,6 +91,17 @@ export default function AdminDashboard() {
       setCancelReason('');
     } catch (err) {
       alert('Erro ao cancelar agendamento');
+    }
+  };
+
+  const handleSaveCompanyProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const updated = await saasService.updateBarbershop(activeShopState.id, companyForm);
+      setActiveShopState(updated);
+      alert('Perfil da Barbearia atualizado com sucesso!');
+    } catch (err) {
+      alert('Erro ao atualizar o perfil da barbearia.');
     }
   };
 
@@ -412,6 +440,13 @@ export default function AdminDashboard() {
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'blockedTimes' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             Bloqueios
+          </button>
+          <button 
+            onClick={() => setActiveTab('companyProfile')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'companyProfile' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+          >
+            <Building2 size={16} />
+            Perfil da Empresa
           </button>
         </div>
       </div>
@@ -1262,6 +1297,240 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* COMPANY PROFILE TAB */}
+      {activeTab === 'companyProfile' && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-zinc-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-100 mb-6">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#d4a338] bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                  Perfil & Marca
+                </span>
+                <h3 className="text-2xl font-bold text-zinc-900 mt-2">Perfil Institucional da Barbearia</h3>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Gerencie nome, endereço, logótipo, cores e história exibidos no PWA e para os clientes.
+                </p>
+              </div>
+
+              <button
+                onClick={handleSaveCompanyProfile}
+                className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 shrink-0"
+              >
+                <Save size={16} />
+                Salvar Alterações
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCompanyProfile} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Nome Oficial da Barbearia *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={companyForm.name}
+                    onChange={e => setCompanyForm({ ...companyForm, name: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Sherlocks Barber Club"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Slogan / Tagline
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.tagline}
+                    onChange={e => setCompanyForm({ ...companyForm, tagline: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Estilo Tradicional & Cortes Modernos"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Unidade / Filial
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.unit}
+                    onChange={e => setCompanyForm({ ...companyForm, unit: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Matriz Central ou Unidade Baixa"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Telefone / WhatsApp Comercial
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.phone}
+                    onChange={e => setCompanyForm({ ...companyForm, phone: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: +351 912 345 678"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Morada / Endereço Completo
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.address}
+                    onChange={e => setCompanyForm({ ...companyForm, address: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Rua Garrett 42, Baixa-Chiado"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Cidade
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.city}
+                    onChange={e => setCompanyForm({ ...companyForm, city: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Lisboa"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    País
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.country}
+                    onChange={e => setCompanyForm({ ...companyForm, country: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Portugal"
+                  />
+                </div>
+              </div>
+
+              {/* Brand & Assets Section */}
+              <div className="pt-6 border-t border-zinc-100">
+                <h4 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-4">
+                  Identidade Visual & Logótipo
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-700 uppercase">
+                        Logótipo / Favicon (URL PNG)
+                      </label>
+                      {companyForm.logoUrl && (
+                        <div className="w-10 h-10 rounded-xl bg-zinc-900 p-1 overflow-hidden border border-zinc-700 shrink-0">
+                          <img src={companyForm.logoUrl} alt="Logo preview" className="w-full h-full object-contain" />
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="url"
+                      value={companyForm.logoUrl}
+                      onChange={e => setCompanyForm({ ...companyForm, logoUrl: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-xs focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                      placeholder="https://i.postimg.cc/..."
+                    />
+                  </div>
+
+                  <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-zinc-700 uppercase">
+                        Imagem de Capa / Banner (URL)
+                      </label>
+                      {companyForm.coverImageUrl && (
+                        <div className="w-16 h-10 rounded-xl bg-zinc-900 overflow-hidden border border-zinc-700 shrink-0">
+                          <img src={companyForm.coverImageUrl} alt="Cover preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="url"
+                      value={companyForm.coverImageUrl}
+                      onChange={e => setCompanyForm({ ...companyForm, coverImageUrl: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-xs focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                      placeholder="https://images.unsplash.com/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                      Cor de Destaque da Marca (Hex)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={companyForm.primaryColor}
+                        onChange={e => setCompanyForm({ ...companyForm, primaryColor: e.target.value })}
+                        className="w-12 h-11 rounded-xl cursor-pointer border border-zinc-200 bg-white p-1"
+                      />
+                      <input
+                        type="text"
+                        value={companyForm.primaryColor}
+                        onChange={e => setCompanyForm({ ...companyForm, primaryColor: e.target.value })}
+                        className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                      Atendimento Silencioso ("Quiet Service")
+                    </label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <input
+                        type="checkbox"
+                        id="quietServiceToggleAdmin"
+                        checked={companyForm.quietServiceEnabled}
+                        onChange={e => setCompanyForm({ ...companyForm, quietServiceEnabled: e.target.checked })}
+                        className="w-5 h-5 accent-zinc-900 rounded cursor-pointer"
+                      />
+                      <label htmlFor="quietServiceToggleAdmin" className="text-xs text-zinc-600 font-medium cursor-pointer">
+                        Permitir que clientes solicitem atendimento silencioso no agendamento
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Institutional Story */}
+              <div className="pt-6 border-t border-zinc-100">
+                <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                  História / Texto Institucional da Barbearia
+                </label>
+                <textarea
+                  rows={4}
+                  value={companyForm.storyText}
+                  onChange={e => setCompanyForm({ ...companyForm, storyText: e.target.value })}
+                  className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                  placeholder="Escreva a história da sua barbearia, tradições, ambiente..."
+                />
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button
+                  type="submit"
+                  className="px-8 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
+                >
+                  <Save size={16} />
+                  Salvar Perfil da Barbearia
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

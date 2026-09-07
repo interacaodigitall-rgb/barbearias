@@ -380,6 +380,16 @@ export const saasService = {
     return accounts.find(a => a.barberId === barberId && a.role === 'barber') || null;
   },
 
+  async updateTenantAccount(uid: string, data: Partial<TenantAccount>): Promise<TenantAccount> {
+    const accounts = getStoredTenantAccounts();
+    const index = accounts.findIndex(a => a.uid === uid);
+    if (index === -1) throw new Error('Conta não encontrada');
+    const updated = { ...accounts[index], ...data };
+    accounts[index] = updated;
+    saveStoredTenantAccounts(accounts);
+    return updated;
+  },
+
   async deleteTenantAccount(uid: string): Promise<void> {
     const accounts = getStoredTenantAccounts();
     const filtered = accounts.filter(a => a.uid !== uid);

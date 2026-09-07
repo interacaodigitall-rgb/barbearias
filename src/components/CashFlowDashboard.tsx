@@ -50,7 +50,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [barbershopId]);
 
   const handleCreateTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
