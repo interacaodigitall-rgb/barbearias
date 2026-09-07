@@ -144,13 +144,19 @@ export default function Home() {
           
           {/* Circular Retro Vintage Badge Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-stone-800 flex flex-col items-center justify-center p-1 bg-[#f4f0e8] shadow-sm group-hover:scale-105 transition-transform">
-              <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-600">Desde 2013</span>
-              <span className="font-serif italic font-extrabold text-sm md:text-base leading-none text-stone-900 tracking-tight text-center">
-                {activeShop.name.toLowerCase().includes('elias') ? 'Seu Elias' : activeShop.name}
-              </span>
-              <span className="text-[6px] md:text-[7px] font-bold uppercase tracking-wider text-[#d4a338] mt-0.5">Barba • Cabelo</span>
-            </div>
+            {activeShop.logoUrl ? (
+              <div className="relative h-14 md:h-16 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <img src={activeShop.logoUrl} alt={activeShop.name} className="h-full w-auto object-contain" referrerPolicy="no-referrer" />
+              </div>
+            ) : (
+              <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-stone-800 flex flex-col items-center justify-center p-1 bg-[#f4f0e8] shadow-sm group-hover:scale-105 transition-transform">
+                <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-600">Desde 2013</span>
+                <span className="font-serif italic font-extrabold text-sm md:text-base leading-none text-stone-900 tracking-tight text-center">
+                  {activeShop.name.toLowerCase().includes('elias') ? 'Seu Elias' : activeShop.name}
+                </span>
+                <span className="text-[6px] md:text-[7px] font-bold uppercase tracking-wider text-[#d4a338] mt-0.5">Barba • Cabelo</span>
+              </div>
+            )}
             <div className="hidden sm:block">
               <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-stone-900 leading-none">
                 {activeShop.name}

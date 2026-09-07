@@ -122,15 +122,25 @@ const getStoredShops = (): SaaSBarbershop[] => {
   if (saved) {
     try {
       const parsed: SaaSBarbershop[] = JSON.parse(saved);
-      // Ensure default/new demo shops (like Roger'X) are always present
-      const existingSlugs = new Set(parsed.map(s => s.slug.toLowerCase()));
+      // Ensure default/new demo shops (like Roger'X) are always present and updated with new properties like logoUrl
+      const demoMap = new Map(demoSaaSBarbershops.map(s => [s.slug.toLowerCase(), s]));
+      const merged = parsed.map(s => {
+        const demoShop = demoMap.get(s.slug.toLowerCase());
+        return demoShop ? { ...s, ...demoShop, cashFlowBalance: s.cashFlowBalance } : s; // Preserve cashFlowBalance if needed, or just overwrite
+      });
+      const existingSlugs = new Set(merged.map(s => s.slug.toLowerCase()));
       const missing = demoSaaSBarbershops.filter(s => !existingSlugs.has(s.slug.toLowerCase()));
-      if (missing.length > 0) {
-        const merged = [...parsed, ...missing];
-        localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(merged));
-        return merged;
+      
+      const finalShops = [...merged, ...missing];
+      
+      // Force update rogerx to ensure it has the logo
+      const rogerx = finalShops.find(s => s.slug === 'rogerx-barbershop');
+      if (rogerx) {
+        rogerx.logoUrl = 'https://i.postimg.cc/pLGNWyw8/logo-roger-png.png';
       }
-      return parsed;
+
+      localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(finalShops));
+      return finalShops;
     } catch {
       return demoSaaSBarbershops;
     }
