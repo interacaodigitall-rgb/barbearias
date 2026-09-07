@@ -163,7 +163,7 @@ export default function Appointments() {
             return (
               <div
                 key={appt.id}
-                className="bg-white rounded-3xl p-5 border border-zinc-200/80 shadow-xs hover:shadow-md transition-shadow space-y-4"
+                className="rounded-3xl p-5 border border-zinc-200/80 shadow-xs hover:shadow-md transition-shadow space-y-4 text-zinc-900 bg-white placeholder:text-zinc-400"
               >
                 {/* Header row: Service, Price & Status */}
                 <div className="flex items-start justify-between gap-2">
@@ -288,7 +288,7 @@ export default function Appointments() {
               placeholder="Ex: Imprevisto no trabalho, remarcarei em breve..."
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              className="w-full text-xs p-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-zinc-900 outline-none mb-4"
+              className="w-full text-xs p-3 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-zinc-900 outline-none mb-4 text-zinc-900 bg-white placeholder:text-zinc-400"
             />
 
             <div className="flex items-center justify-end gap-2">

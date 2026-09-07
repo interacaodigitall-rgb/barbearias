@@ -148,7 +148,7 @@ export default function Profile() {
                   {isEditingCompany ? (
                     <input 
                       type="text" 
-                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white focus:ring-zinc-900 focus:border-zinc-900"
+                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
                       value={companySettings.companyName}
                       onChange={e => setCompanySettings({...companySettings, companyName: e.target.value})}
                     />
@@ -162,7 +162,7 @@ export default function Profile() {
                   {isEditingCompany ? (
                     <input 
                       type="text" 
-                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white focus:ring-zinc-900 focus:border-zinc-900"
+                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
                       value={companySettings.nif}
                       onChange={e => setCompanySettings({...companySettings, nif: e.target.value})}
                     />
@@ -176,7 +176,7 @@ export default function Profile() {
                   {isEditingCompany ? (
                     <input 
                       type="text" 
-                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white focus:ring-zinc-900 focus:border-zinc-900"
+                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
                       value={companySettings.address}
                       onChange={e => setCompanySettings({...companySettings, address: e.target.value})}
                     />
@@ -190,7 +190,7 @@ export default function Profile() {
                   {isEditingCompany ? (
                     <input 
                       type="text" 
-                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white focus:ring-zinc-900 focus:border-zinc-900"
+                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
                       value={companySettings.phone}
                       onChange={e => setCompanySettings({...companySettings, phone: e.target.value})}
                     />
@@ -204,7 +204,7 @@ export default function Profile() {
                   {isEditingCompany ? (
                     <input 
                       type="text" 
-                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white focus:ring-zinc-900 focus:border-zinc-900"
+                      className="w-full p-3 rounded-xl border border-zinc-200 text-sm focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
                       value={companySettings.ownerName}
                       onChange={e => setCompanySettings({...companySettings, ownerName: e.target.value})}
                     />

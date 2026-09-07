@@ -669,7 +669,7 @@ export default function Booking() {
       {step === 5 && (
         <div className="px-4 py-5 space-y-4 animate-in fade-in duration-200">
           {/* Summary Card */}
-          <div className="bg-white p-5 rounded-3xl border border-zinc-200/80 shadow-sm space-y-4">
+          <div className="p-5 rounded-3xl border border-zinc-200/80 shadow-sm space-y-4 text-zinc-900 bg-white placeholder:text-zinc-400">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
               <div>
                 <h3 className="text-xl font-extrabold text-zinc-900">
@@ -742,7 +742,7 @@ export default function Booking() {
           </div>
 
           {/* Quiet Service Toggle Card (Matches image 7) */}
-          <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs flex items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl border border-zinc-200/80 shadow-xs flex items-center justify-between gap-3 text-zinc-900 bg-white placeholder:text-zinc-400">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
                 <VolumeX size={18} className="text-zinc-600" />
@@ -773,7 +773,7 @@ export default function Booking() {
           </div>
 
           {/* Observations Textarea (Matches image 7) */}
-          <div className="bg-white p-4 rounded-2xl border border-zinc-200/80 shadow-xs space-y-2">
+          <div className="p-4 rounded-2xl border border-zinc-200/80 shadow-xs space-y-2 text-zinc-900 bg-white placeholder:text-zinc-400">
             <label className="block text-[11px] font-extrabold text-zinc-400 uppercase tracking-widest">
               Alguma Observação?
             </label>
@@ -782,7 +782,7 @@ export default function Booking() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: Cabelo muito grande, prefiro máquina 2 nas laterais..."
-              className="w-full text-xs p-3 bg-zinc-50 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-[#d4a338] focus:border-transparent outline-none text-zinc-800 placeholder-zinc-400 resize-none"
+              className="w-full text-xs p-3 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-[#d4a338] focus:border-transparent outline-none resize-none text-zinc-900 bg-white placeholder:text-zinc-400"
             />
           </div>
 

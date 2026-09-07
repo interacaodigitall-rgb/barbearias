@@ -214,7 +214,7 @@ export default function BarberDashboard() {
             <h3 className="text-xl font-bold tracking-tight text-zinc-900">Sua Agenda de Atendimentos</h3>
             <p className="text-xs text-zinc-500">Exibindo exclusivamente clientes agendados com você.</p>
           </div>
-          <span className="text-xs font-mono font-bold bg-zinc-100 text-zinc-700 px-3 py-1 rounded-full border border-zinc-200">
+          <span className="text-xs font-mono font-bold px-3 py-1 rounded-full border border-zinc-200 text-zinc-900 bg-white placeholder:text-zinc-400">
             {appointments.length} {appointments.length === 1 ? 'cliente' : 'clientes'}
           </span>
         </div>
@@ -339,7 +339,7 @@ export default function BarberDashboard() {
             <p className="text-xs text-zinc-500 mb-4">Por favor, informe o motivo do cancelamento para o cliente.</p>
             
             <textarea
-              className="w-full h-28 p-3 rounded-xl border border-zinc-200 text-xs focus:ring-2 focus:ring-zinc-900 outline-none resize-none mb-4"
+              className="w-full h-28 p-3 rounded-xl border border-zinc-200 text-xs focus:ring-2 focus:ring-zinc-900 outline-none resize-none mb-4 text-zinc-900 bg-white placeholder:text-zinc-400"
               placeholder="Ex: Imprevisto com horário, cliente remarcou..."
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}

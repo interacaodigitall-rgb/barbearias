@@ -54,7 +54,7 @@ export default function Register() {
                 name="name"
                 type="text"
                 required
-                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 bg-white focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 placeholder="Nome Completo"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -67,7 +67,7 @@ export default function Register() {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 bg-white focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 placeholder="Seu email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,7 +80,7 @@ export default function Register() {
                 name="phone"
                 type="tel"
                 required
-                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 bg-white focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 placeholder="Telefone (WhatsApp)"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -93,7 +93,7 @@ export default function Register() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 placeholder-zinc-500 text-zinc-900 bg-white focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-xl relative block w-full px-4 py-3 border border-zinc-300 focus:outline-none focus:ring-zinc-900 focus:border-zinc-900 focus:z-10 sm:text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 placeholder="Sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

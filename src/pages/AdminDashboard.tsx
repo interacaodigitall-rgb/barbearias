@@ -357,7 +357,7 @@ export default function AdminDashboard() {
           <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Painel de Gestão</h2>
           <p className="text-zinc-500">Fluxo de caixa em tempo real, comissões da equipe e controle de agendamentos.</p>
         </div>
-        <div className="flex bg-white border border-zinc-200 p-1 rounded-2xl shadow-sm overflow-x-auto max-w-full gap-1">
+        <div className="flex border border-zinc-200 p-1 rounded-2xl shadow-sm overflow-x-auto max-w-full gap-1 text-zinc-900 bg-white placeholder:text-zinc-400">
           <button 
             onClick={() => setActiveTab('cashFlow')}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'cashFlow' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
@@ -630,7 +630,7 @@ export default function AdminDashboard() {
             <p className="text-zinc-500 mb-6">Por favor, informe o motivo do cancelamento.</p>
             
             <textarea
-              className="w-full h-32 p-4 rounded-2xl border border-zinc-200 focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none resize-none mb-6"
+              className="w-full h-32 p-4 rounded-2xl border border-zinc-200 focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none resize-none mb-6 text-zinc-900 bg-white placeholder:text-zinc-400"
               placeholder="Motivo do cancelamento..."
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
@@ -663,21 +663,21 @@ export default function AdminDashboard() {
               <input 
                 type="text" 
                 placeholder="Nome do serviço" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={serviceForm.name}
                 onChange={e => setServiceForm({ ...serviceForm, name: e.target.value })}
               />
               <input 
                 type="text" 
                 placeholder="Descrição" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={serviceForm.description}
                 onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })}
               />
               <input 
                 type="number" 
                 placeholder="Preço (€)" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={serviceForm.price}
                 onChange={e => setServiceForm({ ...serviceForm, price: Number(e.target.value) })}
               />
@@ -685,7 +685,7 @@ export default function AdminDashboard() {
                 <input 
                   type="number" 
                   placeholder="Duração (min)" 
-                  className="flex-1 p-3 rounded-xl border border-zinc-200 text-sm"
+                  className="flex-1 p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                   value={serviceForm.durationMinutes}
                   onChange={e => setServiceForm({ ...serviceForm, durationMinutes: Number(e.target.value) })}
                 />
@@ -845,7 +845,7 @@ export default function AdminDashboard() {
                           </span>
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-zinc-200 text-zinc-900 bg-white placeholder:text-zinc-400">
                         {barber.branch === 'PT' ? 'Portugal' : barber.branch === 'ES' ? 'Espanha' : 'Ambas'}
                       </span>
                     </div>
@@ -882,7 +882,7 @@ export default function AdminDashboard() {
                               Revogar
                             </button>
                           </div>
-                          <div className="bg-zinc-50 p-2 rounded-xl font-mono text-[11px] text-zinc-700 space-y-0.5 border border-zinc-200/60">
+                          <div className="p-2 rounded-xl font-mono text-[11px] space-y-0.5 border border-zinc-200/60 text-zinc-900 bg-white placeholder:text-zinc-400">
                             <p className="truncate">Login: <strong>{acc.email}</strong></p>
                             <p>Senha: <strong>{acc.password || '••••••'}</strong></p>
                           </div>
@@ -960,26 +960,26 @@ export default function AdminDashboard() {
               <input 
                 type="text" 
                 placeholder="Nome do barbeiro" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={barberForm.name}
                 onChange={e => setBarberForm({ ...barberForm, name: e.target.value })}
               />
               <input 
                 type="text" 
                 placeholder="Bio / Especialidade (Ex: Degradê, Barba Terapia)" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={barberForm.bio}
                 onChange={e => setBarberForm({ ...barberForm, bio: e.target.value })}
               />
               <input 
                 type="text" 
                 placeholder="URL da Foto (opcional)" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={barberForm.photoUrl || ''}
                 onChange={e => setBarberForm({ ...barberForm, photoUrl: e.target.value })}
               />
               <select 
-                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={barberForm.branch}
                 onChange={e => setBarberForm({ ...barberForm, branch: e.target.value as 'PT' | 'ES' | 'BOTH' })}
               >
@@ -988,7 +988,7 @@ export default function AdminDashboard() {
                 <option value="BOTH">Ambas (PT e ES)</option>
               </select>
               <select 
-                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={barberForm.compensationType}
                 onChange={e => setBarberForm({ ...barberForm, compensationType: e.target.value as 'salary' | 'percentage' })}
               >
@@ -998,13 +998,13 @@ export default function AdminDashboard() {
               <input 
                 type="number" 
                 placeholder={barberForm.compensationType === 'percentage' ? 'Porcentagem de Comissão (%)' : 'Salário (€)'} 
-                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                className="p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={barberForm.compensationValue || ''}
                 onChange={e => setBarberForm({ ...barberForm, compensationValue: Number(e.target.value) })}
               />
               <div className="flex gap-2">
                 <select 
-                  className="flex-1 p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338]"
+                  className="flex-1 p-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                   value={barberForm.isActive ? 'true' : 'false'}
                   onChange={e => setBarberForm({ ...barberForm, isActive: e.target.value === 'true' })}
                 >
@@ -1165,7 +1165,7 @@ export default function AdminDashboard() {
             <h3 className="text-lg font-bold text-zinc-900 mb-4">Adicionar Bloqueio de Horário</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <select 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={blockedTimeForm.barberId}
                 onChange={e => setBlockedTimeForm({ ...blockedTimeForm, barberId: e.target.value })}
               >
@@ -1176,19 +1176,19 @@ export default function AdminDashboard() {
               </select>
               <input 
                 type="date" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={blockedTimeForm.date}
                 onChange={e => setBlockedTimeForm({ ...blockedTimeForm, date: e.target.value })}
               />
               <input 
                 type="time" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={blockedTimeForm.startTime}
                 onChange={e => setBlockedTimeForm({ ...blockedTimeForm, startTime: e.target.value })}
               />
               <input 
                 type="time" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={blockedTimeForm.endTime}
                 onChange={e => setBlockedTimeForm({ ...blockedTimeForm, endTime: e.target.value })}
               />
@@ -1196,7 +1196,7 @@ export default function AdminDashboard() {
                 <input 
                   type="text" 
                   placeholder="Motivo (ex: Almoço)" 
-                  className="flex-1 p-3 rounded-xl border border-zinc-200 text-sm"
+                  className="flex-1 p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                   value={blockedTimeForm.reason}
                   onChange={e => setBlockedTimeForm({ ...blockedTimeForm, reason: e.target.value })}
                 />
@@ -1276,14 +1276,14 @@ export default function AdminDashboard() {
               <input 
                 type="text" 
                 placeholder="Nome do produto (ex: Pomada Efeito Matte)" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={productForm.name}
                 onChange={e => setProductForm({ ...productForm, name: e.target.value })}
               />
               <input 
                 type="text" 
                 placeholder="Descrição rápida (ex: Fixação forte e sem brilho)" 
-                className="p-3 rounded-xl border border-zinc-200 text-sm"
+                className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                 value={productForm.description}
                 onChange={e => setProductForm({ ...productForm, description: e.target.value })}
               />
@@ -1292,14 +1292,14 @@ export default function AdminDashboard() {
                   type="number" 
                   step="0.5"
                   placeholder="Preço (€)" 
-                  className="p-3 rounded-xl border border-zinc-200 text-sm"
+                  className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                   value={productForm.price || ''}
                   onChange={e => setProductForm({ ...productForm, price: parseFloat(e.target.value) || 0 })}
                 />
                 <input 
                   type="number" 
                   placeholder="Estoque" 
-                  className="p-3 rounded-xl border border-zinc-200 text-sm"
+                  className="p-3 rounded-xl border border-zinc-200 text-sm text-zinc-900 bg-white placeholder:text-zinc-400"
                   value={productForm.stock || ''}
                   onChange={e => setProductForm({ ...productForm, stock: parseInt(e.target.value) || 0 })}
                 />
@@ -1416,7 +1416,7 @@ export default function AdminDashboard() {
       {/* MODAL: + Criar Acesso para Barbeiro */}
       {isCreateBarberAccessModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white border border-zinc-200 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="border border-zinc-200 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 text-zinc-900 bg-white placeholder:text-zinc-400">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
@@ -1470,7 +1470,7 @@ export default function AdminDashboard() {
                       });
                     }
                   }}
-                  className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:border-[#d4a338]"
+                  className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 >
                   <option value="new">+ Cadastrar Novo Barbeiro com Login</option>
                   {barbers.map(b => (
@@ -1490,7 +1490,7 @@ export default function AdminDashboard() {
                   placeholder="Ex: Roger Santos"
                   value={barberAccessForm.name}
                   onChange={e => setBarberAccessForm({ ...barberAccessForm, name: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:border-[#d4a338]"
+                  className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                   required
                 />
               </div>
@@ -1504,7 +1504,7 @@ export default function AdminDashboard() {
                   placeholder="Ex: roger@rogerx.pt"
                   value={barberAccessForm.email}
                   onChange={e => setBarberAccessForm({ ...barberAccessForm, email: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:border-[#d4a338]"
+                  className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                   required
                 />
               </div>
@@ -1519,7 +1519,7 @@ export default function AdminDashboard() {
                     placeholder="Ex: barber2026"
                     value={barberAccessForm.password}
                     onChange={e => setBarberAccessForm({ ...barberAccessForm, password: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 font-mono focus:outline-none focus:border-[#d4a338]"
+                    className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs font-mono focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                     required
                   />
                 </div>
@@ -1536,7 +1536,7 @@ export default function AdminDashboard() {
                       placeholder="50"
                       value={barberAccessForm.commissionPercent}
                       onChange={e => setBarberAccessForm({ ...barberAccessForm, commissionPercent: Number(e.target.value) })}
-                      className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:border-[#d4a338]"
+                      className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                       required
                     />
                     <span className="absolute right-3 top-2.5 text-xs text-zinc-400 font-bold">%</span>
@@ -1553,11 +1553,11 @@ export default function AdminDashboard() {
                   placeholder="+351 912 345 678"
                   value={barberAccessForm.phone}
                   onChange={e => setBarberAccessForm({ ...barberAccessForm, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 focus:outline-none focus:border-[#d4a338]"
+                  className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
                 />
               </div>
 
-              <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-[11px] text-zinc-600 space-y-1">
+              <div className="p-3 border border-zinc-200 rounded-xl text-[11px] space-y-1 text-zinc-900 bg-white placeholder:text-zinc-400">
                 <p className="font-bold text-amber-900 flex items-center gap-1.5">
                   <Shield size={14} className="text-amber-600" />
                   Privacidade e Isolamento da Equipe:

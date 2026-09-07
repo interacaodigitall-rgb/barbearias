@@ -233,7 +233,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
 
           <div className="space-y-3">
             {barberCommissions.map(({ barber, totalCommission, cutsCount }) => (
-              <div key={barber.id} className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 hover:border-zinc-200 transition-colors">
+              <div key={barber.id} className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-100 hover:border-zinc-200 transition-colors text-zinc-900 bg-white placeholder:text-zinc-400">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-200 border border-zinc-300 flex items-center justify-center font-bold text-zinc-600 text-xs">
                     {barber.photoUrl ? (
@@ -450,7 +450,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
                   placeholder={modalType === 'income' ? 'Ex: Venda de Pomada Efeito Seco' : 'Ex: Compra de toalhas e lâminas'}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-zinc-900 bg-white placeholder:text-zinc-400"
                 />
               </div>
 
@@ -464,7 +464,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
                     placeholder="0.00"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-zinc-900 bg-white placeholder:text-zinc-400"
                   />
                 </div>
 
@@ -475,7 +475,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-zinc-900 bg-white placeholder:text-zinc-400"
                   />
                 </div>
               </div>
@@ -486,7 +486,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-zinc-900 bg-white placeholder:text-zinc-400"
                   >
                     {modalType === 'income' ? (
                       <>
@@ -511,7 +511,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-zinc-900 bg-white placeholder:text-zinc-400"
                   >
                     <option value="mbway">MB WAY</option>
                     <option value="cash">Dinheiro</option>
@@ -527,7 +527,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
                   <select
                     value={formData.barberId}
                     onChange={(e) => setFormData({ ...formData, barberId: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 focus:border-transparent text-zinc-900 bg-white placeholder:text-zinc-400"
                   >
                     <option value="">Sem barbeiro específico</option>
                     {barbers.map(b => (
