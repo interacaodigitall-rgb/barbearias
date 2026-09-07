@@ -82,7 +82,7 @@ export default function Layout() {
             <div className="flex items-center space-x-2.5">
               <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-950 shrink-0 shadow-xs">
                 <img 
-                  src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                  src={activeShop.logoUrl || "https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg"}
                   alt={activeShop.name} 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -114,7 +114,7 @@ export default function Layout() {
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-950 flex items-center justify-center shrink-0 shadow-md">
                   <img 
-                    src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                    src={activeShop.logoUrl || "https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg"}
                     alt={activeShop.name} 
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"

@@ -437,7 +437,7 @@ export default function Home() {
                     <div className="my-auto text-center space-y-2">
                       <div className="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]/60 shadow-lg">
                         <img 
-                          src="/adriano.webp" 
+                          src="https://i.postimg.cc/pLGNWyw8/logo-roger-png.png" 
                           alt="Barbeiro" 
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover" 
@@ -481,7 +481,7 @@ export default function Home() {
                     <div className="my-auto text-center space-y-2">
                       <div className="relative w-16 h-16 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]">
                         <img 
-                          src="/almir.webp" 
+                          src="https://i.postimg.cc/pLGNWyw8/logo-roger-png.png" 
                           alt="Cliente" 
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover" 
