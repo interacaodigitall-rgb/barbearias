@@ -270,7 +270,7 @@ export default function AdminDashboard() {
   };
 
   const handleCopyBarberCredentials = (account: TenantAccount) => {
-    const text = `Credenciais de Acesso do Barbeiro:\nBarbearia: ${activeShop.name}\nEmail: ${account.email}\nSenha: ${account.password || 'barber123'}\nPainel do Barbeiro: ${window.location.origin}/barber`;
+    const text = `Credenciais de Acesso do Barbeiro:\nBarbearia: ${activeShop.name}\nEmail: ${account.email}\nSenha: ${account.password || 'barber123'}\nLink de Login: ${window.location.origin}/login`;
     navigator.clipboard.writeText(text);
     setCopiedBarberUid(account.uid);
     setTimeout(() => setCopiedBarberUid(null), 2500);
@@ -937,10 +937,10 @@ export default function AdminDashboard() {
                             photoUrl: barber.photoUrl || ''
                           });
                         }}
-                        className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors rounded-lg hover:bg-zinc-100"
+                        className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5"
                         title="Editar Barbeiro"
                       >
-                        <Edit2 size={16} />
+                        <Edit2 size={14} /> Editar
                       </button>
                       <button 
                         onClick={() => handleDeleteBarber(barber.id)} 
