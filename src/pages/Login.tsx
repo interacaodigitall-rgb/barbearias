@@ -18,8 +18,17 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await authService.login(email, password);
-      navigate('/');
+      const user = await authService.login(email, password);
+      
+      if (user.role === 'superadmin') {
+        navigate('/super-admin');
+      } else if (user.role === 'admin' || user.role === 'owner') {
+        navigate('/admin');
+      } else if (user.role === 'barber') {
+        navigate('/barber-dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       const barberEmails = [
         'barbeiro01@sherlocks.pt',

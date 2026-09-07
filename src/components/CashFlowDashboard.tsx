@@ -12,9 +12,10 @@ import { ptBR } from 'date-fns/locale';
 interface CashFlowDashboardProps {
   barbers: Barber[];
   barbershopName?: string;
+  barbershopId?: string;
 }
 
-export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NAVALHA' }: CashFlowDashboardProps) {
+export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NAVALHA', barbershopId }: CashFlowDashboardProps) {
   const [transactions, setTransactions] = useState<CashFlowTransaction[]>([]);
   const [metrics, setMetrics] = useState({
     totalIncome: 0,
@@ -40,8 +41,8 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
 
   const loadData = async () => {
     const [txs, mets] = await Promise.all([
-      cashFlowService.getTransactions(),
-      cashFlowService.getMetrics()
+      cashFlowService.getTransactions(barbershopId),
+      cashFlowService.getMetrics(barbershopId)
     ]);
     setTransactions(txs);
     setMetrics(mets);
@@ -58,7 +59,7 @@ export default function CashFlowDashboard({ barbers, barbershopName = 'MISTER NA
     const selectedBarber = barbers.find(b => b.id === formData.barberId);
 
     await cashFlowService.addTransaction({
-      barbershopId: 'shop-mister-navalha',
+      barbershopId: barbershopId || 'shop-mister-navalha',
       type: modalType,
       category: formData.category as any,
       description: formData.description,

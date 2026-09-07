@@ -99,7 +99,12 @@ export default function AdminDashboard() {
     setBarbers(bList);
     setProducts(pList);
     setCustomers(uMap);
-    setAppointments(appts);
+    
+    // Filter appointments for barbers in the active shop
+    const shopBarberIds = bList.map(b => b.id);
+    const shopAppts = appts.filter(a => shopBarberIds.includes(a.barberId));
+    setAppointments(shopAppts);
+    
     setLoyaltyPoints(lPoints);
     setBlockedTimes(bTimes);
 
@@ -412,7 +417,7 @@ export default function AdminDashboard() {
       </div>
 
       {activeTab === 'cashFlow' && (
-        <CashFlowDashboard barbers={barbers} barbershopName={activeShop.name} />
+        <CashFlowDashboard barbers={barbers} barbershopName={activeShop.name} barbershopId={activeShop.id} />
       )}
 
       {activeTab === 'appointments' && (

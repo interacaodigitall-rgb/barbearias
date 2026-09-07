@@ -2,7 +2,7 @@ import { CashFlowTransaction, Appointment, Barber, Service } from '../models';
 import { demoCashFlowTransactions } from '../models/demoData';
 import { useAuthStore } from '../store/authStore';
 
-const CASH_FLOW_KEY = 'barbersaas_cash_flow_transactions';
+const CASH_FLOW_KEY = 'barbersaas_cash_flow_transactions_v2';
 
 const getStoredTransactions = (): CashFlowTransaction[] => {
   const saved = localStorage.getItem(CASH_FLOW_KEY);
@@ -51,13 +51,14 @@ export const cashFlowService = {
     appt: Appointment,
     service: Service,
     barber?: Barber,
-    barbershopId: string = 'shop-mister-navalha'
+    barbershopId?: string
   ): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
+    const shopId = barbershopId || saasService.getActiveBarbershop().id;
 
     // 1. Receita do Serviço
     await this.addTransaction({
-      barbershopId,
+      barbershopId: shopId,
       type: 'income',
       category: 'service',
       description: `${service.name} (Agendamento #${appt.id.slice(-4)})`,
@@ -73,7 +74,7 @@ export const cashFlowService = {
     if (appt.selectedProducts && appt.selectedProducts.length > 0) {
       for (const prod of appt.selectedProducts) {
         await this.addTransaction({
-          barbershopId,
+          barbershopId: shopId,
           type: 'income',
           category: 'product',
           description: `Venda Upsell: ${prod.name} (${prod.quantity}x)`,
@@ -96,7 +97,7 @@ export const cashFlowService = {
 
       if (commissionAmount > 0) {
         await this.addTransaction({
-          barbershopId,
+          barbershopId: shopId,
           type: 'expense',
           category: 'commission',
           description: `Comissão ${barber.name} (${barber.compensationValue}% sobre ${service.name})`,

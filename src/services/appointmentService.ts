@@ -7,7 +7,7 @@ import { firestoreService } from './firestoreService';
 import { useAuthStore } from '../store/authStore';
 import { demoAppointments } from '../models/demoData';
 
-const DEMO_APPTS_KEY = 'barbearia_demo_appointments';
+const DEMO_APPTS_KEY = 'barbearia_demo_appointments_v2';
 
 const getDemoAppts = (): Appointment[] => {
   const saved = localStorage.getItem(DEMO_APPTS_KEY);
@@ -103,7 +103,7 @@ export const appointmentService = {
             ]);
             const service = services.find(s => s.id === appt.serviceId) || { id: appt.serviceId, name: 'Serviço', price: appt.totalAmount || 15, durationMinutes: 30 };
             const barber = barbers.find(b => b.id === appt.barberId);
-            await cashFlowService.registerAppointmentCompletion(appt, service as any, barber, appt.barbershopId || 'shop-mister-navalha');
+            await cashFlowService.registerAppointmentCompletion(appt, service as any, barber, appt.barbershopId || saasService.getActiveBarbershop().id);
           } catch (e) {
             console.error('Error auto-recording cash flow:', e);
           }
