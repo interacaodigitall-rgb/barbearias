@@ -111,14 +111,19 @@ export default function SaaSLanding() {
       {/* 1. CLEAN COMMERCIAL HEADER */}
       <header className="sticky top-0 z-50 bg-[#0F0F10]/95 backdrop-blur-md border-b border-zinc-800/80 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between">
-          {/* Logo BarberSaaS */}
+          {/* Logo ProBarbearia */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-[#d4a338] text-zinc-950 flex items-center justify-center font-black shadow-[0_2px_10px_rgba(212,163,56,0.35)] group-hover:scale-105 transition-transform">
-              <Scissors size={20} className="stroke-[2.5]" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-950 border border-[#d4a338]/40 flex items-center justify-center shadow-[0_2px_12px_rgba(212,163,56,0.35)] group-hover:scale-105 transition-transform">
+              <img 
+                src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                alt="ProBarbearia Logo" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-black tracking-tight uppercase leading-none text-white">
-                Barber<span className="text-[#d4a338]">SaaS</span>
+                Pro<span className="text-[#d4a338]">Barbearia</span>
               </span>
               <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">
                 Multi-Tenant Cloud
@@ -651,14 +656,19 @@ export default function SaaSLanding() {
       <footer className="border-t border-zinc-800/80 bg-[#0c0c0d] py-12 text-zinc-400 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#d4a338] text-zinc-950 flex items-center justify-center font-black">
-              <Scissors size={18} />
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-zinc-950 border border-[#d4a338]/40 flex items-center justify-center shrink-0">
+              <img 
+                src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                alt="ProBarbearia Logo" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <span className="text-sm font-black uppercase text-white tracking-wider">
-                Barber<span className="text-[#d4a338]">SaaS</span>
+                Pro<span className="text-[#d4a338]">Barbearia</span>
               </span>
-              <p className="text-[10px] text-zinc-500">© 2026 BarberSaaS Cloud Technologies. Todos os direitos reservados.</p>
+              <p className="text-[10px] text-zinc-500">© 2026 ProBarbearia Cloud Technologies. Todos os direitos reservados.</p>
             </div>
           </div>
 
@@ -683,10 +693,15 @@ export default function SaaSLanding() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-amber-400/10 text-[#d4a338] rounded-2xl flex items-center justify-center mx-auto mb-2.5 border border-amber-400/20">
-                <Scissors size={24} />
+              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-zinc-950 border border-amber-400/30 flex items-center justify-center mx-auto mb-2.5 shadow-md">
+                <img 
+                  src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                  alt="ProBarbearia Logo" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               </div>
-              <h3 className="text-xl font-extrabold text-white">Cadastre Sua Barbearia</h3>
+              <h3 className="text-xl font-extrabold text-white">Cadastre Sua Barbearia no ProBarbearia</h3>
               <p className="text-xs text-zinc-400 mt-1">14 dias de teste grátis. Configure em menos de 2 minutos.</p>
             </div>
 

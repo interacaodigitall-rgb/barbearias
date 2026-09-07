@@ -64,7 +64,12 @@ export default function Profile() {
           <div className="flex flex-col items-center mb-8">
             <div className="w-24 h-24 bg-zinc-100 rounded-full flex items-center justify-center mb-4 border-4 border-white shadow-sm overflow-hidden">
               {user.role === 'admin' ? (
-                <img src="/logo.webp" alt="Sherlocks Logo" className="w-full h-full object-cover" />
+                <img 
+                  src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                  alt="ProBarbearia Logo" 
+                  className="w-full h-full object-cover" 
+                  referrerPolicy="no-referrer"
+                />
               ) : (
                 <UserIcon size={40} className="text-zinc-400" />
               )}

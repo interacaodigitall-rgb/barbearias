@@ -39,6 +39,20 @@ export default function SaaSHeaderSwitcher() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
         {/* Left: Barbershop active selector */}
         <div className="relative flex items-center gap-2">
+          <Link to="/saas" className="flex items-center gap-1.5 hover:opacity-90 transition-opacity mr-1">
+            <div className="w-5 h-5 rounded-md overflow-hidden bg-zinc-900 border border-[#d4a338]/40 shrink-0">
+              <img 
+                src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                alt="ProBarbearia" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <span className="font-black text-white text-[11px] uppercase tracking-tight hidden sm:inline">
+              Pro<span className="text-[#d4a338]">Barbearia</span>
+            </span>
+          </Link>
+
           <div className="flex items-center gap-1.5 font-extrabold text-[#d4a338] tracking-wider uppercase text-[11px]">
             <Sparkles size={13} />
             <span>Unidade Ativa:</span>

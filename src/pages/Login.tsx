@@ -104,11 +104,18 @@ export default function Login() {
         
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-100 space-y-8">
           <div className="text-center">
-            <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center overflow-hidden rounded-full border-2 border-zinc-900 bg-white shadow-sm">
-              <img src="/logo.webp" alt="SHERLOCKS Logo" className="w-full h-full object-cover" />
+            <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center overflow-hidden rounded-2xl border-2 border-zinc-900 bg-zinc-950 shadow-md">
+              <img 
+                src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                alt="ProBarbearia Logo" 
+                className="w-full h-full object-cover" 
+                referrerPolicy="no-referrer"
+              />
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900">SHERLOCKS</h2>
-            <p className="text-zinc-500 mt-2">Entre na sua conta ou use o modo demo</p>
+            <h2 className="text-3xl font-black tracking-tight text-zinc-900 uppercase">
+              Pro<span className="text-[#d4a338]">Barbearia</span>
+            </h2>
+            <p className="text-zinc-500 mt-2 text-sm">Entre na sua conta ou use o modo demo</p>
           </div>
 
           <div className="flex p-1 bg-zinc-100 rounded-2xl">

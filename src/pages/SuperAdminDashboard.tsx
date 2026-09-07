@@ -244,14 +244,19 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d4a338] to-amber-600 flex items-center justify-center text-zinc-950 font-black shadow-lg">
-                <ShieldCheck size={24} />
+              <div className="w-11 h-11 rounded-xl overflow-hidden bg-zinc-950 border border-amber-500/40 flex items-center justify-center shrink-0 shadow-lg">
+                <img 
+                  src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                  alt="ProBarbearia" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">Painel Master Super Admin</h1>
+                  <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">ProBarbearia • Super Admin</h1>
                   <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                    SaaS Platform
+                    Master SaaS
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-zinc-400">

@@ -79,9 +79,14 @@ export default function Layout() {
         <div className="flex-1 flex flex-col md:flex-row">
           {/* Mobile Header */}
           <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-40">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-zinc-900 border border-[#d4a338] text-[#d4a338] rounded-full overflow-hidden flex items-center justify-center shrink-0 font-black text-xs">
-                <Scissors size={14} />
+            <div className="flex items-center space-x-2.5">
+              <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-950 shrink-0 shadow-xs">
+                <img 
+                  src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                  alt={activeShop.name} 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <div>
                 <h1 className="text-base font-extrabold tracking-tight uppercase leading-none">{activeShop.name}</h1>
@@ -107,8 +112,13 @@ export default function Layout() {
           <div className="hidden md:flex flex-col w-64 bg-zinc-900 text-white min-h-[calc(100vh-37px)] p-4 sticky top-0 h-[calc(100vh-37px)] shrink-0">
             <div className="mb-6 px-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-zinc-950 border border-[#d4a338] text-[#d4a338] rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-                  <Scissors size={20} />
+                <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-950 flex items-center justify-center shrink-0 shadow-md">
+                  <img 
+                    src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+                    alt={activeShop.name} 
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
                 <div>
                   <h1 className="text-lg font-black tracking-tight uppercase leading-tight">{activeShop.name}</h1>

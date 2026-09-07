@@ -27,13 +27,21 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-zinc-100">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-zinc-900">
-            Criar conta de Cliente
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-3xl shadow-sm border border-zinc-100">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-3 flex items-center justify-center overflow-hidden rounded-2xl border-2 border-zinc-900 bg-zinc-950 shadow-md">
+            <img 
+              src="https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg" 
+              alt="ProBarbearia Logo" 
+              className="w-full h-full object-cover" 
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <h2 className="text-2xl font-black tracking-tight text-zinc-900 uppercase">
+            Criar conta • Pro<span className="text-[#d4a338]">Barbearia</span>
           </h2>
-          <p className="mt-2 text-center text-sm text-zinc-600">
-            Barbeiros devem fazer o primeiro acesso pela tela de Login.
+          <p className="mt-1 text-center text-xs text-zinc-500">
+            Cadastre-se para agendar cortes e acumular cashback.
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
