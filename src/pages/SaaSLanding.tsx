@@ -17,12 +17,13 @@ export default function SaaSLanding() {
   
   // Registration modal
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [selectedPlanForSignup, setSelectedPlanForSignup] = useState<'starter' | 'pro' | 'enterprise'>('pro');
+  const [selectedPlanForSignup, setSelectedPlanForSignup] = useState<'starter' | 'pro' | 'imperio'>('pro');
+  const [createdTenant, setCreatedTenant] = useState<SaaSBarbershop | null>(null);
   const [newShopForm, setNewShopForm] = useState({
     name: '',
     unit: 'Centro',
     city: 'Lisboa',
-    phone: '+351 '
+    phone: '+351 912 345 678'
   });
 
   React.useEffect(() => {
@@ -47,12 +48,71 @@ export default function SaaSLanding() {
 
     setIsRegisterOpen(false);
     setActiveShop(created);
-    alert(`Barbearia "${created.name}" criada com sucesso! 14 dias de teste grátis ativados.`);
-    navigate('/admin');
+    setCreatedTenant(created);
+    const allShops = await saasService.getBarbershops();
+    setShops(allShops);
   };
 
   return (
     <div className="space-y-16 pb-20">
+      {/* SaaS Top Header Quick Navigation */}
+      <div className="flex items-center justify-between bg-zinc-950/80 border border-zinc-800/80 px-5 py-3 rounded-2xl">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-[#d4a338] text-zinc-950 flex items-center justify-center font-black">
+            <Scissors size={18} />
+          </div>
+          <span className="text-sm font-black uppercase text-white tracking-wider">BarberSaaS Multi-Tenant</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to="/super-admin"
+            className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-bold border border-zinc-700 transition-colors flex items-center gap-1.5"
+          >
+            <ShieldCheck size={14} className="text-[#d4a338]" />
+            Painel Super Admin
+          </Link>
+          <Link
+            to="/admin"
+            className="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors"
+          >
+            Painel Barbearia
+          </Link>
+        </div>
+      </div>
+
+      {/* Success Notification if a tenant was registered */}
+      {createdTenant && (
+        <div className="p-5 rounded-2xl bg-emerald-950/80 border border-emerald-500/50 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl animate-in fade-in">
+          <div>
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-900/60 px-2 py-0.5 rounded">
+              Barbearia Ativada!
+            </span>
+            <h4 className="text-base font-bold mt-1">
+              "{createdTenant.name}" está pronta para agendamentos!
+            </h4>
+            <p className="text-xs text-emerald-300 font-mono mt-0.5">
+              Link exclusivo: <strong>{window.location.origin}/{createdTenant.slug}</strong>
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/${createdTenant.slug}`}
+              className="px-4 py-2 bg-white text-zinc-950 font-bold text-xs rounded-xl shadow hover:bg-zinc-100 flex items-center gap-1.5"
+            >
+              <Smartphone size={14} />
+              Abrir PWA da Barbearia
+            </Link>
+            <Link
+              to="/admin"
+              className="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1"
+            >
+              Acessar Painel Admin
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative overflow-hidden rounded-3xl bg-zinc-950 text-white p-8 md:p-14 border border-zinc-800 shadow-2xl">
         {/* Glow ambient background effects */}
@@ -138,48 +198,68 @@ export default function SaaSLanding() {
             return (
               <div
                 key={shop.id}
-                onClick={() => {
-                  saasService.setActiveBarbershop(shop.id);
-                  setActiveShop(shop);
-                }}
-                className={`cursor-pointer p-5 rounded-2xl border-2 transition-all duration-200 ${
+                className={`p-5 rounded-2xl border-2 transition-all duration-200 flex flex-col justify-between ${
                   isActive 
                     ? 'border-[#d4a338] bg-amber-50/20 shadow-md ring-1 ring-[#d4a338]' 
                     : 'border-zinc-200 hover:border-zinc-300 bg-white'
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900 text-[#d4a338] flex items-center justify-center font-black text-sm">
-                    <Scissors size={18} />
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div 
+                      className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-zinc-950 shadow-sm"
+                      style={{ backgroundColor: shop.primaryColor || '#d4a338' }}
+                    >
+                      <Scissors size={18} />
+                    </div>
+
+                    <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider ${
+                      shop.plan === 'imperio' ? 'bg-purple-100 text-purple-700' :
+                      shop.plan === 'pro' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      Plano {shop.plan.toUpperCase()}
+                    </span>
                   </div>
 
-                  <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider ${
-                    shop.plan === 'enterprise' ? 'bg-purple-100 text-purple-700' :
-                    shop.plan === 'pro' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    Plano {shop.plan.toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="mt-3">
-                  <h3 className="font-extrabold text-base text-zinc-900">
-                    {shop.name}
-                  </h3>
-                  <p className="text-xs text-zinc-500">{shop.city}, {shop.country} • Unidade {shop.unit}</p>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between text-xs">
-                  <span className="text-zinc-400">Saldo em Caixa:</span>
-                  <span className="font-extrabold text-zinc-900">
-                    {shop.cashFlowBalance.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-                  </span>
-                </div>
-
-                {isActive && (
-                  <div className="mt-2 text-[11px] font-bold text-[#d4a338] flex items-center gap-1">
-                    <Check size={14} /> Selecionada para visualização
+                  <div className="mt-3">
+                    <h3 className="font-extrabold text-base text-zinc-900">
+                      {shop.name}
+                    </h3>
+                    <p className="text-xs text-zinc-500">{shop.city}, {shop.country} • Unidade {shop.unit}</p>
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-zinc-100 rounded-lg text-xs font-mono font-bold text-[#b8860b]">
+                      <span>/{shop.slug}</span>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-zinc-100 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">Mensalidade:</span>
+                    <span className="font-extrabold text-zinc-900">
+                      € {shop.monthlyFee.toFixed(2)}/mês
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link
+                      to={`/${shop.slug}`}
+                      className="py-2 px-2.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-[11px] font-bold text-center flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <Smartphone size={13} className="text-[#d4a338]" />
+                      Abrir PWA
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        saasService.setActiveBarbershop(shop.id);
+                        navigate('/admin');
+                      }}
+                      className="py-2 px-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-[11px] font-bold text-center transition-colors"
+                    >
+                      Painel Admin
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })}

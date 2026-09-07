@@ -21,6 +21,7 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import BarberDashboard from './pages/BarberDashboard';
 import SaaSLanding from './pages/SaaSLanding';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
@@ -46,11 +47,17 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+          {/* SaaS B2B Sales Landing Page at root / and /saas */}
+          <Route index element={<SaaSLanding />} />
+          <Route path="saas" element={<SaaSLanding />} />
+          
+          {/* Super Admin Dashboard for SaaS Owner */}
+          <Route path="super-admin" element={<SuperAdminDashboard />} />
+
+          {/* Standard direct routes */}
           <Route path="services" element={<Services />} />
           <Route path="barbers" element={<Barbers />} />
           <Route path="booking" element={<Booking />} />
-          <Route path="saas" element={<SaaSLanding />} />
           <Route path="loyalty" element={<Loyalty />} />
 
           {/* Protected Routes */}
@@ -74,6 +81,14 @@ export default function App() {
               <BarberDashboard />
             </PrivateRoute>
           } />
+
+          {/* Dynamic B2C Tenant Route: /:slug (e.g. /mister-navalha, /seu-elias, /sherlocks) */}
+          <Route path=":slug" element={<Home />} />
+          <Route path=":slug/booking" element={<Booking />} />
+          <Route path=":slug/services" element={<Services />} />
+          <Route path=":slug/barbers" element={<Barbers />} />
+          <Route path=":slug/appointments" element={<Appointments />} />
+          <Route path=":slug/loyalty" element={<Loyalty />} />
         </Route>
       </Routes>
     </Router>

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { saasService } from '../services/saasService';
 import { appointmentService } from '../services/appointmentService';
 import { loyaltyService } from '../services/loyaltyService';
 import { firestoreService } from '../services/firestoreService';
-import { Appointment, Service } from '../models';
+import { Appointment, Service, SaaSBarbershop } from '../models';
 import { barberImages } from '../assets/images/barberImages';
 import { 
   Scissors, 
@@ -22,7 +22,8 @@ import {
   Phone, 
   ShieldCheck, 
   User as UserIcon,
-  Sparkles
+  Sparkles,
+  ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,6 +31,10 @@ import { ptBR } from 'date-fns/locale';
 export default function Home() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
+
+  const [activeShop, setActiveShop] = useState<SaaSBarbershop>(saasService.getActiveBarbershop());
+  const [shopNotFound, setShopNotFound] = useState(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [points, setPoints] = useState<number>(120);
@@ -38,7 +43,25 @@ export default function Home() {
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [servicesModalOpen, setServicesModalOpen] = useState(false);
 
-  const activeShop = saasService.getActiveBarbershop();
+  useEffect(() => {
+    async function resolveShop() {
+      if (slug) {
+        const found = await saasService.getBarbershopBySlug(slug);
+        if (found) {
+          setActiveShop(found);
+          saasService.setActiveBarbershop(found.id);
+          setShopNotFound(false);
+        } else {
+          setShopNotFound(true);
+        }
+      } else {
+        const def = saasService.getActiveBarbershop();
+        setActiveShop(def);
+        setShopNotFound(false);
+      }
+    }
+    resolveShop();
+  }, [slug]);
 
   useEffect(() => {
     async function loadData() {
@@ -74,6 +97,34 @@ export default function Home() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  if (shopNotFound) {
+    return (
+      <div className="min-h-screen bg-[#121417] text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-[#d4a338] flex items-center justify-center mb-4">
+          <Scissors size={32} />
+        </div>
+        <h2 className="text-2xl font-black uppercase tracking-tight">Barbearia Não Encontrada</h2>
+        <p className="text-zinc-400 text-sm max-w-md mt-2">
+          Não encontramos nenhuma barbearia ativa com o endereço <code className="text-[#d4a338] bg-zinc-900 px-2 py-0.5 rounded font-mono">/{slug}</code>.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+          <Link to="/saas" className="px-5 py-2.5 bg-[#d4a338] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl">
+            Conhecer o SaaS
+          </Link>
+          <Link to="/mister-navalha" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
+            Ver Mister Navalha
+          </Link>
+          <Link to="/seu-elias" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
+            Ver Barbearia Seu Elias
+          </Link>
+          <Link to="/sherlocks" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
+            Ver Sherlocks
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#eae5db] text-zinc-900 font-sans selection:bg-[#f5ab2b] selection:text-zinc-950">

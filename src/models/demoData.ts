@@ -139,43 +139,28 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
   {
     id: 'shop-mister-navalha',
     name: 'MISTER NAVALHA',
-    slug: 'mister-navalha-guarda',
+    slug: 'mister-navalha',
     tagline: 'Cortes nobres, barba de respeito & tradição',
     unit: 'GUARDA',
     city: 'Guarda',
     country: 'Portugal',
     address: 'Av. Coronel Orlindo de Carvalho, 42',
     phone: '+351 925 112 334',
-    plan: 'pro',
+    plan: 'imperio',
     planStatus: 'active',
     trialDaysLeft: 22,
-    monthlyFee: 59.00,
-    rating: 4.9,
-    quietServiceEnabled: true,
-    cashFlowBalance: 3840.50
-  },
-  {
-    id: 'shop-sherlocks',
-    name: 'SHERLOCKS BARBER CLUB',
-    slug: 'sherlocks-lisboa',
-    tagline: 'O clube exclusivo para o homem moderno',
-    unit: 'LISBOA',
-    city: 'Lisboa',
-    country: 'Portugal',
-    address: 'Rua Principal, 123, Chiado',
-    phone: '+351 912 345 678',
-    plan: 'enterprise',
-    planStatus: 'active',
-    trialDaysLeft: 30,
     monthlyFee: 99.00,
-    rating: 5.0,
+    rating: 4.9,
+    primaryColor: '#d4a338',
+    storyText: 'Desde 2018, a Mister Navalha revoluciona o cuidado masculino com ambiente vintage, navalha quente e produtos de barboterapia de alta performance.',
     quietServiceEnabled: true,
-    cashFlowBalance: 7120.00
+    cashFlowBalance: 3840.50,
+    active: true
   },
   {
     id: 'shop-seu-elias',
     name: 'BARBEARIA SEU ELIAS',
-    slug: 'seu-elias-prime',
+    slug: 'seu-elias',
     tagline: 'Barba, Cabelo & Bigode com alto padrão e estilo',
     unit: 'PRIME',
     city: 'Porto',
@@ -187,32 +172,57 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     trialDaysLeft: 18,
     monthlyFee: 59.00,
     rating: 4.9,
+    primaryColor: '#f5ab2b',
+    storyText: 'Barbeiro desde os 13 anos por influência familiar, Seu Elias sempre gostou de mudanças e desafios. Pioneiro no estilo sofisticado de barbearias.',
     quietServiceEnabled: true,
-    cashFlowBalance: 5290.00
+    cashFlowBalance: 5290.00,
+    active: true
+  },
+  {
+    id: 'shop-sherlocks',
+    name: 'SHERLOCKS BARBER CLUB',
+    slug: 'sherlocks',
+    tagline: 'O clube exclusivo para o homem moderno',
+    unit: 'CHIADO',
+    city: 'Lisboa',
+    country: 'Portugal',
+    address: 'Rua Garrett, 120, Chiado',
+    phone: '+351 912 345 678',
+    plan: 'starter',
+    planStatus: 'active',
+    trialDaysLeft: 30,
+    monthlyFee: 29.00,
+    rating: 5.0,
+    primaryColor: '#c99738',
+    storyText: 'Inspirada nas barbearias londrinas do século XIX, a Sherlocks combina mistério, elegância britânica e cortes contemporâneos.',
+    quietServiceEnabled: true,
+    cashFlowBalance: 7120.00,
+    active: true
   }
 ];
 
 export const demoSaaSPlans: SaaSPlan[] = [
   {
     id: 'plan-starter',
-    name: 'Starter Barber',
+    name: 'Starter',
+    badge: 'INDIVIDUAL',
     description: 'Perfeito para barbearias individuais ou profissionais autônomos.',
     priceMonthly: 29.00,
     priceYearly: 24.00,
     maxBarbers: 2,
     features: [
-      'App do Cliente PWA exclusivo com link próprio',
+      'App do Cliente PWA exclusivo (/:slug próprio)',
       'Agendamento Online 24h sem sobreposição',
       'Fluxo de Caixa básico (entradas e saídas)',
       'Controle de até 2 Barbeiros',
-      'Lembretes de agendamento'
+      'Lembretes de agendamento automáticos'
     ]
   },
   {
     id: 'plan-pro',
-    name: 'Pro Barber SaaS',
+    name: 'Pro',
     badge: 'MAIS POPULAR',
-    description: 'Para barbearias em crescimento que buscam gestão financeira e alta taxa de fidelidade.',
+    description: 'Para barbearias em crescimento que buscam gestão financeira e alta fidelização.',
     priceMonthly: 59.00,
     priceYearly: 49.00,
     maxBarbers: 6,
@@ -224,12 +234,12 @@ export const demoSaaSPlans: SaaSPlan[] = [
       'Upsell no Agendamento (Venda de Produtos Cera, Óleo, Minoxidil)',
       'Modo Quiet Service (Atendimento em silêncio)',
       'Controle de até 6 Barbeiros com metas',
-      'Suporte prioritário via WhatsApp'
+      'Programa de Fidelidade e Cashback'
     ]
   },
   {
-    id: 'plan-enterprise',
-    name: 'Império & Redes',
+    id: 'plan-imperio',
+    name: 'Império',
     badge: 'COMPLETO',
     description: 'Para grandes barbearias, redes ou franquias que exigem escala e gestão multi-unidade.',
     priceMonthly: 99.00,

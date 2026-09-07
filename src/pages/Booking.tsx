@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { firestoreService } from '../services/firestoreService';
 import { appointmentService } from '../services/appointmentService';
@@ -17,9 +17,23 @@ import { ptBR } from 'date-fns/locale';
 export default function Booking() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
 
   // Active Barbershop
   const [activeShop, setActiveShop] = useState<SaaSBarbershop>(saasService.getActiveBarbershop());
+
+  useEffect(() => {
+    async function resolveShop() {
+      if (slug) {
+        const found = await saasService.getBarbershopBySlug(slug);
+        if (found) {
+          setActiveShop(found);
+          saasService.setActiveBarbershop(found.id);
+        }
+      }
+    }
+    resolveShop();
+  }, [slug]);
 
   // Step state (1: Service, 2: Barber, 3: Date & Time, 4: Products, 5: Confirm)
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);

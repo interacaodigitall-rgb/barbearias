@@ -62,14 +62,15 @@ export default function Layout() {
     [t('home'), t('booking'), t('appointments'), 'Gestão & Caixa', t('loyalty'), 'Planos SaaS', t('profile'), t('barber_dashboard')].includes(item.name)
   ).slice(0, 5);
 
-  const isHomePage = location.pathname === '/';
+  const isDashboardRoute = ['/admin', '/barber-dashboard', '/profile', '/appointments'].includes(location.pathname);
+  const isFullWidthPage = !isDashboardRoute;
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col overflow-x-hidden">
       {/* SaaS Global Switcher Bar */}
       <SaaSHeaderSwitcher />
 
-      {isHomePage ? (
+      {isFullWidthPage ? (
         <main className="flex-1 w-full max-w-full overflow-x-hidden pb-16 md:pb-0">
           <Outlet />
         </main>

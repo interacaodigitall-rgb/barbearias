@@ -3,7 +3,8 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: 'customer' | 'barber' | 'admin';
+  role: 'customer' | 'barber' | 'admin' | 'owner' | 'superadmin';
+  companyId?: string;
   photoUrl?: string;
   createdAt: number;
 }
@@ -119,15 +120,18 @@ export interface SaaSBarbershop {
   country: string;
   address: string;
   phone: string;
-  plan: 'starter' | 'pro' | 'enterprise';
+  plan: 'starter' | 'pro' | 'imperio';
   planStatus: 'active' | 'trial' | 'past_due';
   trialDaysLeft: number;
   monthlyFee: number;
   rating: number;
   logoUrl?: string;
+  coverImageUrl?: string;
   primaryColor?: string;
+  storyText?: string;
   quietServiceEnabled: boolean;
   cashFlowBalance: number;
+  active?: boolean;
 }
 
 export interface SaaSPlan {
