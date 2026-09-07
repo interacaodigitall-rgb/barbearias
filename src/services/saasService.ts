@@ -29,6 +29,36 @@ const saveStoredShops = (shops: SaaSBarbershop[]) => {
   localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(shops));
 };
 
+export function getCustomBarbersForShop(slugOrId: string): Barber[] {
+  try {
+    const clean = slugOrId.toLowerCase().trim();
+    const raw = localStorage.getItem(`saas_barbers_${clean}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomBarbersForShop(slugOrId: string, barbers: Barber[]): void {
+  const clean = slugOrId.toLowerCase().trim();
+  localStorage.setItem(`saas_barbers_${clean}`, JSON.stringify(barbers));
+}
+
+export function getCustomServicesForShop(slugOrId: string): Service[] {
+  try {
+    const clean = slugOrId.toLowerCase().trim();
+    const raw = localStorage.getItem(`saas_services_${clean}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomServicesForShop(slugOrId: string, services: Service[]): void {
+  const clean = slugOrId.toLowerCase().trim();
+  localStorage.setItem(`saas_services_${clean}`, JSON.stringify(services));
+}
+
 export const saasService = {
   getPlans(): SaaSPlan[] {
     return demoSaaSPlans;
@@ -61,7 +91,19 @@ export const saasService = {
     if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
       return rogerXServices;
     }
-    return demoServices;
+    if (target === 'mister-navalha' || target === 'shop-1' || target === 'seu-elias') {
+      return demoServices;
+    }
+
+    // Check tenant-specific custom services
+    const custom = getCustomServicesForShop(target);
+    if (custom && custom.length > 0) {
+      return custom;
+    }
+
+    // STRICT MULTI-TENANT ISOLATION:
+    // New tenants do not inherit default demo services
+    return [];
   },
 
   async getBarbersForShop(shopIdOrSlug?: string): Promise<Barber[]> {
@@ -69,7 +111,19 @@ export const saasService = {
     if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
       return rogerXBarbers;
     }
-    return demoBarbers;
+    if (target === 'mister-navalha' || target === 'shop-1' || target === 'seu-elias') {
+      return demoBarbers;
+    }
+
+    // Check tenant-specific custom barbers
+    const custom = getCustomBarbersForShop(target);
+    if (custom && custom.length > 0) {
+      return custom;
+    }
+
+    // STRICT MULTI-TENANT ISOLATION:
+    // New tenants start with ONLY their explicitly registered barbers, or empty []
+    return [];
   },
 
   generateSlug(name: string): string {
