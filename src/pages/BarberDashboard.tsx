@@ -24,7 +24,6 @@ export default function BarberDashboard() {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({
     name: '',
-    photoUrl: '',
     bio: '',
     phone: ''
   });
@@ -32,45 +31,71 @@ export default function BarberDashboard() {
   const handleOpenEditProfile = () => {
     setProfileForm({
       name: barberProfile?.name || user?.name || '',
-      photoUrl: barberProfile?.photoUrl || '',
       bio: barberProfile?.bio || '',
       phone: user?.phone || ''
     });
     setIsEditProfileOpen(true);
   };
 
+  const activeShop = saasService.getActiveBarbershop();
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!barberProfile) return;
+    const barberIdToUpdate = barberProfile?.id || user?.barberId || user?.uid;
+    const targetShop = user?.companyId || activeShop?.slug || 'rogerx-barbershop';
+
     try {
-      await firestoreService.updateBarber(barberProfile.id, {
-        name: profileForm.name,
-        photoUrl: profileForm.photoUrl,
-        bio: profileForm.bio
-      });
+      if (barberIdToUpdate) {
+        await firestoreService.updateBarber(barberIdToUpdate, {
+          name: profileForm.name,
+          bio: profileForm.bio
+        }, targetShop);
+      }
 
       if (user?.uid) {
         await saasService.updateTenantAccount(user.uid, {
           name: profileForm.name,
           phone: profileForm.phone
         });
+
+        // Update current authenticated user state
+        useAuthStore.getState().setUser({
+          ...user,
+          name: profileForm.name,
+          phone: profileForm.phone
+        }, useAuthStore.getState().isDemo);
+
+        try {
+          const currentStored = localStorage.getItem('barbearia_user_session_v1');
+          if (currentStored) {
+            const parsed = JSON.parse(currentStored);
+            parsed.name = profileForm.name;
+            parsed.phone = profileForm.phone;
+            localStorage.setItem('barbearia_user_session_v1', JSON.stringify(parsed));
+          }
+        } catch {}
       }
 
       setBarberProfile(prev => prev ? {
         ...prev,
         name: profileForm.name,
-        photoUrl: profileForm.photoUrl,
         bio: profileForm.bio
-      } : null);
+      } : {
+        id: barberIdToUpdate || 'b-temp',
+        name: profileForm.name,
+        bio: profileForm.bio,
+        rating: 5,
+        isActive: true,
+        branch: 'PT'
+      });
 
       setIsEditProfileOpen(false);
       alert('Seu perfil foi atualizado com sucesso!');
     } catch (err) {
+      console.error('Erro ao atualizar perfil do barbeiro:', err);
       alert('Erro ao atualizar seu perfil.');
     }
   };
-
-  const activeShop = saasService.getActiveBarbershop();
 
   const handleCancel = async () => {
     if (!cancellingId || !cancelReason.trim()) return;
@@ -87,46 +112,53 @@ export default function BarberDashboard() {
   useEffect(() => {
     async function loadData() {
       if (!user) return;
-      const [appts, sList, bList, uList] = await Promise.all([
-        appointmentService.getAllAppointments(),
-        firestoreService.getServices(),
-        firestoreService.getBarbers(),
-        firestoreService.getUsers()
-      ]);
-      
-      const sMap = sList.reduce((acc, s) => ({ ...acc, [s.id]: s }), {});
-      const uMap = uList.reduce((acc, u) => ({ ...acc, [u.uid]: u }), {});
-      
-      // Match barber profile strictly to this authenticated barber user
-      const profile = bList.find(b => 
-        (user.barberId && b.id === user.barberId) ||
-        b.id === user.uid ||
-        (user.name && b.name.toLowerCase() === user.name.toLowerCase()) ||
-        (user.email && b.name && user.email.toLowerCase().includes(b.name.toLowerCase().replace(/[^a-z0-9]/g, ''))) ||
-        (user.uid === 'demo-barber' && (b.id === 'b1' || b.id === 'b-rogerx-roger'))
-      ) || bList[0];
+      try {
+        setLoading(true);
+        const targetShop = user.companyId || activeShop?.slug || 'rogerx-barbershop';
+        const [appts, sList, bList, uList] = await Promise.all([
+          appointmentService.getAllAppointments(),
+          firestoreService.getServices(targetShop),
+          firestoreService.getBarbers(targetShop),
+          firestoreService.getUsers()
+        ]);
+        
+        const sMap = (sList || []).reduce((acc, s) => ({ ...acc, [s.id]: s }), {});
+        const uMap = (uList || []).reduce((acc, u) => ({ ...acc, [u.uid]: u }), {});
+        
+        // Match barber profile strictly to this authenticated barber user
+        const profile = (bList || []).find(b => 
+          (user.barberId && b.id === user.barberId) ||
+          b.id === user.uid ||
+          (user.name && b.name.toLowerCase() === user.name.toLowerCase()) ||
+          (user.email && b.name && user.email.toLowerCase().includes(b.name.toLowerCase().replace(/[^a-z0-9]/g, ''))) ||
+          (user.uid === 'demo-barber' && (b.id === 'b1' || b.id === 'b-rogerx-roger'))
+        ) || bList[0];
 
-      setBarberProfile(profile || null);
+        setBarberProfile(profile || null);
 
-      // Target barber ID for strict individual isolation
-      const targetBarberId = profile?.id || user.barberId || user.uid;
+        // Target barber ID for strict individual isolation
+        const targetBarberId = profile?.id || user.barberId || user.uid;
 
-      // Filter appointments ESTRITAMENTE for this barber
-      const barberAppts = appts.filter(a => 
-        a.barberId === targetBarberId || 
-        (user.barberId && a.barberId === user.barberId) ||
-        (user.uid === 'demo-barber' && (a.barberId === 'b1' || a.barberId === 'b-rogerx-roger'))
-      );
-      
-      // Check for recent cancellations
-      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-      const recentCancellations = barberAppts.filter(a => a.status === 'cancelled' && a.createdAt > tenMinutesAgo);
-      setNewCancellations(recentCancellations);
+        // Filter appointments ESTRITAMENTE for this barber
+        const barberAppts = (appts || []).filter(a => 
+          a.barberId === targetBarberId || 
+          (user.barberId && a.barberId === user.barberId) ||
+          (user.uid === 'demo-barber' && (a.barberId === 'b1' || a.barberId === 'b-rogerx-roger'))
+        );
+        
+        // Check for recent cancellations
+        const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+        const recentCancellations = barberAppts.filter(a => a.status === 'cancelled' && a.createdAt > tenMinutesAgo);
+        setNewCancellations(recentCancellations);
 
-      setServices(sMap);
-      setCustomers(uMap);
-      setAppointments(barberAppts);
-      setLoading(false);
+        setServices(sMap);
+        setCustomers(uMap);
+        setAppointments(barberAppts);
+      } catch (err) {
+        console.error('Erro ao carregar dados do barbeiro:', err);
+      } finally {
+        setLoading(false);
+      }
     }
     loadData();
   }, [user]);
@@ -468,23 +500,24 @@ export default function BarberDashboard() {
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
-              <div className="flex items-center gap-4 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
-                <div className="w-16 h-16 rounded-2xl bg-zinc-200 border border-zinc-300 overflow-hidden shrink-0 flex items-center justify-center font-bold text-zinc-500 text-sm">
-                  {profileForm.photoUrl ? (
-                    <img src={profileForm.photoUrl} alt="Preview" className="w-full h-full object-cover" />
+              <div className="flex items-center gap-4 p-3.5 bg-zinc-50 rounded-2xl border border-zinc-200/80">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-200 border border-zinc-300 overflow-hidden shrink-0 flex items-center justify-center font-bold text-zinc-600 text-base shadow-xs">
+                  {barberProfile?.photoUrl ? (
+                    <img src={barberProfile.photoUrl} alt={barberProfile.name} className="w-full h-full object-cover" />
                   ) : (
-                    profileForm.name.slice(0, 2).toUpperCase() || 'Foto'
+                    (barberProfile?.name || profileForm.name || 'Barbeiro').slice(0, 2).toUpperCase()
                   )}
                 </div>
                 <div className="flex-1">
-                  <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1">URL da Foto de Perfil</label>
-                  <input
-                    type="url"
-                    placeholder="https://exemplo.com/minha-foto.jpg"
-                    value={profileForm.photoUrl}
-                    onChange={(e) => setProfileForm({ ...profileForm, photoUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-xs focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-zinc-800">Foto de Perfil</span>
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                      Alteração pelo Administrador
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mt-1 leading-tight">
+                    Sua foto oficial é definida e atualizada pela administração da barbearia no Painel de Gestão.
+                  </p>
                 </div>
               </div>
 

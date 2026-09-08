@@ -74,17 +74,38 @@ export const appointmentService = {
     });
   },
 
+  getLocalAppointments(): Appointment[] {
+    return getDemoAppts();
+  },
+
   async getCustomerAppointments(customerId: string): Promise<Appointment[]> {
     if (useAuthStore.getState().isDemo) {
-      return getDemoAppts().filter(a => a.customerId === customerId);
+      return getDemoAppts()
+        .filter(a => a.customerId === customerId || a.customerId === 'demo-customer')
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     }
-    const q = query(
-      collection(db, 'appointments'),
-      where('customerId', '==', customerId),
-      orderBy('createdAt', 'desc')
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
+    try {
+      const q = query(
+        collection(db, 'appointments'),
+        where('customerId', '==', customerId)
+      );
+      const snapshot = await getDocs(q);
+      const cloudAppts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Appointment));
+      
+      const localAppts = getDemoAppts().filter(a => a.customerId === customerId);
+      const combined = [...cloudAppts];
+      for (const loc of localAppts) {
+        if (!combined.some(c => c.id === loc.id)) {
+          combined.push(loc);
+        }
+      }
+      return combined.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch (err) {
+      console.warn('Firestore error in getCustomerAppointments, falling back to local demo appointments:', err);
+      return getDemoAppts()
+        .filter(a => a.customerId === customerId || a.customerId === 'demo-customer')
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
   },
 
   async getAllAppointments(): Promise<Appointment[]> {
