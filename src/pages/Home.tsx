@@ -7,6 +7,7 @@ import { loyaltyService } from '../services/loyaltyService';
 import { firestoreService } from '../services/firestoreService';
 import { updateTenantHeadAndPWA } from '../utils/pwaUtils';
 import { PwaInstallBanner } from '../components/PwaInstallBanner';
+import { SplashScreen } from '../components/SplashScreen';
 import { Appointment, Service, Barber, SaaSBarbershop } from '../models';
 import { barberImages } from '../assets/images/barberImages';
 import { 
@@ -76,33 +77,39 @@ export default function Home() {
   }, [activeShop]);
 
   useEffect(() => {
-    async function resolveShop() {
-      if (slug) {
-        const found = await saasService.getBarbershopBySlug(slug);
-        if (found) {
-          setActiveShop(found);
-          saasService.setActiveBarbershop(found.id);
-          setShopNotFound(false);
-        } else {
-          setShopNotFound(true);
-        }
-      } else {
-        const def = saasService.getActiveBarbershop();
-        setActiveShop(def);
-        setShopNotFound(false);
-      }
-    }
-    resolveShop();
-  }, [slug]);
-
-  useEffect(() => {
-    async function loadData() {
+    let isMounted = true;
+    async function initHomeData() {
       try {
         setLoading(true);
+        let currentShop = saasService.getActiveBarbershop();
+
+        if (slug) {
+          const found = await saasService.getBarbershopBySlug(slug);
+          if (found) {
+            currentShop = found;
+            if (isMounted) {
+              setActiveShop(found);
+              saasService.setActiveBarbershop(found.id);
+              setShopNotFound(false);
+            }
+          } else {
+            if (isMounted) {
+              setShopNotFound(true);
+              setLoading(false);
+            }
+            return;
+          }
+        } else {
+          if (isMounted) setShopNotFound(false);
+        }
+
+        // Carrega dados da barbearia (serviços e barbeiros) no Firestore
         const [sList, bList] = await Promise.all([
-          firestoreService.getServices(activeShop.slug),
-          firestoreService.getBarbers(activeShop.slug)
+          firestoreService.getServices(currentShop.slug),
+          firestoreService.getBarbers(currentShop.slug)
         ]);
+
+        if (!isMounted) return;
         setServices(sList);
         setBarbers(bList);
 
@@ -111,17 +118,25 @@ export default function Home() {
             appointmentService.getCustomerAppointments(user.uid),
             loyaltyService.getPoints(user.uid)
           ]);
-          setAppointments(appts.filter(a => a.status === 'pending' || a.status === 'confirmed'));
-          setPoints(pts);
+          if (isMounted) {
+            setAppointments(appts.filter(a => a.status === 'pending' || a.status === 'confirmed'));
+            setPoints(pts);
+          }
         }
       } catch (err) {
         console.error('Error loading home data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
-    loadData();
-  }, [activeShop.slug, user]);
+
+    initHomeData();
+    return () => {
+      isMounted = false;
+    };
+  }, [slug, user]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -138,6 +153,7 @@ export default function Home() {
   if (shopNotFound) {
     return (
       <div className="min-h-screen bg-[#121417] text-white flex flex-col items-center justify-center p-6 text-center">
+        <SplashScreen isLoading={loading} shopName={activeShop?.name} />
         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-[#d4a338] flex items-center justify-center mb-4">
           <Scissors size={32} />
         </div>
@@ -166,32 +182,35 @@ export default function Home() {
 
   return (
     <div className="w-full bg-[#eae5db] text-zinc-900 font-sans selection:bg-[#f5ab2b] selection:text-zinc-950 pb-20 md:pb-0">
+      {/* PWA Splash Screen Inicial (fundo 100% preto com logo oficial) */}
+      <SplashScreen isLoading={loading} shopName={activeShop?.name} />
+
       {/* ========================================================================= */}
       {/* 1. VINTAGE HEADER                                                        */}
       {/* ========================================================================= */}
       <header className="w-full bg-[#eae5db] border-b border-stone-300/60 sticky top-0 z-40 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 md:h-24 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-24 flex items-center justify-between">
           
           {/* Circular Retro Vintage Badge Logo */}
           <Link to={slug ? `/${slug}` : `/${activeShop.slug}`} className="flex items-center gap-3 group">
             {activeShop.logoUrl ? (
-              <div className="relative h-14 md:h-16 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="relative h-11 sm:h-14 md:h-16 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
                 <img src={activeShop.logoUrl} alt={activeShop.name} className="h-full w-auto object-contain"  />
               </div>
             ) : (
-              <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-stone-800 flex flex-col items-center justify-center p-1 bg-[#f4f0e8] shadow-sm group-hover:scale-105 transition-transform">
-                <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-600">Desde 2013</span>
-                <span className="font-serif italic font-extrabold text-sm md:text-base leading-none text-stone-900 tracking-tight text-center">
+              <div className="relative w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border-2 border-stone-800 flex flex-col items-center justify-center p-1 bg-[#f4f0e8] shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <span className="text-[6px] sm:text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-600">Desde 2013</span>
+                <span className="font-serif italic font-extrabold text-xs sm:text-sm md:text-base leading-none text-stone-900 tracking-tight text-center">
                   {activeShop.name.toLowerCase().includes('elias') ? 'Seu Elias' : activeShop.name}
                 </span>
-                <span className="text-[6px] md:text-[7px] font-bold uppercase tracking-wider text-[#d4a338] mt-0.5">Barba • Cabelo</span>
+                <span className="text-[5px] sm:text-[6px] md:text-[7px] font-bold uppercase tracking-wider text-[#d4a338] mt-0.5">Barba • Cabelo</span>
               </div>
             )}
-            <div className="hidden sm:block">
-              <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-stone-900 leading-none">
+            <div>
+              <h1 className="text-base sm:text-xl md:text-2xl font-black uppercase tracking-tight text-stone-900 leading-none">
                 {activeShop.name}
               </h1>
-              <p className="text-[10px] uppercase font-bold tracking-widest text-stone-500 mt-1">
+              <p className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-stone-500 mt-0.5">
                 {activeShop.city} • {activeShop.unit}
               </p>
             </div>
@@ -217,18 +236,18 @@ export default function Home() {
             </Link>
           </nav>
 
-          {/* Right Action & Hamburger Menu Icon */}
-          <div className="flex items-center gap-3">
+          {/* Right Action (Desktop Only - Mobile is handled cleanly by the bottom navigation bar) */}
+          <div className="hidden md:flex items-center gap-3">
             <Link 
                to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-               className="hidden sm:inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg"
+               className="inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg"
             >
               <Scissors size={14} />
               Agendar Horário
             </Link>
             <button
               onClick={handleInstallPwa}
-              className="hidden md:inline-flex items-center gap-1.5 bg-[#f5ab2b]/10 hover:bg-[#f5ab2b]/20 text-[#f5ab2b] border border-[#f5ab2b]/30 font-bold px-4 py-2.5 text-xs uppercase tracking-wider rounded-xl transition-all"
+              className="inline-flex items-center gap-1.5 bg-[#f5ab2b]/10 hover:bg-[#f5ab2b]/20 text-[#f5ab2b] border border-[#f5ab2b]/30 font-bold px-4 py-2.5 text-xs uppercase tracking-wider rounded-xl transition-all"
               title="Baixar App PWA"
             >
               <Smartphone size={14} />
@@ -329,13 +348,13 @@ export default function Home() {
       {/* ========================================================================= */}
       <section className="relative w-full bg-[#181615] overflow-hidden">
         {/* Top subtle fade connecting with cream header */}
-        <div className="grid grid-cols-1 md:grid-cols-3 min-h-[520px] lg:min-h-[580px] items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-3 min-h-[440px] md:min-h-[520px] lg:min-h-[580px] items-stretch">
           
-          {/* Left Column: Model Pompadour with Watermark (pc01.png) */}
+          {/* Left Column: Model Pompadour with Watermark (pc01.png) - Compact on Mobile */}
           <div className="relative group overflow-hidden bg-[#1f1d1b] flex items-end justify-center">
             {/* Outline Typographic Watermark behind model */}
             <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0">
-              <span className="text-[120px] lg:text-[160px] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.08)] opacity-60">
+              <span className="text-[70px] sm:text-[110px] lg:text-[160px] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.08)] opacity-60">
                 SEU
               </span>
             </div>
@@ -343,51 +362,47 @@ export default function Home() {
             <img 
               src={barberImages.modelSide} 
               alt="Estilo Pompadour Barbearia" 
-              
-              className="relative z-10 w-full h-[380px] md:h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
+              className="relative z-10 w-full h-28 sm:h-44 md:h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-20 pointer-events-none" />
           </div>
 
           {/* Center Column: SEU ESTILO Charcoal Box (pc01.png) */}
-          <div className="bg-[#24211e] p-8 md:p-12 lg:p-14 flex flex-col justify-center text-center items-center z-20 shadow-2xl border-x border-stone-800/80">
+          <div className="bg-[#24211e] p-5 sm:p-8 md:p-12 lg:p-14 flex flex-col justify-center text-center items-center z-20 shadow-2xl border-x border-stone-800/80">
             {/* Framed Logo Badge */}
-            <div className="border border-[#f5ab2b]/80 px-5 py-1.5 tracking-[0.35em] text-xs font-black text-[#f5ab2b] uppercase mb-8">
+            <div className="border border-[#f5ab2b]/80 px-3.5 py-1 tracking-[0.25em] text-[10px] sm:text-xs font-black text-[#f5ab2b] uppercase mb-2.5 sm:mb-6">
               SEU ESTILO
             </div>
 
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-6 max-w-sm">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-2 sm:mb-4 max-w-sm">
               Receba cashback em cada {currencyUnit} gasto em nossas barbearias.
             </h2>
 
-            <p className="text-stone-400 text-xs sm:text-sm leading-relaxed max-w-xs mb-8">
+            <p className="text-stone-400 text-xs sm:text-sm leading-snug sm:leading-relaxed max-w-xs mb-3 sm:mb-4">
               Em breve descontos em academias, restaurantes, e várias empresas parceiras.
             </p>
 
-            {/* Interactive Points / Loyalty CTA */}
-            {user ? (
-              <div className="w-full max-w-xs bg-stone-900/90 border border-stone-700/80 p-4 rounded-xl text-left mb-4">
-                <div className="flex justify-between items-center text-xs text-stone-300 mb-1">
-                  <span>Seu saldo atual:</span>
-                  <span className="text-[#f5ab2b] font-black text-sm">{points} Pts</span>
-                </div>
-                <div className="w-full bg-stone-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-[#f5ab2b] h-full" style={{ width: `${Math.min(100, (points / 200) * 100)}%` }} />
-                </div>
-                <p className="text-[10px] text-stone-400 mt-2">Equivalente a <strong className="text-white">{currencySymbol} {(points * 0.1).toFixed(2)}</strong> em descontos em serviços ou produtos.</p>
+            {/* Compact Balance Card - Always visible below descriptive text */}
+            <div className="w-full max-w-xs bg-stone-900/90 border border-stone-700/80 px-4 py-2.5 rounded-xl flex items-center justify-between text-xs mb-4 sm:mb-6 shadow-inner">
+              <div className="flex items-center gap-2">
+                <Award size={16} className="text-[#f5ab2b] shrink-0" />
+                <span className="text-stone-300 font-semibold text-[11px] sm:text-xs">Seu saldo atual:</span>
               </div>
-            ) : null}
+              <span className="font-extrabold text-[#f5ab2b] text-[11px] sm:text-xs tracking-tight">
+                {points} Pts <span className="text-stone-500 font-normal">/</span> {currencySymbol} {(points * 0.1).toFixed(2)}
+              </span>
+            </div>
 
             <Link
               to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-              className="inline-block px-8 py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-widest transition-transform hover:scale-105 shadow-xl"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-widest transition-transform hover:scale-105 active:scale-95 shadow-xl"
             >
               Agendar & Acumular
             </Link>
           </div>
 
-          {/* Right Column: Model Afro Fade with Watermark (pc01.png) */}
-          <div className="relative group overflow-hidden bg-[#1f1d1b] flex items-end justify-center">
+          {/* Right Column: Model Afro Fade with Watermark (pc01.png) - Hidden on mobile to keep focus above-the-fold */}
+          <div className="hidden md:flex relative group overflow-hidden bg-[#1f1d1b] items-end justify-center">
             {/* Outline Typographic Watermark behind model */}
             <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0">
               <span className="text-[120px] lg:text-[160px] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.08)] opacity-60">
@@ -398,7 +413,6 @@ export default function Home() {
             <img 
               src={barberImages.modelAfro} 
               alt="Estilo Afro Fade Barbearia" 
-              
               className="relative z-10 w-full h-[380px] md:h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-20 pointer-events-none" />

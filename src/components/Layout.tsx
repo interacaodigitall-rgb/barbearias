@@ -30,7 +30,17 @@ export default function Layout() {
     i18n.changeLanguage(newLang);
   };
 
-  const homePath = activeShop?.slug ? `/${activeShop.slug}` : '/';
+  // Check if current URL is under a tenant slug e.g. /seu-elias/...
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const currentSlug = pathParts[0] && !['login', 'register', 'saas', 'super-admin', 'services', 'barbers', 'booking', 'loyalty', 'appointments', 'profile', 'admin', 'barber-dashboard'].includes(pathParts[0])
+    ? pathParts[0]
+    : activeShop?.slug;
+
+  const homePath = currentSlug ? `/${currentSlug}` : '/';
+  const bookingPath = currentSlug ? `/${currentSlug}/booking` : '/booking';
+  const servicesPath = currentSlug ? `/${currentSlug}/services` : '/services';
+  const appointmentsPath = currentSlug ? `/${currentSlug}/appointments` : '/appointments';
+  const loyaltyPath = currentSlug ? `/${currentSlug}/loyalty` : '/loyalty';
 
   const navItems = [
     { name: t('home'), path: homePath, icon: Home },
@@ -38,40 +48,60 @@ export default function Layout() {
 
   if (user?.role === 'customer') {
     navItems.push(
-      { name: 'Serviços', path: '/services', icon: Scissors },
+      { name: 'Serviços', path: servicesPath, icon: Scissors },
       { name: 'Barbeiros', path: '/barbers', icon: Users },
-      { name: t('booking'), path: '/booking', icon: Plus },
-      { name: t('appointments'), path: '/appointments', icon: Calendar }
+      { name: t('booking'), path: bookingPath, icon: Plus },
+      { name: t('appointments'), path: appointmentsPath, icon: Calendar }
     );
   }
 
   if (user?.role === 'barber') {
     navItems.push(
       { name: t('barber_dashboard'), path: '/barber-dashboard', icon: Calendar },
-      { name: t('booking'), path: '/booking', icon: Plus }
+      { name: t('booking'), path: bookingPath, icon: Plus }
     );
   }
 
   if (user?.role === 'admin') {
     navItems.push(
       { name: 'Gestão & Caixa', path: '/admin', icon: Wallet },
-      { name: t('booking'), path: '/booking', icon: Plus }
+      { name: t('booking'), path: bookingPath, icon: Plus }
     );
   }
 
   navItems.push(
-    { name: t('loyalty'), path: '/loyalty', icon: Award },
-    { name: t('profile'), path: '/profile', icon: UserIcon }
+    { name: t('loyalty'), path: loyaltyPath, icon: Award },
+    { name: t('profile'), path: user ? '/profile' : '/login', icon: UserIcon }
   );
 
   if (user?.role === 'superadmin') {
     navItems.push({ name: 'Super Admin', path: '/super-admin', icon: Shield });
   }
 
-  // For mobile bottom nav, limit to 5 main items
-  const mobileNavItems = navItems.filter(item => 
-    [t('home'), t('booking'), t('appointments'), 'Gestão & Caixa', t('loyalty'), t('profile'), t('barber_dashboard'), 'Super Admin'].includes(item.name)
-  ).slice(0, 5);
+  // Mobile Bottom Navigation items (Canonical 5-slot layout with + Agendar as primary FAB)
+  let secondMobileItem = { name: 'Serviços', path: servicesPath, icon: Scissors };
+  if (user?.role === 'barber') {
+    secondMobileItem = { name: 'Agenda', path: '/barber-dashboard', icon: Calendar };
+  } else if (user?.role === 'admin' || user?.role === 'superadmin') {
+    secondMobileItem = { name: 'Gestão', path: '/admin', icon: Wallet };
+  } else if (user?.role === 'customer') {
+    secondMobileItem = { name: 'Horários', path: appointmentsPath, icon: Calendar };
+  }
+
+  interface MobileNavItem {
+    name: string;
+    path: string;
+    icon: any;
+    isAction?: boolean;
+  }
+
+  const mobileBottomNavItems: MobileNavItem[] = [
+    { name: t('home') || 'Início', path: homePath, icon: Home },
+    secondMobileItem,
+    { name: '+ Agendar', path: bookingPath, icon: Plus, isAction: true },
+    { name: t('loyalty') || 'Fidelidade', path: loyaltyPath, icon: Award },
+    { name: user ? (t('profile') || 'Perfil') : 'Entrar', path: user ? '/profile' : '/login', icon: UserIcon },
+  ];
 
   const isSaaSPage = location.pathname === '/' || location.pathname === '/saas';
   const isDashboardRoute = ['/admin', '/barber-dashboard', '/profile', '/appointments'].includes(location.pathname);
@@ -187,24 +217,59 @@ export default function Layout() {
 
       {/* Mobile Bottom Nav (hidden on SaaS commercial page) */}
       {!isSaaSPage && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 flex justify-around p-2 pb-safe z-40 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-          {mobileNavItems.map((item) => {
+        <nav
+          aria-label="Navegação inferior"
+          className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200/90 px-2 py-1 pb-safe z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] flex items-end justify-around h-16"
+        >
+          {mobileBottomNavItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isBookingActive = location.pathname === bookingPath || location.pathname.endsWith('/booking');
+            const isActive = item.isAction ? isBookingActive : (location.pathname === item.path);
+
+            if (item.isAction) {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="flex flex-col items-center -translate-y-4 group relative"
+                  title="Agendar Horário"
+                >
+                  {/* Subtle golden ambient glow behind the FAB */}
+                  <div className="absolute inset-0 rounded-full bg-[#f5ab2b]/40 blur-md group-hover:blur-lg transition-all" />
+
+                  {/* Circular Golden FAB Button */}
+                  <div className={`relative w-14 h-14 rounded-full bg-gradient-to-tr from-[#d4a338] via-[#f5ab2b] to-[#fcd34d] flex items-center justify-center shadow-[0_6px_20px_rgba(245,171,43,0.45)] border-4 border-white active:scale-90 group-hover:scale-105 transition-all ${
+                    isBookingActive ? 'ring-2 ring-zinc-950 ring-offset-2' : ''
+                  }`}>
+                    <Plus size={28} strokeWidth={3.5} className="text-zinc-950 drop-shadow-xs" />
+                  </div>
+
+                  {/* High contrast label */}
+                  <span className="text-[10px] font-black text-zinc-900 tracking-tight mt-0.5 whitespace-nowrap">
+                    + Agendar
+                  </span>
+                </Link>
+              );
+            }
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all min-w-[64px] ${
-                  isActive ? 'text-zinc-900 bg-zinc-50' : 'text-zinc-400'
+                className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all min-w-[56px] ${
+                  isActive ? 'text-[#d4a338]' : 'text-stone-400 hover:text-stone-700'
                 }`}
               >
-                <Icon size={20} />
-                <span className="text-[10px] font-bold mt-1 tracking-tight">{item.name}</span>
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} className={isActive ? 'text-[#d4a338]' : 'text-stone-400'} />
+                <span className={`text-[10px] tracking-tight mt-1 ${
+                  isActive ? 'font-black text-stone-900' : 'font-medium text-stone-500'
+                }`}>
+                  {item.name}
+                </span>
               </Link>
             );
           })}
-        </div>
+        </nav>
       )}
     </div>
   );

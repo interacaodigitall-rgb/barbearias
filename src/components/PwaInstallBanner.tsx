@@ -78,7 +78,7 @@ export const PwaInstallBanner: React.FC<PwaInstallBannerProps> = ({
     }
   };
 
-  const logoSrc = shopLogo || "https://i.postimg.cc/wM0yfhrM/Gemini-Generated-Image-474jdt474jdt474j.jpg";
+  const logoSrc = shopLogo || "https://iili.io/n34KhGf.jpg";
 
   return (
     <>

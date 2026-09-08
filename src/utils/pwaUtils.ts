@@ -42,19 +42,18 @@ function getAbsoluteUrl(url: string): string {
   }
 }
 
+export const OFFICIAL_PWA_ICON = "https://iili.io/n34KhGf.jpg";
+
 export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
   if (!shop) return;
 
-  const rawLogo = shop.logoUrl || "/logo-roger.png";
-  const absoluteLogo = getAbsoluteUrl(rawLogo);
   const shopName = shop.name || "Barbearia";
   const tagline = shop.tagline || 'Agendamento Online de Barbearia';
-  const primaryColor = shop.primaryColor || '#d4a338';
 
   // 1. Page Title
   document.title = `${shopName} - Agendamento Online`;
 
-  // 2. Favicons & Apple Touch Icons directly on <head>
+  // 2. Favicons & Apple Touch Icons directly on <head> using official icon
   const rels = ['icon', 'shortcut icon', 'apple-touch-icon', 'apple-touch-icon-precomposed'];
   rels.forEach(rel => {
     let link: HTMLLinkElement | null = document.querySelector(`link[rel='${rel}']`);
@@ -63,7 +62,7 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
       link.rel = rel;
       document.head.appendChild(link);
     }
-    link.href = absoluteLogo;
+    link.href = OFFICIAL_PWA_ICON;
   });
 
   // 3. Metatags for Mobile & Fullscreen Standalone
@@ -73,7 +72,7 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
     { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
     { name: 'apple-mobile-web-app-title', content: shopName },
     { name: 'application-name', content: shopName },
-    { name: 'theme-color', content: primaryColor }
+    { name: 'theme-color', content: '#000000' }
   ];
 
   metas.forEach(({ name, content }) => {
@@ -96,28 +95,20 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#0f0f10",
-    theme_color: primaryColor,
+    background_color: "#000000",
+    theme_color: "#000000",
     icons: [
       {
-        src: absoluteLogo,
+        src: OFFICIAL_PWA_ICON,
         sizes: "192x192",
+        type: "image/jpeg",
         purpose: "any maskable"
       },
       {
-        src: absoluteLogo,
+        src: OFFICIAL_PWA_ICON,
         sizes: "512x512",
+        type: "image/jpeg",
         purpose: "any maskable"
-      },
-      {
-        src: absoluteLogo,
-        sizes: "192x192",
-        purpose: "any"
-      },
-      {
-        src: absoluteLogo,
-        sizes: "512x512",
-        purpose: "any"
       }
     ]
   };
