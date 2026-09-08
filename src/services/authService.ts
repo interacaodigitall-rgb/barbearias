@@ -172,7 +172,7 @@ export const authService = {
     return user;
   },
 
-  async loginDemo(role: 'customer' | 'barber' | 'admin' | 'owner') {
+  async loginDemo(role: 'customer' | 'barber' | 'admin' | 'owner' | 'fernando' | 'vitor' | 'barbudo') {
     const demoUsers: Record<string, User> = {
       customer: {
         uid: 'demo-customer',
@@ -183,6 +183,26 @@ export const authService = {
         createdAt: Date.now(),
       },
       barber: {
+        uid: 'acc-barber-fernando',
+        name: 'Fernando',
+        email: 'fernando@rogerx.pt',
+        phone: '+351 910 000 125',
+        role: 'barber',
+        companyId: 'shop-rogerx',
+        barberId: 'b-rogerx-fernando',
+        createdAt: Date.now(),
+      },
+      fernando: {
+        uid: 'acc-barber-fernando',
+        name: 'Fernando',
+        email: 'fernando@rogerx.pt',
+        phone: '+351 910 000 125',
+        role: 'barber',
+        companyId: 'shop-rogerx',
+        barberId: 'b-rogerx-fernando',
+        createdAt: Date.now(),
+      },
+      vitor: {
         uid: 'acc-barber-vitor',
         name: 'Vítor Bitrekas',
         email: 'vitor@rogerx.pt',
@@ -190,6 +210,16 @@ export const authService = {
         role: 'barber',
         companyId: 'shop-rogerx',
         barberId: 'b-rogerx-vitor',
+        createdAt: Date.now(),
+      },
+      barbudo: {
+        uid: 'acc-barber-barbudo',
+        name: 'Barbudo',
+        email: 'barbudo@rogerx.pt',
+        phone: '+351 910 000 126',
+        role: 'barber',
+        companyId: 'shop-rogerx',
+        barberId: 'b-rogerx-barbudo',
         createdAt: Date.now(),
       },
       owner: {

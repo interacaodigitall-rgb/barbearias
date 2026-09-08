@@ -253,6 +253,25 @@ export default function Login() {
             })}
           </div>
 
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              onClick={() => handleDemoLogin('fernando' as any)}
+              disabled={loading}
+              className="py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-950 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+            >
+              <Scissors size={14} className="text-amber-700" />
+              Entrar como Fernando (Barbeiro)
+            </button>
+            <button
+              onClick={() => handleDemoLogin('owner' as any)}
+              disabled={loading}
+              className="py-2 px-3 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+            >
+              <Shield size={14} className="text-zinc-700" />
+              Entrar como Dono (Roger)
+            </button>
+          </div>
+
           <p className="text-[10px] text-zinc-400 text-center">
             O modo demo utiliza dados fictícios para demonstração rápida.
           </p>
