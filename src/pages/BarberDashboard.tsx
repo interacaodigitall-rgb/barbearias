@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { appointmentService } from '../services/appointmentService';
 import { firestoreService } from '../services/firestoreService';
 import { saasService } from '../services/saasService';
 import { Appointment, Service, Barber, User } from '../models';
-import { Calendar, Clock, Scissors, CheckCircle, XCircle, DollarSign, Phone, Mail, User as UserIcon, Shield, TrendingUp, Edit2, Save } from 'lucide-react';
+import { Calendar, Clock, Scissors, CheckCircle, XCircle, DollarSign, Phone, Mail, User as UserIcon, Shield, TrendingUp, Edit2, Save, ArrowLeft, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -185,6 +186,31 @@ export default function BarberDashboard() {
           ))}
         </div>
       )}
+
+      {/* Return & Navigation Bar (PC & Mobile) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-zinc-200/90 shadow-xs">
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/${activeShop.slug || 'rogerx-barbershop'}`}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-[#d4a338] text-white hover:text-zinc-950 text-xs font-black uppercase tracking-wider transition-all shadow-xs active:scale-95 group"
+            title="Voltar ao App do Cliente / Barbearia"
+          >
+            <ArrowLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span>Voltar ao App da Barbearia</span>
+          </Link>
+          <Link
+            to={`/${activeShop.slug || 'rogerx-barbershop'}/booking`}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-colors"
+          >
+            <span>+ Agendar Cliente</span>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium">
+          <span>Barbearia:</span>
+          <strong className="text-zinc-900">{activeShop.name}</strong>
+        </div>
+      </div>
 
       {/* Individual Barber Header Card */}
       <div className="bg-zinc-950 text-white p-6 md:p-8 rounded-3xl border border-zinc-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { appointmentService } from '../services/appointmentService';
 import { firestoreService } from '../services/firestoreService';
@@ -11,7 +11,8 @@ import CashFlowDashboard from '../components/CashFlowDashboard';
 import { 
   Users, Calendar, TrendingUp, CheckCircle, XCircle, Clock, Scissors, 
   User as UserIcon, Plus, Trash2, Edit2, Save, Award, Phone, Mail, 
-  DollarSign, Package, VolumeX, ShoppingBag, Wallet, Key, Copy, Check, Shield, UserPlus, Building2, Image as ImageIcon
+  DollarSign, Package, VolumeX, ShoppingBag, Wallet, Key, Copy, Check, Shield, UserPlus, Building2, Image as ImageIcon,
+  ArrowLeft, ExternalLink, ChevronLeft
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -359,10 +360,85 @@ export default function AdminDashboard() {
     { label: 'Concluídos', value: appointments.filter(a => a.status === 'completed').length, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-50' },
   ];
 
+  const renderTabReturnBanner = (tabName: string) => (
+    <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-100/90 border border-zinc-200/90 px-4 py-3 rounded-2xl mb-6 shadow-xs">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setActiveTab('cashFlow')}
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-zinc-50 text-zinc-900 text-xs font-bold border border-zinc-200 shadow-xs transition-all hover:border-[#d4a338] active:scale-95"
+        >
+          <ArrowLeft size={14} className="text-[#d4a338]" />
+          <span>Voltar ao Fluxo de Caixa / Início</span>
+        </button>
+        <Link
+          to={`/${activeShop.slug || 'rogerx-barbershop'}`}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-zinc-50 text-zinc-600 hover:text-zinc-950 text-xs font-semibold border border-zinc-200 shadow-xs transition-colors"
+        >
+          <ExternalLink size={13} />
+          <span>Ver App do Cliente</span>
+        </Link>
+      </div>
+      <div className="text-xs text-zinc-500 font-medium">
+        Painel de Gestão &gt; <strong className="text-zinc-900">{tabName}</strong>
+      </div>
+    </div>
+  );
+
   if (loading && appointments.length === 0) return <div className="flex justify-center items-center h-full">Carregando Painel...</div>;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20">
+      {/* Top PC/Desktop Navigation & Return Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-zinc-200/90 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to={`/${activeShop.slug || 'rogerx-barbershop'}`}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-[#d4a338] text-white hover:text-zinc-950 text-xs font-black uppercase tracking-wider transition-all shadow-xs active:scale-95 group"
+            title="Voltar ao App do Cliente / Visualizar Barbearia"
+          >
+            <ArrowLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span>Voltar ao App do Cliente</span>
+          </Link>
+
+          {user.role === 'superadmin' && (
+            <Link
+              to="/super-admin"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-zinc-700 text-xs font-bold transition-colors border border-stone-200"
+            >
+              <Shield size={14} className="text-amber-500" />
+              <span>Painel Master SaaS</span>
+            </Link>
+          )}
+
+          {activeTab !== 'cashFlow' && (
+            <button
+              onClick={() => setActiveTab('cashFlow')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-colors"
+            >
+              <ArrowLeft size={14} className="text-[#d4a338]" />
+              <span>Voltar à Visão Geral (Caixa)</span>
+            </button>
+          )}
+        </div>
+
+        {/* Tenant status & online link */}
+        <div className="flex items-center gap-3 text-xs">
+          <span className="hidden sm:inline text-zinc-400 font-medium">Unidade:</span>
+          <span className="font-black text-zinc-900 bg-zinc-100 px-2.5 py-1 rounded-lg border border-zinc-200">
+            {activeShop.name}
+          </span>
+          <a
+            href={`/${activeShop.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-zinc-500 hover:text-[#d4a338] font-bold transition-colors text-xs"
+          >
+            <ExternalLink size={13} />
+            <span className="hidden md:inline">Ver Online</span>
+          </a>
+        </div>
+      </div>
+
       {/* Cancellation Notifications */}
       {newCancellations.length > 0 && (
         <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full">
@@ -465,6 +541,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'appointments' && (
         <>
+          {renderTabReturnBanner('Agendamentos')}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
@@ -705,6 +782,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'services' && (
         <div className="space-y-6">
+          {renderTabReturnBanner('Serviços')}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100">
             <h3 className="text-lg font-bold text-zinc-900 mb-4">{editingService ? 'Editar Serviço' : 'Adicionar Novo Serviço'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -803,6 +881,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'barbers' && (
         <div className="space-y-6">
+          {renderTabReturnBanner('Equipe de Barbeiros & Logins')}
           {/* Header with Title & Action */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -1082,6 +1161,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'loyalty' && (
         <div className="space-y-6">
+          {renderTabReturnBanner('Programa de Fidelidade')}
           <div className="bg-white rounded-3xl shadow-sm border border-zinc-100 overflow-hidden">
             <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
               <h3 className="text-xl font-bold text-zinc-900">Acompanhamento de Fidelidade</h3>
@@ -1209,6 +1289,7 @@ export default function AdminDashboard() {
 
       {activeTab === 'blockedTimes' && (
         <div className="space-y-6">
+          {renderTabReturnBanner('Bloqueios de Horários')}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100">
             <h3 className="text-lg font-bold text-zinc-900 mb-4">Adicionar Bloqueio de Horário</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -1312,6 +1393,7 @@ export default function AdminDashboard() {
       {/* COMPANY PROFILE TAB */}
       {activeTab === 'companyProfile' && (
         <div className="space-y-6">
+          {renderTabReturnBanner('Perfil da Barbearia')}
           <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-zinc-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-100 mb-6">
               <div>
@@ -1546,6 +1628,7 @@ export default function AdminDashboard() {
       {/* PRODUCTS (UPSELL) TAB */}
       {activeTab === 'products' && (
         <div className="space-y-6">
+          {renderTabReturnBanner('Produtos (Upsell)')}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-zinc-100">
             <h3 className="text-xl font-bold text-zinc-900 mb-1">
               {editingProduct ? 'Editar Produto' : 'Cadastrar Produto para Upsell'}

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
 import { saasService } from '../services/saasService';
 import { updateTenantHeadAndPWA } from '../utils/pwaUtils';
-import { Home, Scissors, Users, Calendar, User as UserIcon, LogOut, Award, Shield, Plus, Search, Globe, Wallet } from 'lucide-react';
+import { Home, Scissors, Users, Calendar, User as UserIcon, LogOut, Award, Shield, Plus, Search, Globe, Wallet, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function Layout() {
@@ -177,6 +177,19 @@ export default function Layout() {
                 <span>{i18n.language === 'pt' ? 'Português (PT)' : 'Español (ES)'}</span>
               </button>
             </div>
+
+            {(location.pathname.startsWith('/admin') || location.pathname.startsWith('/super-admin') || location.pathname.startsWith('/barber-dashboard')) && (
+              <div className="px-4 mb-3">
+                <Link
+                  to={homePath}
+                  className="flex items-center space-x-2.5 px-3 py-2.5 rounded-xl bg-zinc-850 hover:bg-[#d4a338] text-[#d4a338] hover:text-zinc-950 transition-all text-xs font-black uppercase tracking-wider border border-amber-500/30 group shadow-sm"
+                  title="Voltar ao App do Cliente"
+                >
+                  <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform shrink-0" />
+                  <span>← Voltar ao App</span>
+                </Link>
+              </div>
+            )}
             
             <nav className="flex-1 space-y-1 overflow-y-auto">
               {navItems.map((item) => {

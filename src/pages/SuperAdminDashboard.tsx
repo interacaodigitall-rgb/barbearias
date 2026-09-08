@@ -7,7 +7,7 @@ import {
   Building2, Plus, ExternalLink, Copy, Check, TrendingUp, 
   DollarSign, Users, ShieldCheck, Database, Code, Search, 
   Trash2, Edit3, Sparkles, ArrowRight, Smartphone, Scissors, AlertCircle,
-  Shield, Key, UserCheck, Lock, LogIn, Save
+  Shield, Key, UserCheck, Lock, LogIn, Save, ArrowLeft
 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
@@ -304,6 +304,45 @@ CREATE POLICY "Super Admins manage all companies" ON public.companies FOR ALL US
       {/* Top Header */}
       <div className="max-w-7xl mx-auto space-y-8">
         
+        {/* Retorno e Navegação de Topo (PC & Mobile) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-zinc-900/90 border border-zinc-800 p-3.5 px-5 rounded-2xl shadow-lg">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to={`/${shops[0]?.slug || 'rogerx-barbershop'}`}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-950 hover:bg-[#d4a338] text-zinc-300 hover:text-zinc-950 text-xs font-black uppercase tracking-wider transition-all border border-zinc-700 hover:border-[#d4a338] group"
+              title="Voltar para a página da barbearia / app cliente"
+            >
+              <ArrowLeft size={15} className="group-hover:-translate-x-0.5 transition-transform text-[#d4a338] group-hover:text-zinc-950" />
+              <span>Voltar ao App da Barbearia</span>
+            </Link>
+
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-bold transition-all border border-zinc-700"
+              title="Ir para o painel de gestão da loja ativa"
+            >
+              <span>Painel da Loja (Admin)</span>
+            </Link>
+
+            {activeTab !== 'tenants' && (
+              <button
+                onClick={() => setActiveTab('tenants')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold transition-colors"
+              >
+                <ArrowLeft size={13} className="text-[#d4a338]" />
+                <span>Voltar às Barbearias</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <span>Ambiente:</span>
+            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-lg font-mono font-bold">
+              Multi-Tenant Master SaaS
+            </span>
+          </div>
+        </div>
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
           <div>
             <div className="flex items-center gap-3">
