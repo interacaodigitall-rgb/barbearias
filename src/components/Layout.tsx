@@ -209,7 +209,7 @@ export default function Layout() {
           </div>
 
           {/* Main Content */}
-          <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 w-full max-w-full overflow-x-hidden">
+          <main className="flex-1 p-4 md:p-8 pb-36 md:pb-8 w-full max-w-full overflow-x-hidden">
             <Outlet />
           </main>
         </div>

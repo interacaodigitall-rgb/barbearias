@@ -70,7 +70,7 @@ export default function Loyalty() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4 py-5 sm:px-6 space-y-5 text-zinc-900">
+    <div className="w-full max-w-xl mx-auto px-4 pt-4 pb-36 sm:pb-16 sm:px-6 space-y-5 text-zinc-900">
       
       {/* HEADER TITLE */}
       <div className="flex items-center justify-between">
@@ -289,12 +289,15 @@ export default function Loyalty() {
 
         <Link
           to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-          className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-md mt-2"
+          className="w-full py-3.5 bg-gradient-to-r from-[#d4a338] via-[#f5ab2b] to-[#e89e22] hover:from-[#c5932a] hover:to-[#d4a338] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 mt-3"
         >
           <Scissors size={16} />
-          Agendar Corte & Acumular Pontos
+          <span>Agendar Corte & Acumular Pontos</span>
         </Link>
       </div>
+
+      {/* Spacer para garantir visualização desobstruída acima da barra de navegação no mobile */}
+      <div className="h-6 md:hidden" aria-hidden="true" />
 
       {/* REDEMPTION VOUCHER MODAL */}
       {selectedReward && (
