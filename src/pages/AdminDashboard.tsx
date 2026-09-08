@@ -43,6 +43,7 @@ export default function AdminDashboard() {
     unit: activeShopState.unit || '',
     address: activeShopState.address || '',
     phone: activeShopState.phone || '',
+    closingTime: activeShopState.closingTime || '20:30',
     city: activeShopState.city || '',
     country: activeShopState.country || 'Portugal',
     logoUrl: activeShopState.logoUrl || '',
@@ -1466,8 +1467,22 @@ export default function AdminDashboard() {
                     value={companyForm.phone}
                     onChange={e => setCompanyForm({ ...companyForm, phone: e.target.value })}
                     className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
-                    placeholder="Ex: +351 912 345 678"
+                    placeholder="Ex: +351 968 659 043"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Horário de Fechamento Diário
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.closingTime}
+                    onChange={e => setCompanyForm({ ...companyForm, closingTime: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: 20:30"
+                  />
+                  <span className="text-[10px] text-zinc-400 mt-1 block">Configurado para as 20h30</span>
                 </div>
 
                 <div className="md:col-span-2">

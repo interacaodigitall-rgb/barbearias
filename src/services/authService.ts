@@ -191,7 +191,7 @@ export const authService = {
         uid: 'acc-owner-rogerx',
         name: 'Roger (Dono Roger\'X)',
         email: 'roger@rogerxbarbershop.pt',
-        phone: '+351 910 000 123',
+        phone: '+351 968 659 043',
         role: 'owner',
         companyId: 'shop-rogerx',
         createdAt: Date.now(),

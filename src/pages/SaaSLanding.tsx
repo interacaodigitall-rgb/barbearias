@@ -89,7 +89,7 @@ export default function SaaSLanding() {
     name: '',
     unit: 'Centro',
     city: 'Lisboa',
-    phone: '+351 912 345 678'
+    phone: '+351 968 659 043'
   });
 
   const scrollToSection = (id: string) => {
@@ -637,7 +637,7 @@ export default function SaaSLanding() {
               </button>
 
               <a
-                href="https://wa.me/351912345678?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20BarberSaaS%20para%20minha%20barbearia."
+                href="https://wa.me/351968659043?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20BarberSaaS%20para%20minha%20barbearia."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-4 bg-emerald-600/90 hover:bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-all text-center flex items-center justify-center gap-2"
@@ -686,7 +686,7 @@ export default function SaaSLanding() {
             <Link to="/login" className="hover:text-white transition-colors">Área do Cliente / Barbeiro</Link>
             <Link to="/admin" className="hover:text-white transition-colors">Painel Administrativo</Link>
             <Link to="/super-admin" className="hover:text-white transition-colors">Super Admin</Link>
-            <a href="https://wa.me/351912345678" target="_blank" rel="noopener noreferrer" className="hover:text-[#d4a338] transition-colors">Suporte WhatsApp</a>
+            <a href="https://wa.me/351968659043" target="_blank" rel="noopener noreferrer" className="hover:text-[#d4a338] transition-colors">Suporte WhatsApp (+351 968 659 043)</a>
           </div>
         </div>
       </footer>
@@ -767,7 +767,7 @@ export default function SaaSLanding() {
                 <input
                   type="text"
                   required
-                  placeholder="+351 912 345 678"
+                  placeholder="+351 968 659 043"
                   value={newShopForm.phone}
                   onChange={(e) => setNewShopForm({ ...newShopForm, phone: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-[#0F0F10] border border-zinc-700 rounded-xl text-sm text-white placeholder:text-zinc-500 focus:border-[#d4a338] focus:ring-1 focus:ring-[#d4a338] outline-none transition-colors"

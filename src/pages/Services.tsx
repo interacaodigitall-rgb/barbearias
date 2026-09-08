@@ -125,6 +125,16 @@ export default function Services() {
               <p className="text-xs text-zinc-400 line-clamp-1 mt-0.5">
                 {activeShop.tagline || 'Cortes clássicos, navalha afiada e toalha quente'} • {activeShop.city || 'Lisboa'}
               </p>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-zinc-300">
+                <span className="flex items-center gap-1 bg-zinc-900/90 border border-zinc-800 px-2.5 py-1 rounded-lg">
+                  <Clock size={12} className="text-[#d4a338]" />
+                  <span>Seg a Sáb: 09:00 - 20:30 (Fechamento 20h30)</span>
+                </span>
+                <span className="flex items-center gap-1 bg-zinc-900/90 border border-zinc-800 px-2.5 py-1 rounded-lg">
+                  <Phone size={12} className="text-[#d4a338]" />
+                  <span>{activeShop.phone || '+351 968 659 043'}</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -289,22 +299,30 @@ export default function Services() {
           <div>
             <h4 className="text-sm font-extrabold text-zinc-900">Tem alguma dúvida ou pedido especial?</h4>
             <p className="text-xs text-zinc-500">
-              Entre em contato direto com a equipe da {activeShop.name}.
+              Entre em contato direto com a equipe da {activeShop.name} • Fechamento às 20h30.
             </p>
           </div>
         </div>
 
-        {activeShop.phone && (
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <a
-            href={`https://wa.me/${activeShop.phone.replace(/[^0-9]/g, '')}`}
+            href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de tirar dúvidas sobre os serviços da ' + activeShop.name)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto px-4 py-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-zinc-900 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs"
+            className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs"
           >
-            <Phone size={14} className="text-emerald-600" />
-            <span>Falar com a Barbearia</span>
+            <MessageCircle size={14} />
+            <span>WhatsApp</span>
           </a>
-        )}
+
+          <a
+            href={`tel:${(activeShop.phone || '+351 968 659 043').replace(/\s+/g, '')}`}
+            className="flex-1 sm:flex-none px-4 py-2.5 bg-white hover:bg-stone-50 border border-stone-300 text-zinc-900 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs"
+          >
+            <Phone size={14} className="text-[#d4a338]" />
+            <span>Ligar ({activeShop.phone || '+351 968 659 043'})</span>
+          </a>
+        </div>
       </div>
 
       {/* Spacer final para garantir folga com a Bottom Bar no mobile */}

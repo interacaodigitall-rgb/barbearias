@@ -9,7 +9,7 @@ import { Service, Barber, Product, AppointmentProductItem, SaaSBarbershop } from
 import { 
   ArrowLeft, ChevronRight, Clock, Calendar as CalendarIcon, CheckCircle2, 
   Scissors, Sparkles, User as UserIcon, UserCheck, Plus, Minus, ShoppingBag, 
-  VolumeX, Check, AlertCircle, ShieldCheck, X 
+  VolumeX, Check, AlertCircle, ShieldCheck, X, Phone, MessageCircle 
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -259,11 +259,11 @@ export default function Booking() {
     }
   };
 
-  // Morning and Afternoon/Night slot lists matching images 4 & 5
-  const morningTimes = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+  // Morning and Afternoon/Night slot lists matching closing time at 20:30
+  const morningTimes = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30'];
   const afternoonTimes = [
     '14:00', '14:30', '15:00', '15:30', '16:00', 
-    '16:30', '17:00', '17:30', '18:00', '18:30', '19:00'
+    '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
   ];
 
   // Back button handler based on step
@@ -284,7 +284,18 @@ export default function Booking() {
     5: 'Confirmar'
   };
 
+  const shopPhone = activeShop.phone || '+351 968 659 043';
+  const cleanPhoneForWa = shopPhone.replace(/[^0-9]/g, '');
+  const cleanPhoneForTel = shopPhone.replace(/\s+/g, '');
+
   if (isSuccess) {
+    const waText = encodeURIComponent(
+      `Olá! Acabei de realizar um agendamento na ${activeShop.name}:\n` +
+      `Serviço: ${selectedService?.name}\n` +
+      `Data/Hora: ${selectedDate} às ${selectedTime}\n` +
+      `Profissional: ${selectedBarber === 'no-preference' ? 'Sem Preferência' : selectedBarber?.name}`
+    );
+
     return (
       <div className="max-w-md mx-auto py-8 px-4">
         <div className="bg-white rounded-3xl p-8 border border-zinc-100 shadow-xl text-center space-y-6 animate-in zoom-in-95 duration-300">
@@ -329,7 +340,28 @@ export default function Booking() {
             </div>
           </div>
 
-          <div className="space-y-2 pt-2">
+          {/* Quick Contact & WhatsApp Redirection */}
+          <div className="space-y-2.5 pt-1">
+            <a
+              href={`https://wa.me/${cleanPhoneForWa}?text=${waText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              <MessageCircle size={16} />
+              <span>Enviar no WhatsApp da Barbearia</span>
+            </a>
+
+            <a
+              href={`tel:${cleanPhoneForTel}`}
+              className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-zinc-800 font-bold text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2"
+            >
+              <Phone size={14} className="text-[#d4a338]" />
+              <span>Ligar para a Barbearia: {shopPhone}</span>
+            </a>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-zinc-100">
             <button
               onClick={() => navigate('/appointments')}
               className="w-full py-3.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-extrabold text-sm uppercase tracking-wider rounded-2xl shadow-md transition-all"
@@ -515,6 +547,20 @@ export default function Booking() {
       {/* STEP 3: Data e Horário (Matches images 4 & 5) */}
       {step === 3 && (
         <div className="px-4 py-5 space-y-6 animate-in fade-in duration-200">
+          {/* Horário de Atendimento e Fechamento */}
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-zinc-900">
+              <Clock size={16} className="text-[#d4a338] shrink-0" />
+              <div>
+                <span className="font-bold text-zinc-900 block sm:inline">Horário de Funcionamento: </span>
+                <span className="text-zinc-700 font-semibold">Segunda a Sábado das 09:00 às 20:30</span>
+              </div>
+            </div>
+            <span className="hidden sm:inline-block px-2 py-0.5 bg-[#d4a338] text-zinc-950 font-extrabold text-[10px] uppercase tracking-wider rounded-md">
+              Até 20h30
+            </span>
+          </div>
+
           {/* ESCOLHA A DATA */}
           <div>
             <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-widest block mb-3">

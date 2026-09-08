@@ -136,6 +136,8 @@ export interface SaaSBarbershop {
   quietServiceEnabled: boolean;
   cashFlowBalance: number;
   active?: boolean;
+  closingTime?: string;
+  openingHours?: string;
 }
 
 export interface SaaSPlan {

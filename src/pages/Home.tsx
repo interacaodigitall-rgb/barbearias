@@ -23,6 +23,7 @@ import {
   Smartphone, 
   MapPin, 
   Phone, 
+  MessageCircle,
   ShieldCheck, 
   User as UserIcon,
   Sparkles,
@@ -238,9 +239,21 @@ export default function Home() {
 
           {/* Right Action (Desktop Only - Mobile is handled cleanly by the bottom navigation bar) */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Quick WhatsApp contact link */}
+            <a
+              href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de falar com a ' + activeShop.name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 text-xs rounded-xl transition-all shadow-sm"
+              title="Falar no WhatsApp"
+            >
+              <MessageCircle size={15} />
+              <span>WhatsApp</span>
+            </a>
+
             <Link 
                to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-               className="inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg"
+               className="inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg rounded-xl"
             >
               <Scissors size={14} />
               Agendar Horário
@@ -285,9 +298,35 @@ export default function Home() {
                 </button>
               </div>
 
+              {/* Contact and Business Hours Header Pill in Drawer */}
+              <div className="my-4 p-3 rounded-xl bg-stone-900/90 border border-stone-800 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-stone-400">Atendimento:</span>
+                  <span className="font-bold text-[#f5ab2b]">Até às 20h30</span>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <a
+                    href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de informações ou agendamento na ' + activeShop.name)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5"
+                  >
+                    <MessageCircle size={14} />
+                    <span>WhatsApp</span>
+                  </a>
+                  <a
+                    href={`tel:${(activeShop.phone || '+351 968 659 043').replace(/\s+/g, '')}`}
+                    className="flex-1 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-1.5 border border-stone-700"
+                  >
+                    <Phone size={14} className="text-[#f5ab2b]" />
+                    <span>Ligar</span>
+                  </a>
+                </div>
+              </div>
+
               {/* User Status */}
               {user ? (
-                <div className="my-6 p-4 rounded-xl bg-stone-900 border border-stone-800">
+                <div className="my-4 p-4 rounded-xl bg-stone-900 border border-stone-800">
                   <p className="text-xs text-stone-400 font-medium">Conectado como</p>
                   <p className="text-sm font-bold text-white mt-0.5">{user.name}</p>
                   <div className="mt-2 flex items-center justify-between pt-2 border-t border-stone-800 text-xs text-[#f5ab2b] font-bold">
@@ -296,7 +335,7 @@ export default function Home() {
                   </div>
                 </div>
               ) : (
-                <div className="my-6 p-4 rounded-xl bg-stone-900 border border-stone-800 text-center">
+                <div className="my-4 p-4 rounded-xl bg-stone-900 border border-stone-800 text-center">
                   <p className="text-xs text-stone-300 mb-3">Acesse sua conta para agendar mais rápido e ganhar cashback.</p>
                   <Link 
                     to="/login"
@@ -336,8 +375,10 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-stone-800 text-[11px] text-stone-500 text-center">
-              <p>{activeShop.name} • Agendamento Online</p>
+            <div className="pt-6 border-t border-stone-800 text-[11px] text-stone-400 text-center space-y-1">
+              <p className="font-bold text-white">{activeShop.name} • Agendamento Online</p>
+              <p className="text-stone-400">Tel: {activeShop.phone || '+351 968 659 043'}</p>
+              <p className="text-[#f5ab2b] text-[10px] font-semibold">Segunda a Sábado até às 20h30</p>
             </div>
           </div>
         </div>
@@ -553,7 +594,7 @@ export default function Home() {
                       <div className="bg-zinc-900/80 p-2 rounded-xl text-left text-[9px] text-stone-400 space-y-1.5 border border-zinc-800 mt-2">
                         <div className="flex items-center gap-1 text-stone-300">
                           <Phone size={10} className="text-[#f5ab2b]" />
-                          <span>+351 912 345 678</span>
+                          <span>{activeShop.phone || '+351 968 659 043'}</span>
                         </div>
                         <div className="flex items-center gap-1 text-stone-300">
                           <MapPin size={10} className="text-[#f5ab2b]" />
@@ -663,7 +704,7 @@ export default function Home() {
               </span>
               <span className="flex items-center gap-1.5 bg-stone-900 border border-stone-800 px-3 py-1.5 rounded-lg">
                 <Clock size={14} className="text-[#f5ab2b]" />
-                Segunda a Sábado | 9h–20h
+                Segunda a Sábado | 9h–20h30
               </span>
             </div>
           </div>
@@ -768,10 +809,31 @@ export default function Home() {
             </div>
           )}
 
-          {/* Quick Notice */}
-          <div className="mt-12 text-center">
-            <p className="text-xs text-stone-400">
-              Precisa de ajuda ou agendamento para eventos? Contacte a barbearia diretamente pelo telefone <span className="text-white font-bold">{activeShop.phone || '+351 910 000 123'}</span>.
+          {/* Quick Notice with direct WhatsApp & Call links */}
+          <div className="mt-12 max-w-xl mx-auto text-center p-6 rounded-2xl bg-stone-900/80 border border-stone-800 space-y-4">
+            <p className="text-xs text-stone-300">
+              Precisa de ajuda ou agendamento especial? Contacte a barbearia diretamente pelo telefone <span className="text-[#f5ab2b] font-bold">{activeShop.phone || '+351 968 659 043'}</span>.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <a
+                href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de agendar ou tirar dúvidas na ' + activeShop.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+              >
+                <MessageCircle size={15} />
+                <span>Falar no WhatsApp</span>
+              </a>
+              <a
+                href={`tel:${(activeShop.phone || '+351 968 659 043').replace(/\s+/g, '')}`}
+                className="px-5 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center gap-2"
+              >
+                <Phone size={15} className="text-[#f5ab2b]" />
+                <span>Ligar: {activeShop.phone || '+351 968 659 043'}</span>
+              </a>
+            </div>
+            <p className="text-[11px] text-stone-500 font-medium">
+              Horário de Fechamento: 20h30 • Atendimento de Segunda a Sábado até às 20:30
             </p>
           </div>
         </div>
@@ -994,29 +1056,71 @@ export default function Home() {
       {/* 8. FOOTER                                                                 */}
       {/* ========================================================================= */}
       <footer className="w-full bg-[#181615] text-stone-400 py-12 border-t border-stone-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full border border-[#f5ab2b] flex items-center justify-center text-[#f5ab2b] font-bold">
-              ✂️
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-stone-800/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full border border-[#f5ab2b] flex items-center justify-center text-[#f5ab2b] font-bold">
+                ✂️
+              </div>
+              <div>
+                <p className="text-white font-bold text-sm tracking-wider uppercase">{activeShop.name}</p>
+                <p className="text-xs text-stone-500">Barba, Cabelo, Bigode & Tradição</p>
+              </div>
             </div>
-            <div>
-              <p className="text-white font-bold text-sm tracking-wider uppercase">{activeShop.name}</p>
-              <p className="text-xs text-stone-500">Barba, Cabelo, Bigode & Tradição</p>
+
+            {/* Direct Contact in Footer */}
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
+              <a
+                href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de falar com a ' + activeShop.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                <MessageCircle size={14} />
+                <span>WhatsApp: {activeShop.phone || '+351 968 659 043'}</span>
+              </a>
+              <span className="text-stone-700 hidden sm:inline">•</span>
+              <a
+                href={`tel:${(activeShop.phone || '+351 968 659 043').replace(/\s+/g, '')}`}
+                className="flex items-center gap-1.5 text-stone-300 hover:text-white transition-colors"
+              >
+                <Phone size={14} className="text-[#f5ab2b]" />
+                <span>Ligar: {activeShop.phone || '+351 968 659 043'}</span>
+              </a>
+              <span className="text-stone-700 hidden sm:inline">•</span>
+              <span className="flex items-center gap-1.5 text-stone-400">
+                <Clock size={14} className="text-[#f5ab2b]" />
+                <span>Fechamento às 20h30 (09:00 - 20:30)</span>
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-xs uppercase tracking-wider font-semibold">
-            <button onClick={() => scrollToTop()} className="hover:text-white">Início</button>
-            <button onClick={() => scrollToSection('app-section')} className="hover:text-white">O App</button>
-            <button onClick={() => scrollToSection('story-section')} className="hover:text-white">História</button>
-            <button onClick={() => scrollToSection('services-section')} className="hover:text-white">Serviços</button>
-          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs uppercase tracking-wider">
+            <div className="flex flex-wrap items-center gap-6 font-semibold">
+              <button onClick={() => scrollToTop()} className="hover:text-white">Início</button>
+              <button onClick={() => scrollToSection('app-section')} className="hover:text-white">O App</button>
+              <button onClick={() => scrollToSection('story-section')} className="hover:text-white">História</button>
+              <button onClick={() => scrollToSection('services-section')} className="hover:text-white">Serviços</button>
+            </div>
 
-          <p className="text-xs text-stone-600">
-            © {new Date().getFullYear()} {activeShop.name}. Todos os direitos reservados.
-          </p>
+            <p className="text-xs text-stone-600">
+              © {new Date().getFullYear()} {activeShop.name}. Todos os direitos reservados.
+            </p>
+          </div>
         </div>
       </footer>
+
+      {/* Floating WhatsApp Quick Action Button for Desktop & Mobile */}
+      <a
+        href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de informações ou agendamento na ' + activeShop.name)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Fale no WhatsApp"
+        className="fixed bottom-20 right-4 z-40 p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-950/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+      >
+        <MessageCircle size={24} />
+        <span className="hidden group-hover:inline-block text-xs font-bold pr-1">Falar no WhatsApp</span>
+      </a>
 
       {/* ========================================================================= */}
       {/* 9. FLOATING ACTION BUTTON (FAB) FOR MOBILE BOOKING                        */}

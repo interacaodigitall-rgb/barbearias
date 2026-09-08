@@ -514,7 +514,7 @@ export default function BarberDashboard() {
                 <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">Telefone de Contato</label>
                 <input
                   type="text"
-                  placeholder="+351 912 345 678"
+                  placeholder="+351 968 659 043"
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                   className="w-full px-3.5 py-2.5 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"

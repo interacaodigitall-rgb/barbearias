@@ -25,7 +25,7 @@ const defaultTenantAccounts: TenantAccount[] = [
     email: 'roger@rogerxbarbershop.pt',
     password: 'rogerx',
     name: 'Roger (Dono Roger\'X)',
-    phone: '+351 910 000 123',
+    phone: '+351 968 659 043',
     role: 'owner',
     companyId: 'shop-rogerx',
     companyName: "Roger'X BarberShop",
@@ -48,7 +48,7 @@ const defaultTenantAccounts: TenantAccount[] = [
     email: 'roger.barber@rogerx.pt',
     password: 'roger123',
     name: 'Roger',
-    phone: '+351 910 000 123',
+    phone: '+351 968 659 043',
     role: 'barber',
     companyId: 'shop-rogerx',
     companyName: "Roger'X BarberShop",
@@ -97,15 +97,17 @@ export function getStoredTenantAccounts(): TenantAccount[] {
   try {
     const raw = localStorage.getItem(SAAS_ACCOUNTS_KEY);
     if (raw) {
-      const parsed: TenantAccount[] = JSON.parse(raw);
+      let parsed: TenantAccount[] = JSON.parse(raw);
       // Ensure defaults exist
       const existingEmails = new Set(parsed.map(a => a.email.toLowerCase()));
       const missing = defaultTenantAccounts.filter(a => !existingEmails.has(a.email.toLowerCase()));
-      if (missing.length > 0) {
-        const merged = [...parsed, ...missing];
-        localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(merged));
-        return merged;
-      }
+      parsed = [...parsed, ...missing].map(acc => {
+        if (acc.uid === 'acc-owner-rogerx' || acc.uid === 'acc-barber-roger') {
+          return { ...acc, phone: '+351 968 659 043' };
+        }
+        return acc;
+      });
+      localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(parsed));
       return parsed;
     }
   } catch {}
@@ -133,10 +135,13 @@ const getStoredShops = (): SaaSBarbershop[] => {
       
       const finalShops = [...merged, ...missing];
       
-      // Force update rogerx to ensure it has the logo
-      const rogerx = finalShops.find(s => s.slug === 'rogerx-barbershop');
+      // Force update rogerx to ensure it has the logo, updated phone and closing time
+      const rogerx = finalShops.find(s => s.slug === 'rogerx-barbershop' || s.id === 'shop-rogerx');
       if (rogerx) {
         rogerx.logoUrl = '/logo-roger.png';
+        rogerx.phone = '+351 968 659 043';
+        rogerx.closingTime = '20:30';
+        rogerx.openingHours = 'Segunda a Sábado | 9h–20h30';
       }
 
       localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(finalShops));
