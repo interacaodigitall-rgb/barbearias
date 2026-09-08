@@ -1,9 +1,12 @@
 import { SaaSBarbershop, SaaSPlan, Service, Barber, User } from '../models';
 import { demoSaaSBarbershops, demoSaaSPlans, demoBarbers, demoServices, rogerXBarbers, rogerXServices, sherlocksBarbers } from '../models/demoData';
+import { db } from '../lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 const SAAS_SHOPS_KEY = 'barbersaas_barbershops';
 const SAAS_ACTIVE_SHOP_KEY = 'barbersaas_active_shop_id';
 const SAAS_ACCOUNTS_KEY = 'barbersaas_tenant_accounts';
+const SAAS_PASSWORD_OVERRIDES_KEY = 'barbersaas_password_overrides';
 
 export interface TenantAccount {
   uid: string;
@@ -17,6 +20,21 @@ export interface TenantAccount {
   barberId?: string;
   commissionPercent?: number;
   createdAt: number;
+}
+
+export function getStoredPasswordOverrides(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(SAAS_PASSWORD_OVERRIDES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveStoredPasswordOverrides(overrides: Record<string, string>): void {
+  try {
+    localStorage.setItem(SAAS_PASSWORD_OVERRIDES_KEY, JSON.stringify(overrides));
+  } catch {}
 }
 
 const defaultTenantAccounts: TenantAccount[] = [
@@ -94,25 +112,89 @@ const defaultTenantAccounts: TenantAccount[] = [
 ];
 
 export function getStoredTenantAccounts(): TenantAccount[] {
+  const overrides = getStoredPasswordOverrides();
+
+  let accounts: TenantAccount[] = [];
   try {
     const raw = localStorage.getItem(SAAS_ACCOUNTS_KEY);
     if (raw) {
-      let parsed: TenantAccount[] = JSON.parse(raw);
-      // Ensure defaults exist
-      const existingEmails = new Set(parsed.map(a => a.email.toLowerCase()));
-      const missing = defaultTenantAccounts.filter(a => !existingEmails.has(a.email.toLowerCase()));
-      parsed = [...parsed, ...missing].map(acc => {
-        if (acc.uid === 'acc-owner-rogerx' || acc.uid === 'acc-barber-roger') {
-          return { ...acc, phone: '+351 968 659 043' };
-        }
-        return acc;
-      });
-      localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(parsed));
-      return parsed;
+      accounts = JSON.parse(raw);
     }
   } catch {}
-  localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(defaultTenantAccounts));
-  return defaultTenantAccounts;
+
+  if (!accounts || accounts.length === 0) {
+    accounts = [...defaultTenantAccounts];
+  } else {
+    // Ensure default demo accounts exist, but NEVER overwrite or resurrect duplicates if an account
+    // with that UID or barberId or matching email already exists
+    const existingUids = new Set(accounts.map(a => a.uid));
+    const existingBarberIds = new Set(accounts.map(a => a.barberId).filter(Boolean));
+    const existingEmails = new Set(accounts.map(a => a.email.toLowerCase()));
+
+    const missing = defaultTenantAccounts.filter(a =>
+      !existingUids.has(a.uid) &&
+      (!a.barberId || !existingBarberIds.has(a.barberId)) &&
+      !existingEmails.has(a.email.toLowerCase())
+    );
+
+    accounts = [...accounts, ...missing];
+  }
+
+  // Deduplicate accounts: if multiple entries exist for the same barberId or email, keep the newest / most customized
+  const deduplicated: TenantAccount[] = [];
+  const seenBarberIds = new Set<string>();
+  const seenEmails = new Set<string>();
+
+  for (const acc of accounts) {
+    const cleanEmail = acc.email.toLowerCase().trim();
+    if (acc.barberId && acc.role === 'barber') {
+      if (!seenBarberIds.has(acc.barberId)) {
+        seenBarberIds.add(acc.barberId);
+        seenEmails.add(cleanEmail);
+        deduplicated.push(acc);
+      }
+    } else {
+      if (!seenEmails.has(cleanEmail)) {
+        seenEmails.add(cleanEmail);
+        deduplicated.push(acc);
+      }
+    }
+  }
+
+  // Apply password overrides so any password changed by admin or owner is immediately effective and permanent
+  const finalAccounts = deduplicated.map(acc => {
+    let effectivePassword = acc.password;
+
+    const emailKey = acc.email.toLowerCase().trim();
+    const userKey = emailKey.split('@')[0];
+
+    if (acc.barberId && overrides[acc.barberId]) {
+      effectivePassword = overrides[acc.barberId];
+    } else if (overrides[acc.uid]) {
+      effectivePassword = overrides[acc.uid];
+    } else if (overrides[emailKey]) {
+      effectivePassword = overrides[emailKey];
+    } else if (overrides[userKey]) {
+      effectivePassword = overrides[userKey];
+    }
+
+    const updated: TenantAccount = {
+      ...acc,
+      password: effectivePassword || acc.password || 'barber123'
+    };
+
+    if (acc.uid === 'acc-owner-rogerx' || acc.uid === 'acc-barber-roger') {
+      updated.phone = '+351 968 659 043';
+    }
+
+    return updated;
+  });
+
+  try {
+    localStorage.setItem(SAAS_ACCOUNTS_KEY, JSON.stringify(finalAccounts));
+  } catch {}
+
+  return finalAccounts;
 }
 
 export function saveStoredTenantAccounts(accounts: TenantAccount[]): void {
