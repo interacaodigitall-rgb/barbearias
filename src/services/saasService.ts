@@ -483,14 +483,144 @@ export const saasService = {
     saveStoredTenantAccounts(filtered);
   },
 
+  async updateBarberPassword(barberIdOrUid: string, newPassword: string, email?: string): Promise<TenantAccount> {
+    const cleanPassword = newPassword.trim();
+    if (!cleanPassword) throw new Error('A nova senha não pode ser vazia.');
+
+    const cleanTarget = barberIdOrUid.trim();
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+
+    const overrides = getStoredPasswordOverrides();
+    overrides[cleanTarget] = cleanPassword;
+    if (cleanEmail) overrides[cleanEmail] = cleanPassword;
+    const userPart = cleanEmail.split('@')[0];
+    if (userPart) overrides[userPart] = cleanPassword;
+
+    const accounts = getStoredTenantAccounts();
+    const targetAcc = accounts.find(a => 
+      a.uid === cleanTarget || 
+      a.barberId === cleanTarget || 
+      (cleanEmail && a.email.toLowerCase() === cleanEmail) ||
+      (a.name && cleanTarget && a.name.toLowerCase() === cleanTarget.toLowerCase())
+    );
+
+    if (targetAcc?.barberId) overrides[targetAcc.barberId] = cleanPassword;
+    if (targetAcc?.uid) overrides[targetAcc.uid] = cleanPassword;
+    if (targetAcc?.email) {
+      overrides[targetAcc.email.toLowerCase()] = cleanPassword;
+      overrides[targetAcc.email.toLowerCase().split('@')[0]] = cleanPassword;
+    }
+    saveStoredPasswordOverrides(overrides);
+
+    let updatedAcc: TenantAccount | null = null;
+    const updatedAccounts = accounts.map(a => {
+      const matches = 
+        a.uid === cleanTarget || 
+        a.barberId === cleanTarget || 
+        (targetAcc && a.barberId && a.barberId === targetAcc.barberId) ||
+        (cleanEmail && a.email.toLowerCase() === cleanEmail) ||
+        (targetAcc && a.email.toLowerCase() === targetAcc.email.toLowerCase()) ||
+        (a.name && targetAcc && a.name.toLowerCase() === targetAcc.name.toLowerCase());
+
+      if (matches) {
+        const item: TenantAccount = {
+          ...a,
+          password: cleanPassword,
+          email: cleanEmail || a.email
+        };
+        updatedAcc = item;
+        return item;
+      }
+      return a;
+    });
+
+    if (!updatedAcc) {
+      const shop = this.getActiveBarbershop();
+      updatedAcc = {
+        uid: `acc-barber-${Date.now()}`,
+        name: cleanTarget,
+        email: cleanEmail || `${cleanTarget.toLowerCase().replace(/[^a-z0-9]/g, '')}@${shop.slug}.pt`,
+        password: cleanPassword,
+        role: 'barber',
+        companyId: shop.id,
+        companyName: shop.name,
+        barberId: cleanTarget,
+        createdAt: Date.now()
+      };
+      updatedAccounts.push(updatedAcc);
+    }
+
+    saveStoredTenantAccounts(updatedAccounts);
+
+    defaultTenantAccounts.forEach(d => {
+      if (
+        d.uid === cleanTarget || 
+        d.barberId === cleanTarget || 
+        (targetAcc && d.barberId && d.barberId === targetAcc.barberId) ||
+        (cleanEmail && d.email.toLowerCase() === cleanEmail)
+      ) {
+        d.password = cleanPassword;
+        if (cleanEmail) d.email = cleanEmail;
+      }
+    });
+
+    try {
+      if (updatedAcc) {
+        const accToSync = updatedAcc as TenantAccount;
+        await setDoc(doc(db, 'tenant_accounts', accToSync.uid), accToSync, { merge: true });
+        await setDoc(doc(db, 'users', accToSync.uid), {
+          uid: accToSync.uid,
+          name: accToSync.name,
+          email: accToSync.email,
+          role: accToSync.role,
+          companyId: accToSync.companyId,
+          barberId: accToSync.barberId,
+          password: cleanPassword,
+          updatedAt: Date.now()
+        }, { merge: true });
+      }
+    } catch (e) {
+      console.warn('Firestore sync warning:', e);
+    }
+
+    return updatedAcc;
+  },
+
+  findTenantAccount(email: string): TenantAccount | null {
+    const accounts = getStoredTenantAccounts();
+    const cleanEmail = email.toLowerCase().trim();
+    const username = cleanEmail.split('@')[0];
+
+    return accounts.find(a => 
+      a.email.toLowerCase() === cleanEmail || 
+      a.email.toLowerCase().split('@')[0] === username ||
+      (a.name && a.name.toLowerCase().replace(/[^a-z0-9]/g, '') === username)
+    ) || null;
+  },
+
   authenticateTenantUser(email: string, password?: string): TenantAccount | null {
     const accounts = getStoredTenantAccounts();
     const cleanEmail = email.toLowerCase().trim();
-    const found = accounts.find(a => a.email.toLowerCase() === cleanEmail);
-    if (!found) return null;
-    if (password && found.password && found.password !== password) {
-      return null;
+    const username = cleanEmail.split('@')[0];
+
+    let found = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+
+    if (!found) {
+      found = accounts.find(a => {
+        const accUser = a.email.toLowerCase().split('@')[0];
+        const accName = a.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return accUser === username || accName === username;
+      });
     }
+
+    if (!found) return null;
+
+    if (password) {
+      if (!found.password || found.password !== password) {
+        return null;
+      }
+    }
+
     return found;
   },
 

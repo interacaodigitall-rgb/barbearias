@@ -67,6 +67,12 @@ export default function AdminDashboard() {
   const [copiedBarberUid, setCopiedBarberUid] = useState<string | null>(null);
   const [createdBarberAccessAlert, setCreatedBarberAccessAlert] = useState<TenantAccount | null>(null);
 
+  // Change password modal state
+  const [changePasswordBarber, setChangePasswordBarber] = useState<{ barber: Barber; account: TenantAccount } | null>(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [showPasswordText, setShowPasswordText] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+
   const activeShop = saasService.getActiveBarbershop();
 
   // Product form state
@@ -239,15 +245,30 @@ export default function AdminDashboard() {
   // Barber Account & Access Handlers
   const handleOpenCreateBarberAccess = (barber?: Barber) => {
     if (barber) {
-      const cleanName = barber.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-      setBarberAccessForm({
-        barberId: barber.id,
-        name: barber.name,
-        email: `${cleanName}@${activeShop.slug || 'barbearia'}.pt`,
-        password: 'barber' + Math.floor(100 + Math.random() * 900),
-        commissionPercent: barber.compensationValue || 50,
-        phone: '+351 '
-      });
+      const existingAcc = barberAccounts.find(
+        a => a.barberId === barber.id || 
+             (a.name && barber.name && a.name.toLowerCase() === barber.name.toLowerCase())
+      );
+      if (existingAcc) {
+        setBarberAccessForm({
+          barberId: barber.id,
+          name: existingAcc.name || barber.name,
+          email: existingAcc.email,
+          password: existingAcc.password || 'barber123',
+          commissionPercent: existingAcc.commissionPercent || barber.compensationValue || 50,
+          phone: existingAcc.phone || '+351 '
+        });
+      } else {
+        const cleanName = barber.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        setBarberAccessForm({
+          barberId: barber.id,
+          name: barber.name,
+          email: `${cleanName}@${activeShop.slug || 'barbearia'}.pt`,
+          password: 'barber' + Math.floor(100 + Math.random() * 900),
+          commissionPercent: barber.compensationValue || 50,
+          phone: '+351 '
+        });
+      }
     } else {
       setBarberAccessForm({
         barberId: 'new',
@@ -259,6 +280,38 @@ export default function AdminDashboard() {
       });
     }
     setIsCreateBarberAccessModalOpen(true);
+  };
+
+  const handleOpenChangePasswordModal = (barber: Barber, account: TenantAccount) => {
+    setChangePasswordBarber({ barber, account });
+    setNewPasswordInput('');
+    setShowPasswordText(true);
+  };
+
+  const handleSaveBarberPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!changePasswordBarber || !newPasswordInput.trim()) {
+      alert('Por favor, digite a nova senha.');
+      return;
+    }
+    try {
+      setIsSavingPassword(true);
+      const updated = await saasService.updateBarberPassword(
+        changePasswordBarber.barber.id,
+        newPasswordInput.trim(),
+        changePasswordBarber.account.email
+      );
+      const currentAccounts = saasService.getTenantAccounts(activeShop.id);
+      setBarberAccounts(currentAccounts);
+      setCreatedBarberAccessAlert(updated);
+      alert(`Senha de ${changePasswordBarber.barber.name} atualizada com sucesso! A alteração já está a funcionar de imediato.`);
+      setChangePasswordBarber(null);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao alterar senha.');
+    } finally {
+      setIsSavingPassword(false);
+    }
   };
 
   const handleCreateBarberAccess = async (e: React.FormEvent) => {
@@ -1964,6 +2017,94 @@ export default function AdminDashboard() {
                 >
                   <Key size={16} />
                   Criar Acesso & Salvar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Alterar Senha do Barbeiro */}
+      {changePasswordBarber && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="border border-zinc-200 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-6 text-zinc-900 bg-white">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
+                  <Key size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-zinc-900">Alterar Senha do Barbeiro</h3>
+                  <p className="text-xs text-zinc-500">{changePasswordBarber.barber.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setChangePasswordBarber(null)}
+                className="text-zinc-400 hover:text-zinc-900 text-lg font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveBarberPassword} className="space-y-4">
+              <div className="p-3 bg-zinc-50 border border-zinc-200/80 rounded-xl space-y-1">
+                <p className="text-[10px] uppercase font-bold text-zinc-400">Email de Acesso (Login)</p>
+                <p className="text-xs font-mono font-bold text-zinc-900">{changePasswordBarber.account.email}</p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-700">
+                    Nova Senha de Acesso
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const rand = 'barber' + Math.floor(1000 + Math.random() * 9000);
+                      setNewPasswordInput(rand);
+                    }}
+                    className="text-[11px] font-bold text-amber-700 hover:text-amber-800"
+                  >
+                    Gerar Senha Forte
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPasswordText ? 'text' : 'password'}
+                    required
+                    value={newPasswordInput}
+                    onChange={e => setNewPasswordInput(e.target.value)}
+                    placeholder="Digite a nova senha..."
+                    className="w-full px-4 py-2.5 pr-10 border border-zinc-200 rounded-xl text-xs font-mono focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordText(!showPasswordText)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 text-xs"
+                  >
+                    {showPasswordText ? 'Ocultar' : 'Ver'}
+                  </button>
+                </div>
+                <p className="text-[11px] text-amber-800/90 mt-1.5 flex items-center gap-1">
+                  <span>⚡</span> A alteração surte efeito de imediato no login do barbeiro.
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-100 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setChangePasswordBarber(null)}
+                  className="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingPassword}
+                  className="px-6 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+                >
+                  <Key size={16} />
+                  {isSavingPassword ? 'Salvando...' : 'Salvar Nova Senha'}
                 </button>
               </div>
             </form>

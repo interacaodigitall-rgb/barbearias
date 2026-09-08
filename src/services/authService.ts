@@ -82,8 +82,13 @@ export const authService = {
     }
 
     // 1. Check local tenant accounts (Owners & Barbers registered via Super Admin or Shop Admin)
-    const tenantUser = saasService.authenticateTenantUser(email, password);
-    if (tenantUser) {
+    const existingTenant = saasService.findTenantAccount(email);
+    if (existingTenant) {
+      const tenantUser = saasService.authenticateTenantUser(email, password);
+      if (!tenantUser) {
+        throw new Error('Senha incorreta. Se a senha foi alterada pelo administrador, utilize a nova senha cadastrada.');
+      }
+
       const user: User = {
         uid: tenantUser.uid,
         name: tenantUser.name,
