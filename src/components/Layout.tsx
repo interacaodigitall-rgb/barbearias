@@ -78,11 +78,22 @@ export default function Layout() {
     navItems.push({ name: 'Super Admin', path: '/super-admin', icon: Shield });
   }
 
+  // Check if current user has management/staff permissions
+  const isStaffUser = Boolean(user && ['barber', 'admin', 'owner', 'superadmin'].includes(user.role));
+
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    if (user.role === 'barber') return '/barber-dashboard';
+    if (user.role === 'admin' || user.role === 'owner') return '/admin';
+    if (user.role === 'superadmin') return '/super-admin';
+    return '/profile';
+  };
+
   // Mobile Bottom Navigation items (Canonical 5-slot layout with + Agendar as primary FAB)
-  let secondMobileItem = { name: 'Serviços', path: servicesPath, icon: Scissors };
+  let secondMobileItem: { name: string; path: string; icon: any; isAction?: boolean } = { name: 'Serviços', path: servicesPath, icon: Scissors };
   if (user?.role === 'barber') {
     secondMobileItem = { name: 'Agenda', path: '/barber-dashboard', icon: Calendar };
-  } else if (user?.role === 'admin' || user?.role === 'superadmin') {
+  } else if (user?.role === 'admin' || user?.role === 'owner' || user?.role === 'superadmin') {
     secondMobileItem = { name: 'Gestão', path: '/admin', icon: Wallet };
   } else if (user?.role === 'customer') {
     secondMobileItem = { name: 'Horários', path: appointmentsPath, icon: Calendar };
@@ -93,6 +104,21 @@ export default function Layout() {
     path: string;
     icon: any;
     isAction?: boolean;
+    isStaffHighlight?: boolean;
+  }
+
+  // 5th Item: For authenticated staff, replace "Entrar" with "Painel" / "Minha Gestão"
+  let fifthMobileItem: MobileNavItem = { name: 'Entrar', path: '/login', icon: UserIcon };
+  if (user) {
+    if (user.role === 'barber') {
+      fifthMobileItem = { name: 'Minha Gestão', path: '/barber-dashboard', icon: Scissors, isStaffHighlight: true };
+    } else if (user.role === 'admin' || user.role === 'owner') {
+      fifthMobileItem = { name: 'Painel', path: '/admin', icon: Shield, isStaffHighlight: true };
+    } else if (user.role === 'superadmin') {
+      fifthMobileItem = { name: 'Painel', path: '/super-admin', icon: Shield, isStaffHighlight: true };
+    } else {
+      fifthMobileItem = { name: t('profile') || 'Perfil', path: '/profile', icon: UserIcon };
+    }
   }
 
   const mobileBottomNavItems: MobileNavItem[] = [
@@ -100,7 +126,7 @@ export default function Layout() {
     secondMobileItem,
     { name: '+ Agendar', path: bookingPath, icon: Plus, isAction: true },
     { name: t('loyalty') || 'Fidelidade', path: loyaltyPath, icon: Award },
-    { name: user ? (t('profile') || 'Perfil') : 'Entrar', path: user ? '/profile' : '/login', icon: UserIcon },
+    fifthMobileItem,
   ];
 
   const isSaaSPage = location.pathname === '/' || location.pathname === '/saas';
@@ -109,8 +135,27 @@ export default function Layout() {
 
   return (
     <div className={`min-h-screen flex flex-col overflow-x-hidden ${isSaaSPage ? 'bg-[#0F0F10] text-zinc-100' : 'bg-zinc-50'}`}>
-      {/* SaaS Global Switcher Bar (only shown on internal or client demo pages, hidden on commercial SaaS page and tenant dashboards) */}
-      
+      {/* Top Banner for Authenticated Staff browsing public pages */}
+      {isStaffUser && !isDashboardRoute && (
+        <aside
+          aria-label="Acesso Rápido ao Painel Administrativo"
+          className="sticky top-0 z-50 bg-stone-950/90 backdrop-blur-md text-white border-b border-amber-500/40 px-3.5 py-1.5 shadow-md flex items-center justify-between text-xs transition-all"
+        >
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="text-stone-300 text-[11px] font-medium truncate">
+              {user.role === 'barber' ? 'Painel do Barbeiro' : 'Painel de Gestão'}: <strong className="text-amber-400 font-bold">{user.name.split(' ')[0]}</strong>
+            </span>
+          </div>
+          <Link
+            to={getDashboardPath()}
+            className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#d4a338] hover:bg-[#c4932d] text-zinc-950 font-black text-[11px] uppercase tracking-wider rounded-lg transition-transform active:scale-95 shadow-sm shrink-0"
+          >
+            <Shield size={13} />
+            <span>Voltar ao Painel</span>
+          </Link>
+        </aside>
+      )}
 
       {isFullWidthPage ? (
         <main className="flex-1 w-full max-w-full overflow-x-hidden">
@@ -119,7 +164,7 @@ export default function Layout() {
       ) : (
         <div className="flex-1 flex flex-col md:flex-row">
           {/* Mobile Header */}
-          <div className="md:hidden bg-zinc-900 text-white p-4 flex justify-between items-center sticky top-0 z-40">
+          <div className="md:hidden bg-zinc-900/90 backdrop-blur-md text-white p-4 flex justify-between items-center sticky top-0 z-40">
             <div className="flex items-center space-x-2.5">
               <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-950 shrink-0 shadow-xs">
                 <img 
@@ -265,17 +310,21 @@ export default function Layout() {
               );
             }
 
+            const isItemStaff = item.isStaffHighlight;
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all min-w-[56px] ${
-                  isActive ? 'text-[#d4a338]' : 'text-stone-400 hover:text-stone-700'
+                className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all min-w-[56px] relative ${
+                  isActive ? 'text-[#d4a338]' : isItemStaff ? 'text-amber-600 hover:text-amber-700' : 'text-stone-400 hover:text-stone-700'
                 }`}
               >
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} className={isActive ? 'text-[#d4a338]' : 'text-stone-400'} />
+                {isItemStaff && (
+                  <span className="absolute top-1.5 right-3 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                )}
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'text-[#d4a338]' : isItemStaff ? 'text-amber-600' : 'text-stone-400'} />
                 <span className={`text-[10px] tracking-tight mt-1 ${
-                  isActive ? 'font-black text-stone-900' : 'font-medium text-stone-500'
+                  isActive ? 'font-black text-stone-900' : isItemStaff ? 'font-bold text-amber-700' : 'font-medium text-stone-500'
                 }`}>
                   {item.name}
                 </span>

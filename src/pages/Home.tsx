@@ -24,6 +24,7 @@ import {
   MapPin, 
   Phone, 
   MessageCircle,
+  Shield,
   ShieldCheck, 
   User as UserIcon,
   Sparkles,
@@ -37,6 +38,9 @@ export default function Home() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+
+  const isStaffUser = Boolean(user && ['barber', 'admin', 'owner', 'superadmin'].includes(user.role));
+  const dashboardPath = user?.role === 'barber' ? '/barber-dashboard' : (user?.role === 'superadmin' ? '/super-admin' : '/admin');
 
   const [activeShop, setActiveShop] = useState<SaaSBarbershop>(saasService.getActiveBarbershop());
   const [shopNotFound, setShopNotFound] = useState(false);
@@ -187,9 +191,9 @@ export default function Home() {
       <SplashScreen isLoading={loading} shopName={activeShop?.name} />
 
       {/* ========================================================================= */}
-      {/* 1. VINTAGE HEADER                                                        */}
+      {/* 1. VINTAGE HEADER WITH BACKDROP BLUR & STAFF QUICK RETURN                 */}
       {/* ========================================================================= */}
-      <header className="w-full bg-[#eae5db] border-b border-stone-300/60 sticky top-0 z-40 transition-colors">
+      <header className="w-full bg-[#eae5db]/90 backdrop-blur-md border-b border-stone-300/60 sticky top-0 z-40 transition-colors shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-24 flex items-center justify-between">
           
           {/* Circular Retro Vintage Badge Logo */}
@@ -237,42 +241,45 @@ export default function Home() {
             </Link>
           </nav>
 
-          {/* Right Action (Desktop Only - Mobile is handled cleanly by the bottom navigation bar) */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Quick WhatsApp contact link */}
-            <a
-              href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de falar com a ' + activeShop.name)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 text-xs rounded-xl transition-all shadow-sm"
-              title="Falar no WhatsApp"
-            >
-              <MessageCircle size={15} />
-              <span>WhatsApp</span>
-            </a>
+          {/* Header Action Controls */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Direct Quick Return to Management Panel for Authenticated Staff */}
+            {isStaffUser && (
+              <Link
+                to={dashboardPath}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-stone-900 hover:bg-black text-[#f5ab2b] border border-amber-500/50 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+                title="Painel de Gestão"
+              >
+                <Shield size={14} className="text-[#f5ab2b]" />
+                <span className="text-[11px] sm:text-xs">Painel</span>
+              </Link>
+            )}
 
+            {/* Desktop Booking Link */}
             <Link 
                to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-               className="inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg rounded-xl"
+               className="hidden md:inline-flex items-center gap-2 bg-[#252321] hover:bg-[#1a1817] text-[#f5ab2b] font-black px-5 py-2.5 text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg rounded-xl"
             >
               <Scissors size={14} />
               Agendar Horário
             </Link>
+
             <button
               onClick={handleInstallPwa}
-              className="inline-flex items-center gap-1.5 bg-[#f5ab2b]/10 hover:bg-[#f5ab2b]/20 text-[#f5ab2b] border border-[#f5ab2b]/30 font-bold px-4 py-2.5 text-xs uppercase tracking-wider rounded-xl transition-all"
+              className="hidden lg:inline-flex items-center gap-1.5 bg-[#f5ab2b]/10 hover:bg-[#f5ab2b]/20 text-[#f5ab2b] border border-[#f5ab2b]/30 font-bold px-4 py-2.5 text-xs uppercase tracking-wider rounded-xl transition-all"
               title="Baixar App PWA"
             >
               <Smartphone size={14} />
               Baixar App PWA
             </button>
 
+            {/* Drawer Menu Button for Desktop & Mobile */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="p-2.5 text-stone-900 hover:text-stone-700 hover:bg-stone-200/50 rounded-lg transition-colors"
               aria-label="Abrir Menu"
             >
-              {menuOpen ? <X size={26} /> : <Menu size={26} />}
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
@@ -297,6 +304,30 @@ export default function Home() {
                   <X size={22} />
                 </button>
               </div>
+
+              {/* Staff Management Direct Return Banner */}
+              {isStaffUser && (
+                <div className="my-3 p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-stone-900 to-stone-900 border border-amber-500/50 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-black tracking-widest text-[#f5ab2b] flex items-center gap-1">
+                        <Shield size={12} /> Acesso de Gestão
+                      </p>
+                      <p className="text-xs font-bold text-white mt-0.5">
+                        {user.role === 'barber' ? 'Painel do Barbeiro' : 'Painel de Gestão'}
+                      </p>
+                    </div>
+                    <Link
+                      to={dashboardPath}
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-1.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-lg shadow-sm transition-transform active:scale-95 flex items-center gap-1"
+                    >
+                      <span>Entrar</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+              )}
 
               {/* Contact and Business Hours Header Pill in Drawer */}
               <div className="my-4 p-3 rounded-xl bg-stone-900/90 border border-stone-800 space-y-2">
@@ -349,6 +380,18 @@ export default function Home() {
 
               {/* Links */}
               <div className="space-y-2 text-sm font-bold tracking-wider uppercase">
+                {isStaffUser && (
+                  <Link 
+                    to={dashboardPath} 
+                    onClick={() => setMenuOpen(false)} 
+                    className="flex items-center justify-between py-3 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-[#f5ab2b] font-black text-sm uppercase tracking-wider transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Shield size={16} /> Voltar ao Painel ({user.role === 'barber' ? 'Barbeiro' : 'Gestão'})
+                    </span>
+                    <ArrowRight size={15} />
+                  </Link>
+                )}
                 <Link to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b]">
                   ✂️ Novo Agendamento
                 </Link>
@@ -385,14 +428,13 @@ export default function Home() {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. HERO SECTION WITH SEU ESTILO CASHBACK (Matching pc01.png)              */}
+      {/* 2. HERO SECTION WITH SEU ESTILO CASHBACK (Refined, Humanized & Mobile-First)*/}
       {/* ========================================================================= */}
       <section className="relative w-full bg-[#181615] overflow-hidden">
-        {/* Top subtle fade connecting with cream header */}
         <div className="grid grid-cols-1 md:grid-cols-3 min-h-[440px] md:min-h-[520px] lg:min-h-[580px] items-stretch">
           
-          {/* Left Column: Model Pompadour with Watermark (pc01.png) - Compact on Mobile */}
-          <div className="relative group overflow-hidden bg-[#1f1d1b] flex items-end justify-center">
+          {/* Left Column: Model Pompadour with Watermark - Shown on Desktop, Hidden on Mobile per UX humanization */}
+          <div className="hidden md:flex relative group overflow-hidden bg-[#1f1d1b] items-end justify-center">
             {/* Outline Typographic Watermark behind model */}
             <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0">
               <span className="text-[70px] sm:text-[110px] lg:text-[160px] font-black uppercase tracking-tighter text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.08)] opacity-60">
@@ -403,28 +445,38 @@ export default function Home() {
             <img 
               src={barberImages.modelSide} 
               alt="Estilo Pompadour Barbearia" 
-              className="relative z-10 w-full h-28 sm:h-44 md:h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
+              className="relative z-10 w-full h-full object-cover object-top opacity-90 contrast-110 group-hover:scale-105 transition-transform duration-700" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-20 pointer-events-none" />
           </div>
 
-          {/* Center Column: SEU ESTILO Charcoal Box (pc01.png) */}
-          <div className="bg-[#24211e] p-5 sm:p-8 md:p-12 lg:p-14 flex flex-col justify-center text-center items-center z-20 shadow-2xl border-x border-stone-800/80">
+          {/* Center Column: SEU ESTILO Luxury Dark Showcase (with subtle real barbershop interior ambient texture on mobile) */}
+          <div className="relative bg-[#24211e] p-6 sm:p-8 md:p-12 lg:p-14 flex flex-col justify-center text-center items-center z-20 shadow-2xl border-x border-stone-800/80 overflow-hidden">
+            {/* Subtle real barbershop atmospheric backdrop on mobile */}
+            <div className="md:hidden absolute inset-0 z-0 pointer-events-none overflow-hidden">
+              <img 
+                src={barberImages.interiorWide} 
+                alt="Ambiente Barbearia" 
+                className="w-full h-full object-cover opacity-15 filter blur-xs"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#24211e]/90 via-[#24211e]/95 to-[#24211e]" />
+            </div>
+
             {/* Framed Logo Badge */}
-            <div className="border border-[#f5ab2b]/80 px-3.5 py-1 tracking-[0.25em] text-[10px] sm:text-xs font-black text-[#f5ab2b] uppercase mb-2.5 sm:mb-6">
+            <div className="relative z-10 border border-[#f5ab2b]/80 px-3.5 py-1 tracking-[0.25em] text-[10px] sm:text-xs font-black text-[#f5ab2b] uppercase mb-3 sm:mb-6">
               SEU ESTILO
             </div>
 
-            <h2 className="text-xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-2 sm:mb-4 max-w-sm">
+            <h2 className="relative z-10 text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-2.5 sm:mb-4 max-w-sm">
               Receba cashback em cada {currencyUnit} gasto em nossas barbearias.
             </h2>
 
-            <p className="text-stone-400 text-xs sm:text-sm leading-snug sm:leading-relaxed max-w-xs mb-3 sm:mb-4">
+            <p className="relative z-10 text-stone-300 text-xs sm:text-sm leading-relaxed max-w-xs mb-4 sm:mb-5">
               Em breve descontos em academias, restaurantes, e várias empresas parceiras.
             </p>
 
             {/* Compact Balance Card - Always visible below descriptive text */}
-            <div className="w-full max-w-xs bg-stone-900/90 border border-stone-700/80 px-4 py-2.5 rounded-xl flex items-center justify-between text-xs mb-4 sm:mb-6 shadow-inner">
+            <div className="relative z-10 w-full max-w-xs bg-stone-900/90 border border-stone-700/80 px-4 py-3 rounded-xl flex items-center justify-between text-xs mb-5 sm:mb-6 shadow-inner">
               <div className="flex items-center gap-2">
                 <Award size={16} className="text-[#f5ab2b] shrink-0" />
                 <span className="text-stone-300 font-semibold text-[11px] sm:text-xs">Seu saldo atual:</span>
@@ -436,13 +488,13 @@ export default function Home() {
 
             <Link
               to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-widest transition-transform hover:scale-105 active:scale-95 shadow-xl"
+              className="relative z-10 w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 font-black text-xs uppercase tracking-widest transition-transform hover:scale-105 active:scale-95 shadow-xl rounded-xl"
             >
               Agendar & Acumular
             </Link>
           </div>
 
-          {/* Right Column: Model Afro Fade with Watermark (pc01.png) - Hidden on mobile to keep focus above-the-fold */}
+          {/* Right Column: Model Afro Fade with Watermark - Shown on Desktop */}
           <div className="hidden md:flex relative group overflow-hidden bg-[#1f1d1b] items-end justify-center">
             {/* Outline Typographic Watermark behind model */}
             <div className="absolute inset-0 flex items-center justify-center select-none pointer-events-none z-0">
@@ -463,155 +515,172 @@ export default function Home() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. APP SHOWCASE BANNER & PHONE MOCKUPS (Matching pc02.png)                */}
+      {/* 3. APP SHOWCASE BANNER & PHONE MOCKUPS (Glassmorphic Dark Redesign)       */}
       {/* ========================================================================= */}
-      <section id="app-section" className="w-full bg-[#f5ab2b] py-16 md:py-24 relative overflow-hidden">
+      <section id="app-section" className="w-full bg-[#141312] py-16 md:py-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left Content (Text + Store Badges) */}
-            <div className="lg:col-span-6 text-zinc-950 z-10 space-y-6">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-[1.05]">
-                AGENDE ATRAVÉS <br />
-                <span className="text-zinc-950">DO APP {activeShop.name.toUpperCase()}</span>
-              </h2>
+          
+          {/* Glassmorphic Dark Card with subtle gold border & ambient glow */}
+          <div className="relative rounded-3xl bg-neutral-900/90 backdrop-blur-xl border border-amber-500/30 p-6 sm:p-10 lg:p-14 shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden">
+            {/* Ambient gold glow reflections */}
+            <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-[#f5ab2b]/10 blur-3xl pointer-events-none" />
 
-              <p className="text-zinc-900/90 text-sm sm:text-base md:text-lg font-medium leading-relaxed max-w-xl">
-                Avalie o seu atendimento, consulte seus horários de agendamento e muito mais! Baixe agora, gratuitamente, o App {activeShop.name} e tenha acesso prático e rápido aos nossos horários. Acredite, o agendamento é mais rápido pelo nosso aplicativo!
-              </p>
-
-              {/* Badges & Instant Web App Link */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                {/* Google Play Pill Badge */}
-                <div className="bg-black text-white px-4 py-2 rounded-xl flex items-center gap-3 shadow-md hover:bg-zinc-900 cursor-pointer transition-colors">
-                  <div className="w-6 h-6 flex items-center justify-center text-[#48ff82] text-xs font-black">
-                    ▶
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[9px] uppercase tracking-wider text-zinc-400 font-semibold leading-none">DISPONÍVEL NO</p>
-                    <p className="text-sm font-bold tracking-tight leading-tight">Google Play</p>
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
+              
+              {/* Left Content (Text + Store Badges) */}
+              <div className="lg:col-span-6 text-white space-y-5">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-[#f5ab2b] text-[11px] font-black uppercase tracking-wider">
+                  <Smartphone size={14} />
+                  <span>Aplicativo Oficial PWA</span>
                 </div>
 
-                {/* App Store Pill Badge */}
-                <div className="bg-black text-white px-4 py-2 rounded-xl flex items-center gap-3 shadow-md hover:bg-zinc-900 cursor-pointer transition-colors">
-                  <div className="w-6 h-6 flex items-center justify-center text-white text-base">
-                    
-                  </div>
-                  <div className="text-left">
-                    <p className="text-[9px] uppercase tracking-wider text-zinc-400 font-semibold leading-none">Baixar na</p>
-                    <p className="text-sm font-bold tracking-tight leading-tight">Mac App Store</p>
-                  </div>
-                </div>
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white leading-[1.08]">
+                  AGENDE ATRAVÉS <br />
+                  <span className="text-[#f5ab2b]">DO APP {activeShop.name.toUpperCase()}</span>
+                </h2>
 
-                {/* Direct Web Agendamento */}
-                <Link
-                  to="/booking"
-                  className="bg-white text-zinc-950 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider shadow-md hover:bg-zinc-100 transition-colors flex items-center gap-1.5"
-                >
-                  <Smartphone size={16} />
-                  Agendar Online Agora
-                </Link>
+                <p className="text-neutral-300 text-sm sm:text-base font-normal leading-relaxed max-w-xl">
+                  Avalie o seu atendimento, consulte seus horários de agendamento e muito mais! Baixe agora, gratuitamente, o App {activeShop.name} e tenha acesso prático e rápido aos nossos horários. Acredite, o agendamento é mais rápido pelo nosso aplicativo!
+                </p>
+
+                {/* Badges & Instant Web App Link */}
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  {/* Google Play Pill Badge */}
+                  <div 
+                    onClick={handleInstallPwa}
+                    className="bg-neutral-950 hover:bg-neutral-800 text-white border border-neutral-700/80 px-4 py-2.5 rounded-xl flex items-center gap-3 shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center text-[#48ff82] text-xs font-black">
+                      ▶
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[9px] uppercase tracking-wider text-neutral-400 font-semibold leading-none">DISPONÍVEL NO</p>
+                      <p className="text-xs sm:text-sm font-bold tracking-tight leading-tight">Google Play</p>
+                    </div>
+                  </div>
+
+                  {/* App Store Pill Badge */}
+                  <div 
+                    onClick={handleInstallPwa}
+                    className="bg-neutral-950 hover:bg-neutral-800 text-white border border-neutral-700/80 px-4 py-2.5 rounded-xl flex items-center gap-3 shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center text-white text-base">
+                      
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[9px] uppercase tracking-wider text-neutral-400 font-semibold leading-none">Baixar na</p>
+                      <p className="text-xs sm:text-sm font-bold tracking-tight leading-tight">Mac App Store</p>
+                    </div>
+                  </div>
+
+                  {/* Direct Web Agendamento */}
+                  <Link
+                    to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
+                    className="bg-[#f5ab2b] hover:bg-[#e09820] text-zinc-950 px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
+                  >
+                    <Scissors size={15} />
+                    <span>Agendar Online Agora</span>
+                  </Link>
+                </div>
               </div>
-            </div>
 
-            {/* Right Content: Dual Tilted Realistic iPhone Mockups (pc02.png) */}
-            <div className="lg:col-span-6 flex justify-center items-center relative py-6">
-              <div className="relative flex items-center justify-center w-full max-w-lg">
-                
-                {/* Phone 1: Welcome Screen (Front Left) */}
-                <div className="w-56 sm:w-64 bg-zinc-900 p-2.5 rounded-[40px] shadow-2xl border-4 border-zinc-800 -rotate-6 transform hover:rotate-0 transition-transform duration-500 z-20">
-                  {/* Dynamic Island / Notch */}
-                  <div className="w-20 h-4 bg-zinc-950 mx-auto rounded-full mb-2" />
+              {/* Right Content: Dual Tilted Realistic iPhone Mockups */}
+              <div className="lg:col-span-6 flex justify-center items-center relative py-6">
+                <div className="relative flex items-center justify-center w-full max-w-lg">
                   
-                  {/* Screen Content */}
-                  <div className="bg-[#2b2724] rounded-[30px] overflow-hidden p-3 text-white flex flex-col justify-between h-[360px] sm:h-[400px]">
-                    <div className="flex justify-between items-center text-[10px] text-zinc-400 px-1">
-                      <span>9:41 AM</span>
-                      <span className="font-bold text-[#f5ab2b]">{activeShop.name}</span>
-                    </div>
-
-                    {/* Barber Portrait */}
-                    <div className="my-auto text-center space-y-2">
-                      <div className="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]/60 shadow-lg">
-                        <img 
-                          src="/logo-roger.png" 
-                          alt="Barbeiro" 
-                          
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                      
-                      <div className="w-7 h-7 mx-auto bg-[#f5ab2b] text-zinc-950 rounded-full flex items-center justify-center font-black text-xs">
-                        ✂️
+                  {/* Phone 1: Welcome Screen (Front Left) */}
+                  <div className="w-56 sm:w-64 bg-zinc-900 p-2.5 rounded-[40px] shadow-2xl border-4 border-zinc-800 -rotate-6 transform hover:rotate-0 transition-transform duration-500 z-20">
+                    {/* Dynamic Island / Notch */}
+                    <div className="w-20 h-4 bg-zinc-950 mx-auto rounded-full mb-2" />
+                    
+                    {/* Screen Content */}
+                    <div className="bg-[#2b2724] rounded-[30px] overflow-hidden p-3 text-white flex flex-col justify-between h-[360px] sm:h-[400px]">
+                      <div className="flex justify-between items-center text-[10px] text-zinc-400 px-1">
+                        <span>9:41 AM</span>
+                        <span className="font-bold text-[#f5ab2b]">{activeShop.name}</span>
                       </div>
 
-                      <p className="text-xs font-bold text-stone-200 max-w-[190px] mx-auto leading-tight">
-                        Crie seu login e senha se cadastrando no aplicativo. Isso leva poucos minutos.
-                      </p>
-
-                      <div className="flex justify-center gap-1.5 pt-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#f5ab2b]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                      </div>
-                    </div>
-
-                    <div className="text-center text-[9px] text-stone-400 uppercase tracking-wider">
-                      Pular Tutorial
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phone 2: Profile Screen (Back Right) */}
-                <div className="w-56 sm:w-64 bg-zinc-900 p-2.5 rounded-[40px] shadow-2xl border-4 border-zinc-800 rotate-6 transform hover:rotate-0 transition-transform duration-500 z-10 -ml-16 sm:-ml-20">
-                  {/* Dynamic Island / Notch */}
-                  <div className="w-20 h-4 bg-zinc-950 mx-auto rounded-full mb-2" />
-
-                  {/* Screen Content */}
-                  <div className="bg-[#1f1d1b] rounded-[30px] overflow-hidden p-3 text-white flex flex-col justify-between h-[360px] sm:h-[400px]">
-                    <div className="flex items-center justify-between text-[10px] text-zinc-400 px-1 border-b border-zinc-800 pb-2">
-                      <Menu size={12} />
-                      <span className="font-black uppercase tracking-wider text-xs text-white">MEU PERFIL</span>
-                      <div className="w-3" />
-                    </div>
-
-                    <div className="my-auto text-center space-y-2">
-                      <div className="relative w-16 h-16 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]">
-                        <img 
-                          src="/logo-roger.png" 
-                          alt="Cliente" 
-                          
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                      <h4 className="text-xs font-bold text-white">João Souza da Silva</h4>
-                      
-                      <button className="px-3 py-1 bg-[#f5ab2b] text-zinc-950 font-bold rounded-md text-[9px] uppercase tracking-wider shadow-sm">
-                        EDITAR PERFIL
-                      </button>
-
-                      <div className="bg-zinc-900/80 p-2 rounded-xl text-left text-[9px] text-stone-400 space-y-1.5 border border-zinc-800 mt-2">
-                        <div className="flex items-center gap-1 text-stone-300">
-                          <Phone size={10} className="text-[#f5ab2b]" />
-                          <span>{activeShop.phone || '+351 968 659 043'}</span>
+                      {/* Barber Portrait */}
+                      <div className="my-auto text-center space-y-2">
+                        <div className="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]/60 shadow-lg">
+                          <img 
+                            src="/logo-roger.png" 
+                            alt="Barbeiro" 
+                            className="w-full h-full object-cover" 
+                          />
                         </div>
-                        <div className="flex items-center gap-1 text-stone-300">
-                          <MapPin size={10} className="text-[#f5ab2b]" />
-                          <span className="truncate">{activeShop.city} • {activeShop.unit}</span>
+                        
+                        <div className="w-7 h-7 mx-auto bg-[#f5ab2b] text-zinc-950 rounded-full flex items-center justify-center font-black text-xs">
+                          ✂️
+                        </div>
+
+                        <p className="text-xs font-bold text-stone-200 max-w-[190px] mx-auto leading-tight">
+                          Crie seu login e senha se cadastrando no aplicativo. Isso leva poucos minutos.
+                        </p>
+
+                        <div className="flex justify-center gap-1.5 pt-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f5ab2b]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
                         </div>
                       </div>
-                    </div>
 
-                    <div className="text-center text-[9px] text-stone-500">
-                      ID: #7829-01
+                      <div className="text-center text-[9px] text-stone-400 uppercase tracking-wider">
+                        Pular Tutorial
+                      </div>
                     </div>
                   </div>
-                </div>
 
+                  {/* Phone 2: Profile Screen (Back Right) */}
+                  <div className="w-56 sm:w-64 bg-zinc-900 p-2.5 rounded-[40px] shadow-2xl border-4 border-zinc-800 rotate-6 transform hover:rotate-0 transition-transform duration-500 z-10 -ml-16 sm:-ml-20">
+                    {/* Dynamic Island / Notch */}
+                    <div className="w-20 h-4 bg-zinc-950 mx-auto rounded-full mb-2" />
+
+                    {/* Screen Content */}
+                    <div className="bg-[#1f1d1b] rounded-[30px] overflow-hidden p-3 text-white flex flex-col justify-between h-[360px] sm:h-[400px]">
+                      <div className="flex items-center justify-between text-[10px] text-zinc-400 px-1 border-b border-zinc-800 pb-2">
+                        <Menu size={12} />
+                        <span className="font-black uppercase tracking-wider text-xs text-white">MEU PERFIL</span>
+                        <div className="w-3" />
+                      </div>
+
+                      <div className="my-auto text-center space-y-2">
+                        <div className="relative w-16 h-16 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]">
+                          <img 
+                            src="/logo-roger.png" 
+                            alt="Cliente" 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <h4 className="text-xs font-bold text-white">João Souza da Silva</h4>
+                        
+                        <button className="px-3 py-1 bg-[#f5ab2b] text-zinc-950 font-bold rounded-md text-[9px] uppercase tracking-wider shadow-sm">
+                          EDITAR PERFIL
+                        </button>
+
+                        <div className="bg-zinc-900/80 p-2 rounded-xl text-left text-[9px] text-stone-400 space-y-1.5 border border-zinc-800 mt-2">
+                          <div className="flex items-center gap-1 text-stone-300">
+                            <Phone size={10} className="text-[#f5ab2b]" />
+                            <span>{activeShop.phone || '+351 968 659 043'}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-stone-300">
+                            <MapPin size={10} className="text-[#f5ab2b]" />
+                            <span className="truncate">{activeShop.city} • {activeShop.unit}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-center text-[9px] text-stone-500">
+                        ID: #7829-01
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
       </section>
@@ -1110,31 +1179,17 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Floating WhatsApp Quick Action Button for Desktop & Mobile */}
+      {/* Single Floating WhatsApp Support Button (positioned bottom-20 on mobile to avoid collision with Bottom Nav, bottom-6 on desktop) */}
       <a
         href={`https://wa.me/${(activeShop.phone || '+351 968 659 043').replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Olá! Gostaria de informações ou agendamento na ' + activeShop.name)}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Fale no WhatsApp"
-        className="fixed bottom-20 right-4 z-40 p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-950/50 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 p-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-950/60 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group border border-emerald-400/30"
       >
-        <MessageCircle size={24} />
-        <span className="hidden group-hover:inline-block text-xs font-bold pr-1">Falar no WhatsApp</span>
+        <MessageCircle size={22} />
+        <span className="hidden md:group-hover:inline-block text-xs font-bold pr-1">Falar no WhatsApp</span>
       </a>
-
-      {/* ========================================================================= */}
-      {/* 9. FLOATING ACTION BUTTON (FAB) FOR MOBILE BOOKING                        */}
-      {/* ========================================================================= */}
-      <div className="md:hidden fixed bottom-4 left-4 right-4 z-40 pointer-events-none animate-in slide-in-from-bottom-5 duration-300">
-        <Link
-          to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`}
-          className="pointer-events-auto w-full py-3.5 bg-[#f5ab2b] hover:bg-[#e09820] active:scale-95 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-black/80 border border-amber-300/50 flex items-center justify-center gap-2.5 transition-all"
-        >
-          <Scissors size={18} className="animate-bounce" />
-          <span>Agendar Horário Agora</span>
-          <ArrowRight size={16} />
-        </Link>
-      </div>
 
       {/* PWA MOBILE INSTALL BANNER */}
       <PwaInstallBanner 
