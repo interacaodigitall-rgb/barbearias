@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { saasService } from '../services/saasService';
-import { User, Shield, Scissors, Users as UsersIcon } from 'lucide-react';
+import { User, Shield, Scissors, Users as UsersIcon, ShoppingBag, KeyRound } from 'lucide-react';
 
-type Role = 'customer' | 'barber' | 'admin';
+type Role = 'customer' | 'barber' | 'gerente' | 'admin';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -19,6 +19,24 @@ export default function Login() {
     return activeShop?.slug ? `/${activeShop.slug}` : '/mister-navalha';
   };
 
+  const handleDemoLogin = async (demoRole: 'gerente' | 'fernando' | 'owner') => {
+    setLoading(true);
+    try {
+      await authService.loginDemo(demoRole);
+      if (demoRole === 'gerente') {
+        navigate('/gerente');
+      } else if (demoRole === 'owner') {
+        navigate('/admin');
+      } else {
+        navigate('/barber-dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao entrar em modo demo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -30,6 +48,8 @@ export default function Login() {
         navigate('/super-admin');
       } else if (user.role === 'admin' || user.role === 'owner') {
         navigate('/admin');
+      } else if (user.role === 'gerente') {
+        navigate('/gerente');
       } else if (user.role === 'barber') {
         navigate('/barber-dashboard');
       } else {
@@ -109,6 +129,7 @@ export default function Login() {
   const roles = [
     { id: 'customer', label: 'Cliente', icon: UsersIcon },
     { id: 'barber', label: 'Barbeiro', icon: Scissors },
+    { id: 'gerente', label: 'Gerente PDV', icon: ShoppingBag },
     { id: 'admin', label: 'Admin', icon: Shield },
   ];
 
@@ -116,7 +137,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-100 space-y-8">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-100 space-y-6">
           <div className="text-center">
             <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center overflow-hidden rounded-2xl border-2 border-zinc-900 bg-zinc-950 shadow-md">
               <img 
@@ -131,19 +152,34 @@ export default function Login() {
             <p className="text-zinc-500 mt-2 text-sm">Entre na sua conta com suas credenciais</p>
           </div>
 
-          <div className="flex p-1 bg-zinc-100 rounded-2xl">
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-zinc-100 rounded-2xl">
             {roles.map((r) => {
               const Icon = r.icon;
               return (
                 <button
                   key={r.id}
-                  onClick={() => setRole(r.id as Role)}
-                  className={`flex-1 flex items-center justify-center space-x-2 py-2 rounded-xl text-sm font-medium transition-all ${
-                    role === r.id ? 'bg-white text-zinc-900 bg-white shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  onClick={() => {
+                    setRole(r.id as Role);
+                    if (r.id === 'gerente') {
+                      setEmail('gerente@rogerx.pt');
+                      setPassword('gerente123');
+                    } else if (r.id === 'admin') {
+                      setEmail('roger@rogerxbarbershop.pt');
+                      setPassword('rogerx');
+                    } else if (r.id === 'barber') {
+                      setEmail('fernando@rogerx.pt');
+                      setPassword('fernando123');
+                    } else {
+                      setEmail('');
+                      setPassword('');
+                    }
+                  }}
+                  className={`flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+                    role === r.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
                   }`}
                 >
-                  <Icon size={16} />
-                  <span>{r.label}</span>
+                  <Icon size={14} className="shrink-0" />
+                  <span className="truncate">{r.label}</span>
                 </button>
               );
             })}
@@ -186,6 +222,29 @@ export default function Login() {
             >
               {loading ? 'Entrando...' : `Entrar como ${roles.find(r => r.id === role)?.label}`}
             </button>
+
+            {/* Quick Demo Login Bar */}
+            <div className="pt-3 border-t border-zinc-100 space-y-2">
+              <p className="text-[11px] text-zinc-400 text-center font-medium uppercase tracking-wider">Acesso Rápido de Teste (Demo)</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('gerente')}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold border border-amber-200 transition-colors"
+                >
+                  <ShoppingBag size={14} />
+                  <span>Entrar como Gerente</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('owner')}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-amber-400 rounded-xl text-xs font-bold transition-colors"
+                >
+                  <Shield size={14} />
+                  <span>Entrar como Dono/Admin</span>
+                </button>
+              </div>
+            </div>
             
             <div className="text-center text-sm pt-2 border-t border-zinc-100">
               <span className="text-zinc-600">Não tem uma conta? </span>
