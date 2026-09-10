@@ -19,23 +19,7 @@ export default function Login() {
     return activeShop?.slug ? `/${activeShop.slug}` : '/mister-navalha';
   };
 
-  const handleDemoLogin = async (demoRole: 'gerente' | 'fernando' | 'owner') => {
-    setLoading(true);
-    try {
-      await authService.loginDemo(demoRole);
-      if (demoRole === 'gerente') {
-        navigate('/gerente');
-      } else if (demoRole === 'owner') {
-        navigate('/admin');
-      } else {
-        navigate('/barber-dashboard');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Erro ao entrar em modo demo');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,22 +142,7 @@ export default function Login() {
               return (
                 <button
                   key={r.id}
-                  onClick={() => {
-                    setRole(r.id as Role);
-                    if (r.id === 'gerente') {
-                      setEmail('gerente@rogerx.pt');
-                      setPassword('gerente123');
-                    } else if (r.id === 'admin') {
-                      setEmail('roger@rogerxbarbershop.pt');
-                      setPassword('rogerx');
-                    } else if (r.id === 'barber') {
-                      setEmail('fernando@rogerx.pt');
-                      setPassword('fernando123');
-                    } else {
-                      setEmail('');
-                      setPassword('');
-                    }
-                  }}
+                  onClick={() => setRole(r.id as Role)}
                   className={`flex items-center justify-center space-x-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
                     role === r.id ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
                   }`}
@@ -223,28 +192,7 @@ export default function Login() {
               {loading ? 'Entrando...' : `Entrar como ${roles.find(r => r.id === role)?.label}`}
             </button>
 
-            {/* Quick Demo Login Bar */}
-            <div className="pt-3 border-t border-zinc-100 space-y-2">
-              <p className="text-[11px] text-zinc-400 text-center font-medium uppercase tracking-wider">Acesso Rápido de Teste (Demo)</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('gerente')}
-                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold border border-amber-200 transition-colors"
-                >
-                  <ShoppingBag size={14} />
-                  <span>Entrar como Gerente</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('owner')}
-                  className="flex items-center justify-center gap-1.5 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-amber-400 rounded-xl text-xs font-bold transition-colors"
-                >
-                  <Shield size={14} />
-                  <span>Entrar como Dono/Admin</span>
-                </button>
-              </div>
-            </div>
+
             
             <div className="text-center text-sm pt-2 border-t border-zinc-100">
               <span className="text-zinc-600">Não tem uma conta? </span>
