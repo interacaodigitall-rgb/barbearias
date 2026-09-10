@@ -44,6 +44,21 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'customer') return <Navigate to="/appointments" replace />;
   if (user.role === 'barber') return <Navigate to="/barber-dashboard" replace />;
+  if (user.role === 'gerente') return <Navigate to="/gerente" replace />;
+  
+  return <>{children}</>;
+}
+
+function GerenteRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuthStore();
+  
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+  
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'customer') return <Navigate to="/appointments" replace />;
+  if (user.role === 'barber') return <Navigate to="/barber-dashboard" replace />;
   
   return <>{children}</>;
 }
@@ -106,9 +121,9 @@ export default function App() {
             </AdminRoute>
           } />
           <Route path="gerente" element={
-            <AdminRoute>
+            <GerenteRoute>
               <GerenteDashboard />
-            </AdminRoute>
+            </GerenteRoute>
           } />
           <Route path="barber-dashboard" element={
             <PrivateRoute>
@@ -124,9 +139,9 @@ export default function App() {
           <Route path=":slug/appointments" element={<Appointments />} />
           <Route path=":slug/loyalty" element={<Loyalty />} />
           <Route path=":slug/gerente" element={
-            <AdminRoute>
+            <GerenteRoute>
               <GerenteDashboard />
-            </AdminRoute>
+            </GerenteRoute>
           } />
         </Route>
       </Routes>
