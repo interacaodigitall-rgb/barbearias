@@ -1,8 +1,8 @@
 {
-  "name": "Barbearia",
-  "short_name": "Barbearia",
-  "description": "Agendamento Online - Barbearia",
-  "start_url": "/",
+  "name": "Roger'X Barber",
+  "short_name": "Roger'X Barber",
+  "description": "Agendamento Online - Roger'X Barber",
+  "start_url": "/rogerx-barbershop",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

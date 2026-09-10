@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: 'customer' | 'barber' | 'admin' | 'owner' | 'superadmin';
+  role: 'customer' | 'barber' | 'gerente' | 'admin' | 'owner' | 'superadmin';
   companyId?: string;
   barberId?: string;
   photoUrl?: string;
@@ -26,7 +26,7 @@ export interface Appointment {
   time: string; // HH:MM
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   cancellationReason?: string;
-  paymentMethod: 'debit' | 'mbway' | 'cash' | 'multibanco' | 'local';
+  paymentMethod: 'debit' | 'mbway' | 'cash' | 'multibanco' | 'local' | 'card' | 'transfer' | 'loyalty';
   paymentStatus: 'pending' | 'paid';
   branch: 'PT' | 'ES';
   barbershopId?: string;
@@ -34,6 +34,16 @@ export interface Appointment {
   quietService?: boolean;
   notes?: string;
   totalAmount?: number;
+  // Barber Dynamic Commission fields (Firestore persisted)
+  commission_rate?: number; // 55% Seg-Sáb, 70% Dom, 0% Dono
+  commission_amount?: number; // Valor calculado em Euros
+  barber_id?: string;
+  // Manager checkout / Front-desk metadata
+  customerName?: string;
+  customerPhone?: string;
+  closedBy?: string;
+  closedAt?: number;
+  isWalkIn?: boolean;
   createdAt: number;
 }
 
@@ -71,6 +81,7 @@ export interface Barber {
   compensationType: 'salary' | 'percentage';
   compensationValue: number;
   companyId?: string;
+  isOwner?: boolean;
 }
 
 export interface LoyaltyPoint {
@@ -103,14 +114,15 @@ export interface CashFlowTransaction {
   id: string;
   barbershopId: string;
   type: 'income' | 'expense';
-  category: 'service' | 'product' | 'commission' | 'rent' | 'supplies' | 'marketing' | 'utilities' | 'other';
+  category: 'service' | 'product' | 'commission' | 'rent' | 'supplies' | 'marketing' | 'utilities' | 'withdrawal' | 'other';
   description: string;
   amount: number;
   date: string; // YYYY-MM-DD
-  paymentMethod: 'cash' | 'mbway' | 'card' | 'transfer' | 'multibanco';
+  paymentMethod: 'cash' | 'mbway' | 'card' | 'transfer' | 'multibanco' | 'loyalty';
   appointmentId?: string;
   barberId?: string;
   barberName?: string;
+  commissionRate?: number;
   createdAt: number;
 }
 

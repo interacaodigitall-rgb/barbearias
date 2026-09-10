@@ -45,27 +45,41 @@ function getAbsoluteUrl(url: string): string {
 export const OFFICIAL_PWA_ICON = "https://iili.io/n34KhGf.jpg";
 
 export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
-  if (!shop) return;
+  if (!shop || typeof document === 'undefined') return;
 
-  const shopName = shop.name || "Barbearia";
+  const shopName = shop.name || "Roger'X Barber";
   const tagline = shop.tagline || 'Agendamento Online de Barbearia';
 
   // 1. Page Title
   document.title = `${shopName} - Agendamento Online`;
 
-  // 2. Favicons & Apple Touch Icons directly on <head> using official icon
-  const rels = ['icon', 'shortcut icon', 'apple-touch-icon', 'apple-touch-icon-precomposed'];
-  rels.forEach(rel => {
-    let link: HTMLLinkElement | null = document.querySelector(`link[rel='${rel}']`);
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = rel;
-      document.head.appendChild(link);
-    }
-    link.href = OFFICIAL_PWA_ICON;
-  });
+  // 2. Absolute Icon URL strictly enforced for iOS Safari
+  const iconUrl = OFFICIAL_PWA_ICON;
 
-  // 3. Metatags for Mobile & Fullscreen Standalone
+  // Helper to upsert link tags
+  const setLinkTag = (rel: string, href: string, sizes?: string) => {
+    const selector = sizes 
+      ? `link[rel='${rel}'][sizes='${sizes}']` 
+      : `link[rel='${rel}']:not([sizes])`;
+    let el = document.querySelector(selector) as HTMLLinkElement;
+    if (!el) {
+      el = document.createElement('link');
+      el.rel = rel;
+      if (sizes) el.setAttribute('sizes', sizes);
+      document.head.appendChild(el);
+    }
+    el.href = href;
+  };
+
+  // Specific 180x180 and fallback Apple Touch Icons required by iOS Safari for home screen icon
+  setLinkTag('apple-touch-icon', iconUrl, '180x180');
+  setLinkTag('apple-touch-icon', iconUrl);
+  setLinkTag('apple-touch-icon-precomposed', iconUrl, '180x180');
+  setLinkTag('apple-touch-icon-precomposed', iconUrl);
+  setLinkTag('icon', iconUrl);
+  setLinkTag('shortcut icon', iconUrl);
+
+  // 3. Metatags for iOS Mobile & Fullscreen Standalone
   const metas = [
     { name: 'apple-mobile-web-app-capable', content: 'yes' },
     { name: 'mobile-web-app-capable', content: 'yes' },
@@ -84,6 +98,15 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
     }
     metaEl.content = content;
   });
+
+  // Open Graph Image
+  let ogImage = document.querySelector("meta[property='og:image']") as HTMLMetaElement;
+  if (!ogImage) {
+    ogImage = document.createElement('meta');
+    ogImage.setAttribute('property', 'og:image');
+    document.head.appendChild(ogImage);
+  }
+  ogImage.content = iconUrl;
 
   // 4. Dynamic Web App Manifest
   const startUrl = `/${shop.slug}`;

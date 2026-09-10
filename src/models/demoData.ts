@@ -640,13 +640,14 @@ export const sherlocksBarbers: Barber[] = [
 export const rogerXBarbers: Barber[] = [
   {
     id: 'b-rogerx-roger',
-    name: 'Roger',
+    name: 'Roger (Proprietário)',
     bio: 'Master Barber & Fundador da Roger\'X. Especialista em visagismo, arte capilar e formação de novos profissionais.',
     rating: 5.0,
     isActive: true,
     branch: 'PT',
     compensationType: 'percentage',
-    compensationValue: 60,
+    compensationValue: 0,
+    isOwner: true,
     photoUrl: '/logo-roger.png',
     companyId: 'shop-rogerx'
   },

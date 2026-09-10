@@ -1,6 +1,7 @@
 import { CashFlowTransaction, Appointment, Barber, Service } from '../models';
 import { useAuthStore } from '../store/authStore';
 import { saasService } from './saasService';
+import { calculateBarberCommission, isBarberOwner } from '../utils/commissionUtils';
 
 const CASH_FLOW_KEY = 'barbersaas_cash_flow_transactions_v2';
 
@@ -102,26 +103,32 @@ export const cashFlowService = {
     }
 
     // 3. Provisão automática da comissão do Barbeiro
-    if (barber && barber.compensationValue > 0) {
-      let commissionAmount = 0;
-      if (barber.compensationType === 'percentage') {
-        commissionAmount = (service.price * barber.compensationValue) / 100;
-      } else {
-        commissionAmount = barber.compensationValue;
+    // Apenas barbeiros contratados recebem comissão (Dono/Proprietário da barbearia é excluído)
+    // Regra dinâmica: Segunda a Sábado 55%, Domingo 70%
+    if (barber) {
+      let commissionRate = appt.commission_rate;
+      let commissionAmount = appt.commission_amount;
+      const commCalc = calculateBarberCommission(service.price, appt.date || today, barber);
+
+      if (commissionRate === undefined || commissionAmount === undefined) {
+        commissionRate = commCalc.commission_rate;
+        commissionAmount = commCalc.commission_amount;
       }
 
-      if (commissionAmount > 0) {
+      // Se for barbeiro contratado e houver valor de comissão a pagar
+      if (commissionAmount !== undefined && commissionAmount > 0) {
         await this.addTransaction({
           barbershopId: shopId,
           type: 'expense',
           category: 'commission',
-          description: `Comissão ${barber.name} (${barber.compensationValue}% sobre ${service.name})`,
+          description: `Comissão ${barber.name} (${commissionRate}% • ${service.name} • ${commCalc.day_name})`,
           amount: parseFloat(commissionAmount.toFixed(2)),
           date: appt.date || today,
           paymentMethod: 'transfer',
           appointmentId: appt.id,
           barberId: barber.id,
-          barberName: barber.name
+          barberName: barber.name,
+          commissionRate
         });
       }
     }

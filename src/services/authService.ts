@@ -172,7 +172,7 @@ export const authService = {
     return user;
   },
 
-  async loginDemo(role: 'customer' | 'barber' | 'admin' | 'owner' | 'fernando' | 'vitor' | 'barbudo') {
+  async loginDemo(role: 'customer' | 'barber' | 'admin' | 'owner' | 'gerente' | 'fernando' | 'vitor' | 'barbudo') {
     const demoUsers: Record<string, User> = {
       customer: {
         uid: 'demo-customer',
@@ -180,6 +180,15 @@ export const authService = {
         email: 'cliente@demo.com',
         phone: '123456789',
         role: 'customer',
+        createdAt: Date.now(),
+      },
+      gerente: {
+        uid: 'acc-gerente-rogerx',
+        name: 'Marcos (Gerente PDV)',
+        email: 'gerente@rogerx.pt',
+        phone: '+351 910 999 888',
+        role: 'gerente',
+        companyId: 'shop-rogerx',
         createdAt: Date.now(),
       },
       barber: {

@@ -45,6 +45,17 @@ export const productService = {
     return current[index];
   },
 
+  async decrementStock(id: string, quantity: number = 1): Promise<Product | null> {
+    const current = getStoredProducts();
+    const index = current.findIndex(p => p.id === id);
+    if (index === -1) return null;
+
+    const newStock = Math.max(0, current[index].stock - quantity);
+    current[index] = { ...current[index], stock: newStock };
+    saveStoredProducts(current);
+    return current[index];
+  },
+
   async deleteProduct(id: string): Promise<void> {
     const current = getStoredProducts();
     const updated = current.filter(p => p.id !== id);

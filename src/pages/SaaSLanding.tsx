@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { saasService } from '../services/saasService';
 import { useAuthStore } from '../store/authStore';
 import { SaaSPlan, SaaSBarbershop } from '../models';
+import { isStandalone } from '../utils/pwaUtils';
 import { 
   Scissors, Smartphone, TrendingUp, DollarSign, Users, Sparkles, Check, 
   ArrowRight, ShieldCheck, Star, ChevronRight, Zap, CheckCircle2, 
@@ -74,7 +75,7 @@ export default function SaaSLanding() {
   const [plans] = useState<SaaSPlan[]>(saasService.getPlans());
 
   useEffect(() => {
-    if (user?.role === 'customer') {
+    if (user?.role === 'customer' || isStandalone()) {
       const activeShop = saasService.getActiveBarbershop();
       const targetSlug = activeShop?.slug || 'rogerx-barbershop';
       navigate(`/${targetSlug}`, { replace: true });

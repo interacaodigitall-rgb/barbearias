@@ -19,6 +19,7 @@ import Appointments from './pages/Appointments';
 import Loyalty from './pages/Loyalty';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import GerenteDashboard from './pages/GerenteDashboard';
 import BarberDashboard from './pages/BarberDashboard';
 import SaaSLanding from './pages/SaaSLanding';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
@@ -104,6 +105,11 @@ export default function App() {
               <AdminDashboard />
             </AdminRoute>
           } />
+          <Route path="gerente" element={
+            <AdminRoute>
+              <GerenteDashboard />
+            </AdminRoute>
+          } />
           <Route path="barber-dashboard" element={
             <PrivateRoute>
               <BarberDashboard />
@@ -117,6 +123,11 @@ export default function App() {
           <Route path=":slug/barbers" element={<Barbers />} />
           <Route path=":slug/appointments" element={<Appointments />} />
           <Route path=":slug/loyalty" element={<Loyalty />} />
+          <Route path=":slug/gerente" element={
+            <AdminRoute>
+              <GerenteDashboard />
+            </AdminRoute>
+          } />
         </Route>
       </Routes>
     </Router>

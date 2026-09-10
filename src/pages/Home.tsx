@@ -392,22 +392,32 @@ export default function Home() {
                     <ArrowRight size={15} />
                   </Link>
                 )}
+                <Link 
+                  to={slug ? `/${slug}` : `/${activeShop.slug}`} 
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                  className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white"
+                >
+                  🏠 Início
+                </Link>
                 <Link to={slug ? `/${slug}/booking` : `/${activeShop.slug}/booking`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b]">
                   ✂️ Novo Agendamento
                 </Link>
                 <button onClick={() => { setMenuOpen(false); handleInstallPwa(); }} className="w-full text-left py-3 px-4 rounded-xl hover:bg-stone-800/80 text-[#f5ab2b] flex items-center gap-2">
                   📱 Baixar App PWA (Instalar)
                 </button>
-                <Link to="/appointments" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
+                <Link to={slug ? `/${slug}/appointments` : `/${activeShop.slug}/appointments`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   📅 Meus Agendamentos
                 </Link>
-                <Link to="/services" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
+                <Link to={slug ? `/${slug}/services` : `/${activeShop.slug}/services`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   💈 Tabela de Serviços
                 </Link>
-                <Link to="/barbers" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
+                <Link to={slug ? `/${slug}/barbers` : `/${activeShop.slug}/barbers`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   👤 Nossos Barbeiros
                 </Link>
-                <Link to="/loyalty" onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
+                <Link to={slug ? `/${slug}/loyalty` : `/${activeShop.slug}/loyalty`} onClick={() => setMenuOpen(false)} className="block py-3 px-4 rounded-xl hover:bg-stone-800/80 text-stone-300 hover:text-white">
                   ⭐ Programa Seu Estilo (Cashback)
                 </Link>
                 {user && (user.role === 'admin' || user.role === 'owner' || user.role === 'superadmin') && (

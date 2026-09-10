@@ -14,7 +14,7 @@ export interface TenantAccount {
   password?: string;
   name: string;
   phone?: string;
-  role: 'owner' | 'barber' | 'admin';
+  role: 'owner' | 'barber' | 'admin' | 'gerente';
   companyId: string;
   companyName?: string;
   barberId?: string;
@@ -48,6 +48,17 @@ const defaultTenantAccounts: TenantAccount[] = [
     companyId: 'shop-rogerx',
     companyName: "Roger'X BarberShop",
     createdAt: Date.now() - 30 * 86400000
+  },
+  {
+    uid: 'acc-gerente-rogerx',
+    email: 'gerente@rogerx.pt',
+    password: 'gerente123',
+    name: 'Marcos (Gerente PDV)',
+    phone: '+351 910 999 888',
+    role: 'gerente',
+    companyId: 'shop-rogerx',
+    companyName: "Roger'X BarberShop",
+    createdAt: Date.now() - 15 * 86400000
   },
   {
     uid: 'acc-owner-navalha',
@@ -301,8 +312,12 @@ export const saasService = {
   getActiveBarbershop(): SaaSBarbershop {
     const shops = getStoredShops();
     const activeId = localStorage.getItem(SAAS_ACTIVE_SHOP_KEY);
-    const found = shops.find(s => s.id === activeId || s.slug === activeId);
-    return found || shops[0];
+    if (activeId) {
+      const found = shops.find(s => s.id.toLowerCase() === activeId.toLowerCase() || s.slug.toLowerCase() === activeId.toLowerCase());
+      if (found) return found;
+    }
+    const rogerx = shops.find(s => s.slug === 'rogerx-barbershop' || s.id === 'shop-rogerx');
+    return rogerx || shops[0];
   },
 
   setActiveBarbershop(idOrSlug: string): void {
@@ -313,6 +328,9 @@ export const saasService = {
       localStorage.setItem(SAAS_ACTIVE_SHOP_KEY, found.id);
     } else {
       localStorage.setItem(SAAS_ACTIVE_SHOP_KEY, idOrSlug);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('barbersaas_active_shop_changed', { detail: { idOrSlug } }));
     }
   },
 

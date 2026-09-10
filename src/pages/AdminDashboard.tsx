@@ -8,6 +8,7 @@ import { productService } from '../services/productService';
 import { saasService, TenantAccount } from '../services/saasService';
 import { Appointment, Service, Barber, User, BlockedTime, Product } from '../models';
 import CashFlowDashboard from '../components/CashFlowDashboard';
+import FinancialReports from '../components/FinancialReports';
 import { 
   Users, Calendar, TrendingUp, CheckCircle, XCircle, Clock, Scissors, 
   User as UserIcon, Plus, Trash2, Edit2, Save, Award, Phone, Mail, 
@@ -20,7 +21,7 @@ import { ptBR } from 'date-fns/locale';
 export default function AdminDashboard() {
   const { user } = useAuthStore();
 
-  if (!user || (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'superadmin')) {
+  if (!user || (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'superadmin' && user.role !== 'gerente')) {
     return <Navigate to="/" replace />;
   }
 
@@ -31,7 +32,7 @@ export default function AdminDashboard() {
   const [customers, setCustomers] = useState<Record<string, User>>({});
   const [loyaltyPoints, setLoyaltyPoints] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'cashFlow' | 'appointments' | 'products' | 'services' | 'barbers' | 'loyalty' | 'blockedTimes' | 'companyProfile'>('cashFlow');
+  const [activeTab, setActiveTab] = useState<'cashFlow' | 'financialReports' | 'appointments' | 'products' | 'services' | 'barbers' | 'loyalty' | 'blockedTimes' | 'companyProfile'>('cashFlow');
   const [newCancellations, setNewCancellations] = useState<Appointment[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([]);
 
@@ -537,6 +538,20 @@ export default function AdminDashboard() {
             Fluxo de Caixa
           </button>
           <button 
+            onClick={() => setActiveTab('financialReports')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'financialReports' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+          >
+            <TrendingUp size={16} />
+            Relatórios Financeiros
+          </button>
+          <Link
+            to="/gerente"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 bg-zinc-950 text-[#d4a338] hover:bg-zinc-800 border border-zinc-800 shadow-sm"
+          >
+            <ShoppingBag size={15} />
+            Abrir PDV / Caixa Gerente
+          </Link>
+          <button 
             onClick={() => setActiveTab('appointments')}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'appointments' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
@@ -591,6 +606,15 @@ export default function AdminDashboard() {
 
       {activeTab === 'cashFlow' && (
         <CashFlowDashboard barbers={barbers} barbershopName={activeShop.name} barbershopId={activeShop.id} />
+      )}
+
+      {activeTab === 'financialReports' && (
+        <FinancialReports 
+          barbers={barbers} 
+          services={services} 
+          barbershopName={activeShop.name} 
+          barbershopId={activeShop.id} 
+        />
       )}
 
       {activeTab === 'appointments' && (
