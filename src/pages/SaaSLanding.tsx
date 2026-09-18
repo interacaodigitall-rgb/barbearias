@@ -74,13 +74,7 @@ export default function SaaSLanding() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [plans] = useState<SaaSPlan[]>(saasService.getPlans());
 
-  useEffect(() => {
-    if (user?.role === 'customer' || isStandalone()) {
-      const activeShop = saasService.getActiveBarbershop();
-      const targetSlug = activeShop?.slug || 'rogerx-barbershop';
-      navigate(`/${targetSlug}`, { replace: true });
-    }
-  }, [user, navigate]);
+  // Allow accessing the root SaaS landing page at / without automatic redirect
   
   // Registration modal
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
