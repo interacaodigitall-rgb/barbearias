@@ -221,20 +221,20 @@ const getStoredShops = (): SaaSBarbershop[] => {
       const demoMap = new Map(demoSaaSBarbershops.map(s => [s.slug.toLowerCase(), s]));
       const merged = parsed.map(s => {
         const demoShop = demoMap.get(s.slug.toLowerCase());
-        return demoShop ? { ...s, ...demoShop, cashFlowBalance: s.cashFlowBalance } : s; // Preserve cashFlowBalance if needed, or just overwrite
+        return demoShop ? { ...demoShop, ...s } : s; // Preserve custom settings in s over demoShop defaults
       });
       const existingSlugs = new Set(merged.map(s => s.slug.toLowerCase()));
       const missing = demoSaaSBarbershops.filter(s => !existingSlugs.has(s.slug.toLowerCase()));
       
       const finalShops = [...merged, ...missing];
       
-      // Force update rogerx to ensure it has the logo, updated phone and closing time
+      // Force update rogerx defaults only if they aren't already custom set
       const rogerx = finalShops.find(s => s.slug === 'rogerx-barbershop' || s.id === 'shop-rogerx');
       if (rogerx) {
-        rogerx.logoUrl = '/logo-roger.png';
-        rogerx.phone = '+351 968 659 043';
-        rogerx.closingTime = '20:30';
-        rogerx.openingHours = 'Segunda a Sábado | 9h–20h30';
+        if (!rogerx.logoUrl) rogerx.logoUrl = '/logo-roger.png';
+        if (!rogerx.phone) rogerx.phone = '+351 968 659 043';
+        if (!rogerx.closingTime) rogerx.closingTime = '20:30';
+        if (!rogerx.openingHours) rogerx.openingHours = 'Segunda a Sábado | 9h–20h30';
       }
 
       localStorage.setItem(SAAS_SHOPS_KEY, JSON.stringify(finalShops));
@@ -336,22 +336,21 @@ export const saasService = {
 
   async getServicesForShop(shopIdOrSlug?: string): Promise<Service[]> {
     const target = (shopIdOrSlug || this.getActiveBarbershop().slug).toLowerCase().trim();
+    
+    // Check tenant-specific custom services first, allowing ANY shop to customize their own services!
+    const custom = getCustomServicesForShop(target);
+    if (custom && custom.length > 0) {
+      return custom;
+    }
+
     if (target === 'shop-rogerx' || target === 'rogerx-barbershop' || target.includes('roger')) {
       return rogerXServices;
     }
     if (target === 'shop-sherlocks' || target === 'sherlocks') {
-      const custom = getCustomServicesForShop(target);
-      if (custom && custom.length > 0) return custom;
       return demoServices;
     }
     if (target === 'mister-navalha' || target === 'shop-1') {
       return demoServices;
-    }
-
-    // Check tenant-specific custom services
-    const custom = getCustomServicesForShop(target);
-    if (custom && custom.length > 0) {
-      return custom;
     }
 
     // STRICT MULTI-TENANT ISOLATION:

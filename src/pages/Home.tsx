@@ -158,7 +158,7 @@ export default function Home() {
   if (shopNotFound) {
     return (
       <div className="min-h-screen bg-[#121417] text-white flex flex-col items-center justify-center p-6 text-center">
-        <SplashScreen isLoading={loading} shopName={activeShop?.name} />
+        <SplashScreen isLoading={loading} shopName={activeShop?.name} logoUrl={activeShop?.logoUrl} />
         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-[#d4a338] flex items-center justify-center mb-4">
           <Scissors size={32} />
         </div>
@@ -188,7 +188,7 @@ export default function Home() {
   return (
     <div className="w-full bg-[#eae5db] text-zinc-900 font-sans selection:bg-[#f5ab2b] selection:text-zinc-950 pb-20 md:pb-0">
       {/* PWA Splash Screen Inicial (fundo 100% preto com logo oficial) */}
-      <SplashScreen isLoading={loading} shopName={activeShop?.name} />
+      <SplashScreen isLoading={loading} shopName={activeShop?.name} logoUrl={activeShop?.logoUrl} />
 
       {/* ========================================================================= */}
       {/* 1. VINTAGE HEADER WITH BACKDROP BLUR & STAFF QUICK RETURN                 */}

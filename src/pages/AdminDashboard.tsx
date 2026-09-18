@@ -21,7 +21,7 @@ import { ptBR } from 'date-fns/locale';
 export default function AdminDashboard() {
   const { user } = useAuthStore();
 
-  if (!user || (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'superadmin' && user.role !== 'gerente')) {
+  if (!user || (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'superadmin')) {
     return <Navigate to="/" replace />;
   }
 
@@ -45,6 +45,7 @@ export default function AdminDashboard() {
     address: activeShopState.address || '',
     phone: activeShopState.phone || '',
     closingTime: activeShopState.closingTime || '20:30',
+    openingHours: activeShopState.openingHours || 'Segunda a Sábado | 9h–20h30',
     city: activeShopState.city || '',
     country: activeShopState.country || 'Portugal',
     logoUrl: activeShopState.logoUrl || '',
@@ -166,8 +167,11 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
+    if (user && user.role !== 'superadmin' && user.companyId) {
+      saasService.setActiveBarbershop(user.companyId);
+    }
     loadData();
-  }, []);
+  }, [user]);
 
   const handleStatusUpdate = async (id: string, status: Appointment['status'], customerId: string) => {
     await appointmentService.updateAppointmentStatus(id, status, customerId);
@@ -1560,6 +1564,20 @@ export default function AdminDashboard() {
                     placeholder="Ex: 20:30"
                   />
                   <span className="text-[10px] text-zinc-400 mt-1 block">Configurado para as 20h30</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1">
+                    Horário de Funcionamento Geral
+                  </label>
+                  <input
+                    type="text"
+                    value={companyForm.openingHours}
+                    onChange={e => setCompanyForm({ ...companyForm, openingHours: e.target.value })}
+                    className="w-full px-4 py-3 border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-zinc-900 text-zinc-900 bg-white placeholder:text-zinc-400"
+                    placeholder="Ex: Segunda a Sábado | 9h–20h30"
+                  />
+                  <span className="text-[10px] text-zinc-400 mt-1 block">Exemplo: Segunda a Sábado | 9h–20h30</span>
                 </div>
 
                 <div className="md:col-span-2">

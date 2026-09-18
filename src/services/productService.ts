@@ -1,10 +1,20 @@
 import { Product } from '../models';
 import { demoProducts } from '../models/demoData';
+import { saasService } from './saasService';
 
-const PRODUCTS_STORAGE_KEY = 'barbersaas_products';
+const getProductsKey = (): string => {
+  try {
+    const activeShop = saasService.getActiveBarbershop();
+    const id = activeShop?.id || 'shop-rogerx';
+    return `barbersaas_products_${id.toLowerCase().trim()}`;
+  } catch {
+    return 'barbersaas_products_shop-rogerx';
+  }
+};
 
 const getStoredProducts = (): Product[] => {
-  const saved = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+  const key = getProductsKey();
+  const saved = localStorage.getItem(key);
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -12,11 +22,18 @@ const getStoredProducts = (): Product[] => {
       return demoProducts;
     }
   }
-  return demoProducts;
+  // For known default shops (Roger'X and Mister Navalha), fall back to demoProducts
+  const keyStr = key.toLowerCase();
+  if (keyStr.includes('roger') || keyStr.includes('navalha') || keyStr.includes('shop-1')) {
+    return demoProducts;
+  }
+  // Any other/new barbershops should start empty as per multi-tenant clean isolation
+  return [];
 };
 
 const saveStoredProducts = (products: Product[]) => {
-  localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+  const key = getProductsKey();
+  localStorage.setItem(key, JSON.stringify(products));
 };
 
 export const productService = {
@@ -62,3 +79,4 @@ export const productService = {
     saveStoredProducts(updated);
   }
 };
+

@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 interface SplashScreenProps {
   isLoading: boolean;
   shopName?: string;
+  logoUrl?: string;
 }
 
 export const OFFICIAL_PWA_LOGO = 'https://iili.io/n34KhGf.jpg';
 
-export function SplashScreen({ isLoading, shopName }: SplashScreenProps) {
+export function SplashScreen({ isLoading, shopName, logoUrl }: SplashScreenProps) {
   const [visible, setVisible] = useState(true);
   const [fadingOut, setFadingOut] = useState(false);
 
@@ -46,7 +47,7 @@ export function SplashScreen({ isLoading, shopName }: SplashScreenProps) {
           {/* Imagem Oficial da Barbearia com Bordas Arredondadas */}
           <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-800 shadow-2xl shadow-black animate-pulse">
             <img
-              src={OFFICIAL_PWA_LOGO}
+              src={logoUrl || OFFICIAL_PWA_LOGO}
               alt={shopName ? `${shopName} Logo` : 'Barbearia'}
               className="w-full h-full object-cover"
               loading="eager"
