@@ -330,7 +330,7 @@ export default function GerenteDashboard() {
           </div>
           <h2 className="text-2xl font-black">PDV & Frente de Caixa</h2>
           <p className="text-zinc-400 text-sm mt-2">
-            Acesso exclusivo para gerentes, administradores e proprietários da Roger'X BarberShop.
+            Acesso exclusivo para gerentes, administradores e proprietários.
           </p>
           <div className="mt-6 space-y-3">
             <button
@@ -338,7 +338,7 @@ export default function GerenteDashboard() {
               className="w-full py-3 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
             >
               <ShieldCheck size={18} />
-              Entrar como Gerente (Modo PDV Roger'X)
+              Entrar como Gerente (Modo PDV)
             </button>
             <Link
               to="/login"
@@ -432,11 +432,11 @@ export default function GerenteDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         
         {/* Navigation Tabs */}
-        <div className="flex items-center justify-between flex-wrap gap-3 bg-white p-2 rounded-2xl border border-zinc-200 shadow-sm">
-          <div className="flex flex-wrap gap-1">
+        <div className="flex items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-zinc-200 shadow-sm overflow-x-auto overflow-y-hidden max-w-full touch-pan-x">
+          <div className="flex flex-nowrap gap-1 min-w-max">
             <button
               onClick={() => setActiveTab('appointments')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+              className={`shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
                 activeTab === 'appointments' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
               }`}
             >
@@ -449,7 +449,7 @@ export default function GerenteDashboard() {
 
             <button
               onClick={() => setActiveTab('walkin')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+              className={`shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
                 activeTab === 'walkin' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
               }`}
             >
@@ -459,7 +459,7 @@ export default function GerenteDashboard() {
 
             <button
               onClick={() => setActiveTab('products')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+              className={`shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
                 activeTab === 'products' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
               }`}
             >
@@ -469,7 +469,7 @@ export default function GerenteDashboard() {
 
             <button
               onClick={() => setActiveTab('cashRegister')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
+              className={`shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
                 activeTab === 'cashRegister' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
               }`}
             >
@@ -758,7 +758,7 @@ export default function GerenteDashboard() {
                         Cálculo de Comissão Automática ({comm.day_name})
                       </span>
                       <span className="text-zinc-500">
-                        {isOwner ? 'Proprietário Roger: 100% da receita fica retida na casa.' : `Barbeiro contratado: ${comm.commission_rate}% sobre o serviço.`}
+                        {isOwner ? 'Proprietário/Dono: 100% da receita fica retida na casa.' : `Barbeiro contratado: ${comm.commission_rate}% sobre o serviço.`}
                       </span>
                     </div>
                     <div className="text-right font-black text-sm">
@@ -1112,7 +1112,7 @@ export default function GerenteDashboard() {
                     <div>
                       <strong>Regra de Comissão:</strong> {comm.day_name}
                       <p className="text-[11px] text-amber-700">
-                        {isOwner ? 'Proprietário Roger: 100% retido pela casa.' : `Barbeiro contratado recebe ${comm.commission_rate}%.`}
+                        {isOwner ? 'Proprietário/Dono: 100% retido pela casa.' : `Barbeiro contratado recebe ${comm.commission_rate}%.`}
                       </p>
                     </div>
                     <div className="text-right font-black text-sm text-amber-900">

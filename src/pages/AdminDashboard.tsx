@@ -533,50 +533,50 @@ export default function AdminDashboard() {
           <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Painel de Gestão</h2>
           <p className="text-zinc-500">Fluxo de caixa em tempo real, comissões da equipe e controle de agendamentos.</p>
         </div>
-        <div className="flex border border-zinc-200 p-1 rounded-2xl shadow-sm overflow-x-auto max-w-full gap-1 text-zinc-900 bg-white placeholder:text-zinc-400">
+        <div className="flex border border-zinc-200 p-1 rounded-2xl shadow-sm overflow-x-auto overflow-y-hidden max-w-full gap-1.5 text-zinc-900 bg-white touch-pan-x flex-nowrap py-1.5 px-2 scrollbar-thin scrollbar-thumb-zinc-300">
           <button 
             onClick={() => setActiveTab('cashFlow')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'cashFlow' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'cashFlow' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             <Wallet size={16} />
             Fluxo de Caixa
           </button>
           <button 
             onClick={() => setActiveTab('financialReports')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'financialReports' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'financialReports' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             <TrendingUp size={16} />
             Relatórios Financeiros
           </button>
           <Link
             to="/gerente"
-            className="px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 bg-zinc-950 text-[#d4a338] hover:bg-zinc-800 border border-zinc-800 shadow-sm"
+            className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 bg-zinc-950 text-[#d4a338] hover:bg-zinc-800 border border-zinc-800 shadow-sm"
           >
             <ShoppingBag size={15} />
             Abrir PDV / Caixa Gerente
           </Link>
           <button 
             onClick={() => setActiveTab('appointments')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'appointments' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'appointments' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             Agendamentos
           </button>
           <button 
             onClick={() => setActiveTab('products')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'products' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'products' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             <Package size={16} />
             Produtos (Upsell)
           </button>
           <button 
             onClick={() => setActiveTab('services')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'services' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'services' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             Serviços
           </button>
           <button 
             onClick={() => setActiveTab('barbers')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'barbers' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'barbers' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             <Scissors size={16} />
             Equipe de Barbeiros
@@ -588,19 +588,19 @@ export default function AdminDashboard() {
           </button>
           <button 
             onClick={() => setActiveTab('loyalty')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'loyalty' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'loyalty' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             Fidelidade
           </button>
           <button 
             onClick={() => setActiveTab('blockedTimes')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'blockedTimes' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'blockedTimes' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             Bloqueios
           </button>
           <button 
             onClick={() => setActiveTab('companyProfile')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'companyProfile' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'companyProfile' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
           >
             <Building2 size={16} />
             Perfil da Empresa

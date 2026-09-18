@@ -615,8 +615,8 @@ export default function Home() {
                       <div className="my-auto text-center space-y-2">
                         <div className="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]/60 shadow-lg">
                           <img 
-                            src="/logo-roger.png" 
-                            alt="Barbeiro" 
+                            src={activeShop.logoUrl || "/logo-roger.png"} 
+                            alt={activeShop.name} 
                             className="w-full h-full object-cover" 
                           />
                         </div>
@@ -658,8 +658,8 @@ export default function Home() {
                       <div className="my-auto text-center space-y-2">
                         <div className="relative w-16 h-16 mx-auto rounded-full overflow-hidden border-2 border-[#f5ab2b]">
                           <img 
-                            src="/logo-roger.png" 
-                            alt="Cliente" 
+                            src={activeShop.logoUrl || "/logo-roger.png"} 
+                            alt={activeShop.name} 
                             className="w-full h-full object-cover" 
                           />
                         </div>

@@ -530,7 +530,7 @@ export default function FinancialReports({
       <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3">
         <AlertCircle size={20} className="text-amber-700 shrink-0 mt-0.5" />
         <div className="text-xs text-amber-900 leading-relaxed">
-          <strong>Regra de Negócio Roger'X:</strong> O Proprietário/Dono (Roger) não recebe comissão sobre os serviços prestados; 100% da receita gerada por ele fica retida no faturamento líquido da barbearia. Barbeiros contratados recebem automaticamente <strong>55% de segunda a sábado</strong> e <strong>70% aos domingos</strong>.
+          <strong>Regra de Negócio ({barbershopName}):</strong> O Proprietário/Dono não recebe comissão sobre os serviços prestados; 100% da receita gerada por ele fica retida no faturamento líquido da barbearia. Barbeiros contratados recebem automaticamente <strong>55% de segunda a sábado</strong> e <strong>70% aos domingos</strong>.
         </div>
       </div>
 
