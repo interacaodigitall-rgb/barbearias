@@ -170,8 +170,8 @@ export default function Home() {
           <Link to="/mister-navalha" className="px-5 py-2.5 bg-[#d4a338] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl">
             Ver Mister Navalha
           </Link>
-          <Link to="/seu-elias" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
-            Ver Barbearia Seu Elias
+          <Link to="/vintage-club" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
+            Ver Vintage Club
           </Link>
           <Link to="/sherlocks" className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-white font-bold text-xs rounded-xl">
             Ver Sherlocks
@@ -206,7 +206,7 @@ export default function Home() {
               <div className="relative w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border-2 border-stone-800 flex flex-col items-center justify-center p-1 bg-[#f4f0e8] shadow-xs group-hover:scale-105 transition-transform shrink-0">
                 <span className="text-[6px] sm:text-[7px] md:text-[8px] font-black uppercase tracking-widest text-stone-600">Desde 2013</span>
                 <span className="font-serif italic font-extrabold text-xs sm:text-sm md:text-base leading-none text-stone-900 tracking-tight text-center">
-                  {activeShop.name.toLowerCase().includes('elias') ? 'Seu Elias' : activeShop.name}
+                  {activeShop.name}
                 </span>
                 <span className="text-[5px] sm:text-[6px] md:text-[7px] font-bold uppercase tracking-wider text-[#d4a338] mt-0.5">Barba • Cabelo</span>
               </div>

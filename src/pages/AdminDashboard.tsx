@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { appointmentService } from '../services/appointmentService';
 import { firestoreService } from '../services/firestoreService';
@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
 
   if (!user || (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'superadmin')) {
@@ -64,7 +65,8 @@ export default function AdminDashboard() {
     email: '',
     password: '',
     commissionPercent: 50,
-    phone: ''
+    phone: '',
+    roleAccess: 'barber' as 'barber' | 'gerente'
   });
   const [copiedBarberUid, setCopiedBarberUid] = useState<string | null>(null);
   const [createdBarberAccessAlert, setCreatedBarberAccessAlert] = useState<TenantAccount | null>(null);
@@ -247,8 +249,8 @@ export default function AdminDashboard() {
     }
   };
 
-  // Barber Account & Access Handlers
-  const handleOpenCreateBarberAccess = (barber?: Barber) => {
+  // Barber & Manager Account & Access Handlers
+  const handleOpenCreateBarberAccess = (barber?: Barber, defaultRole: 'barber' | 'gerente' = 'barber') => {
     if (barber) {
       const existingAcc = barberAccounts.find(
         a => a.barberId === barber.id || 
@@ -261,7 +263,8 @@ export default function AdminDashboard() {
           email: existingAcc.email,
           password: existingAcc.password || 'barber123',
           commissionPercent: existingAcc.commissionPercent || barber.compensationValue || 50,
-          phone: existingAcc.phone || '+351 '
+          phone: existingAcc.phone || '+351 ',
+          roleAccess: existingAcc.role === 'gerente' ? 'gerente' : 'barber'
         });
       } else {
         const cleanName = barber.name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -271,17 +274,19 @@ export default function AdminDashboard() {
           email: `${cleanName}@${activeShop.slug || 'barbearia'}.pt`,
           password: 'barber' + Math.floor(100 + Math.random() * 900),
           commissionPercent: barber.compensationValue || 50,
-          phone: '+351 '
+          phone: '+351 ',
+          roleAccess: 'barber'
         });
       }
     } else {
       setBarberAccessForm({
         barberId: 'new',
         name: '',
-        email: '',
-        password: 'barber' + Math.floor(100 + Math.random() * 900),
+        email: defaultRole === 'gerente' ? `gerente@${activeShop.slug || 'barbearia'}.pt` : '',
+        password: (defaultRole === 'gerente' ? 'gerente' : 'barber') + Math.floor(100 + Math.random() * 900),
         commissionPercent: 50,
-        phone: '+351 '
+        phone: '+351 ',
+        roleAccess: defaultRole
       });
     }
     setIsCreateBarberAccessModalOpen(true);
@@ -322,51 +327,66 @@ export default function AdminDashboard() {
   const handleCreateBarberAccess = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!barberAccessForm.name.trim() || !barberAccessForm.email.trim()) {
-      alert('Preencha o nome e o email do barbeiro.');
+      alert('Preencha o nome e o email do colaborador.');
       return;
     }
 
     try {
-      let targetBarberId = barberAccessForm.barberId;
-
-      if (!targetBarberId || targetBarberId === 'new') {
-        const created = await firestoreService.addBarber({
+      if (barberAccessForm.roleAccess === 'gerente') {
+        const newAcc = await saasService.createGerenteAccount({
+          companyId: activeShop.id,
           name: barberAccessForm.name.trim(),
-          bio: 'Barbeiro Profissional',
-          rating: 5,
-          isActive: true,
-          branch: 'PT',
-          compensationType: 'percentage',
-          compensationValue: barberAccessForm.commissionPercent || 50
+          email: barberAccessForm.email.trim(),
+          password: barberAccessForm.password.trim() || 'gerente123',
+          phone: barberAccessForm.phone.trim()
         });
-        targetBarberId = created.id;
+
+        setIsCreateBarberAccessModalOpen(false);
+        setCreatedBarberAccessAlert(newAcc);
+        await loadData();
       } else {
-        await firestoreService.updateBarber(targetBarberId, {
-          compensationType: 'percentage',
-          compensationValue: barberAccessForm.commissionPercent || 50
+        let targetBarberId = barberAccessForm.barberId;
+
+        if (!targetBarberId || targetBarberId === 'new') {
+          const created = await firestoreService.addBarber({
+            name: barberAccessForm.name.trim(),
+            bio: 'Barbeiro Profissional',
+            rating: 5,
+            isActive: true,
+            branch: 'PT',
+            compensationType: 'percentage',
+            compensationValue: barberAccessForm.commissionPercent || 50
+          });
+          targetBarberId = created.id;
+        } else {
+          await firestoreService.updateBarber(targetBarberId, {
+            compensationType: 'percentage',
+            compensationValue: barberAccessForm.commissionPercent || 50
+          });
+        }
+
+        const newAcc = await saasService.createBarberAccount({
+          companyId: activeShop.id,
+          barberId: targetBarberId,
+          name: barberAccessForm.name.trim(),
+          email: barberAccessForm.email.trim(),
+          password: barberAccessForm.password.trim() || 'barber123',
+          commissionPercent: barberAccessForm.commissionPercent || 50,
+          phone: barberAccessForm.phone.trim()
         });
+
+        setIsCreateBarberAccessModalOpen(false);
+        setCreatedBarberAccessAlert(newAcc);
+        await loadData();
       }
-
-      const newAcc = await saasService.createBarberAccount({
-        companyId: activeShop.id,
-        barberId: targetBarberId,
-        name: barberAccessForm.name.trim(),
-        email: barberAccessForm.email.trim(),
-        password: barberAccessForm.password.trim() || 'barber123',
-        commissionPercent: barberAccessForm.commissionPercent || 50,
-        phone: barberAccessForm.phone.trim()
-      });
-
-      setIsCreateBarberAccessModalOpen(false);
-      setCreatedBarberAccessAlert(newAcc);
-      await loadData();
-    } catch (err) {
-      alert('Erro ao criar acesso do barbeiro.');
+    } catch (err: any) {
+      alert(err?.message || 'Erro ao criar acesso do colaborador.');
     }
   };
 
   const handleCopyBarberCredentials = (account: TenantAccount) => {
-    const text = `Credenciais de Acesso do Barbeiro:\nBarbearia: ${activeShop.name}\nEmail: ${account.email}\nSenha: ${account.password || 'barber123'}\nLink de Login: ${window.location.origin}/login`;
+    const roleTitle = account.role === 'gerente' ? 'Gerente (Frente de Caixa)' : 'Barbeiro';
+    const text = `Credenciais de Acesso (${roleTitle}):\nBarbearia: ${activeShop.name}\nEmail: ${account.email}\nSenha: ${account.password || '123456'}\nLink de Login: ${window.location.origin}/login`;
     navigator.clipboard.writeText(text);
     setCopiedBarberUid(account.uid);
     setTimeout(() => setCopiedBarberUid(null), 2500);
@@ -522,89 +542,122 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-              {activeShop.name}
-            </span>
-            <span className="text-xs text-zinc-400">/{activeShop.slug}</span>
-          </div>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Painel de Gestão</h2>
-          <p className="text-zinc-500">Fluxo de caixa em tempo real, comissões da equipe e controle de agendamentos.</p>
-        </div>
-        <div className="flex border border-zinc-200 p-1 rounded-2xl shadow-sm overflow-x-auto overflow-y-hidden max-w-full gap-1.5 text-zinc-900 bg-white touch-pan-x flex-nowrap py-1.5 px-2 scrollbar-thin scrollbar-thumb-zinc-300">
-          <button 
-            onClick={() => setActiveTab('cashFlow')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'cashFlow' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            <Wallet size={16} />
-            Fluxo de Caixa
-          </button>
-          <button 
-            onClick={() => setActiveTab('financialReports')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'financialReports' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            <TrendingUp size={16} />
-            Relatórios Financeiros
-          </button>
-          <Link
-            to="/gerente"
-            className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 bg-zinc-950 text-[#d4a338] hover:bg-zinc-800 border border-zinc-800 shadow-sm"
-          >
-            <ShoppingBag size={15} />
-            Abrir PDV / Caixa Gerente
-          </Link>
-          <button 
-            onClick={() => setActiveTab('appointments')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'appointments' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            Agendamentos
-          </button>
-          <button 
-            onClick={() => setActiveTab('products')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'products' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            <Package size={16} />
-            Produtos (Upsell)
-          </button>
-          <button 
-            onClick={() => setActiveTab('services')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'services' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            Serviços
-          </button>
-          <button 
-            onClick={() => setActiveTab('barbers')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'barbers' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            <Scissors size={16} />
-            Equipe de Barbeiros
-            {barberAccounts.length > 0 && (
-              <span className="ml-1 text-[10px] bg-[#d4a338] text-zinc-950 px-1.5 py-0.2 rounded-full font-black">
-                {barberAccounts.length}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                {activeShop.name}
               </span>
-            )}
-          </button>
-          <button 
-            onClick={() => setActiveTab('loyalty')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'loyalty' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+              <span className="text-xs text-zinc-400">/{activeShop.slug}</span>
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900">Painel de Gestão</h2>
+            <p className="text-zinc-500 text-xs sm:text-sm">Fluxo de caixa em tempo real, comissões da equipe e controle de agendamentos.</p>
+          </div>
+
+          {/* Desktop Tab Buttons */}
+          <div className="hidden md:flex border border-zinc-200 p-1.5 rounded-2xl shadow-sm overflow-x-auto max-w-full gap-1.5 text-zinc-900 bg-white touch-pan-x flex-nowrap scrollbar-thin scrollbar-thumb-zinc-300">
+            <button 
+              onClick={() => setActiveTab('cashFlow')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'cashFlow' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              <Wallet size={16} />
+              Fluxo de Caixa
+            </button>
+            <button 
+              onClick={() => setActiveTab('financialReports')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'financialReports' ? 'bg-[#d4a338] text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              <TrendingUp size={16} />
+              Relatórios Financeiros
+            </button>
+            <Link
+              to="/gerente"
+              className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 bg-zinc-950 text-[#d4a338] hover:bg-zinc-800 border border-zinc-800 shadow-sm"
+            >
+              <ShoppingBag size={15} />
+              Abrir PDV / Caixa Gerente
+            </Link>
+            <button 
+              onClick={() => setActiveTab('appointments')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'appointments' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              Agendamentos
+            </button>
+            <button 
+              onClick={() => setActiveTab('products')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'products' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              <Package size={16} />
+              Produtos (Upsell)
+            </button>
+            <button 
+              onClick={() => setActiveTab('services')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'services' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              Serviços
+            </button>
+            <button 
+              onClick={() => setActiveTab('barbers')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'barbers' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              <Scissors size={16} />
+              Equipe & Acessos
+              {barberAccounts.length > 0 && (
+                <span className="ml-1 text-[10px] bg-[#d4a338] text-zinc-950 px-1.5 py-0.2 rounded-full font-black">
+                  {barberAccounts.length}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setActiveTab('loyalty')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'loyalty' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              Fidelidade
+            </button>
+            <button 
+              onClick={() => setActiveTab('blockedTimes')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'blockedTimes' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              Bloqueios
+            </button>
+            <button 
+              onClick={() => setActiveTab('companyProfile')}
+              className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'companyProfile' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
+            >
+              <Building2 size={16} />
+              Perfil
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dedicated Dropdown Select Bar for Instant Switch */}
+        <div className="block md:hidden w-full bg-zinc-900 p-3 rounded-2xl border border-zinc-800 shadow-md">
+          <label className="block text-[10px] font-black uppercase text-amber-400 tracking-wider mb-1 px-1">
+            Menu do Sistema (Selecione o Módulo):
+          </label>
+          <select
+            value={activeTab}
+            onChange={(e) => {
+              if (e.target.value === 'open_pdv') {
+                navigate('/gerente');
+              } else {
+                setActiveTab(e.target.value as any);
+              }
+            }}
+            className="w-full bg-zinc-950 text-white font-bold text-sm py-2.5 px-3 rounded-xl border border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-[#d4a338]"
           >
-            Fidelidade
-          </button>
-          <button 
-            onClick={() => setActiveTab('blockedTimes')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'blockedTimes' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            Bloqueios
-          </button>
-          <button 
-            onClick={() => setActiveTab('companyProfile')}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'companyProfile' ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'}`}
-          >
-            <Building2 size={16} />
-            Perfil da Empresa
-          </button>
+            <option value="cashFlow">💵 Fluxo de Caixa</option>
+            <option value="financialReports">📈 Relatórios Financeiros</option>
+            <option value="open_pdv">🛒 Abrir PDV / Frente de Caixa Gerente</option>
+            <option value="appointments">📅 Agendamentos</option>
+            <option value="products">📦 Produtos (Catálogo & Upsell)</option>
+            <option value="services">✂️ Serviços & Preços</option>
+            <option value="barbers">👥 Equipe de Barbeiros & Gerentes ({barberAccounts.length})</option>
+            <option value="loyalty">⭐ Fidelidade</option>
+            <option value="blockedTimes">🔒 Bloqueios de Horário</option>
+            <option value="companyProfile">🏢 Perfil da Empresa</option>
+          </select>
         </div>
       </div>
 
@@ -978,13 +1031,20 @@ export default function AdminDashboard() {
                 Gerencie os profissionais, comissões individuais e gere logins para o painel restrito (<code className="text-amber-700">/barber</code>).
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={() => handleOpenCreateBarberAccess()}
-                className="px-5 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+                onClick={() => handleOpenCreateBarberAccess(undefined, 'gerente')}
+                className="px-4 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-[#d4a338] border border-zinc-800 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
               >
-                <Key size={16} />
-                + Criar Acesso para Barbeiro
+                <ShoppingBag size={15} />
+                + Criar Acesso Gerente (PDV)
+              </button>
+              <button
+                onClick={() => handleOpenCreateBarberAccess(undefined, 'barber')}
+                className="px-4 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+              >
+                <Key size={15} />
+                + Criar Acesso Barbeiro
               </button>
             </div>
           </div>
@@ -1022,6 +1082,56 @@ export default function AdminDashboard() {
                 >
                   ✕
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Gerentes do PDV (Frente de Caixa) */}
+          {barberAccounts.filter(a => a.role === 'gerente').length > 0 && (
+            <div className="space-y-3 bg-zinc-900 text-white p-6 rounded-3xl border border-zinc-800 shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-base font-bold text-amber-400 flex items-center gap-2">
+                    <ShoppingBag size={18} />
+                    Gerentes de Balcão & Operadores do PDV ({barberAccounts.filter(a => a.role === 'gerente').length})
+                  </h4>
+                  <p className="text-xs text-zinc-400">Estes utilizadores possuem acesso restrito ao Frente de Caixa para registro de vendas e agendamentos presenciais.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                {barberAccounts.filter(a => a.role === 'gerente').map(gAcc => (
+                  <div key={gAcc.uid} className="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 flex flex-col justify-between space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                          GERENTE PDV
+                        </span>
+                        <h5 className="font-bold text-white text-sm mt-1.5">{gAcc.name}</h5>
+                        <p className="text-xs text-zinc-400 font-mono">{gAcc.email}</p>
+                      </div>
+                    </div>
+                    <div className="text-xs font-mono bg-zinc-900 p-2 rounded-xl border border-zinc-800 flex items-center justify-between">
+                      <span className="text-zinc-500 text-[10px]">Senha:</span>
+                      <span className="font-bold text-amber-400">{gAcc.password || '123456'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 border-t border-zinc-900">
+                      <button
+                        onClick={() => handleCopyBarberCredentials(gAcc)}
+                        className="flex-1 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
+                        {copiedBarberUid === gAcc.uid ? <Check size={13} /> : <Copy size={13} />}
+                        {copiedBarberUid === gAcc.uid ? 'Copiado' : 'Copiar Login'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBarberAccount(gAcc.uid, gAcc.name)}
+                        className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg transition-colors"
+                        title="Revogar Acesso"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1888,7 +1998,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* MODAL: + Criar Acesso para Barbeiro */}
+      {/* MODAL: + Criar Acesso para Colaborador (Barbeiro ou Gerente) */}
       {isCreateBarberAccessModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
           <div className="border border-zinc-200 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 text-zinc-900 bg-white placeholder:text-zinc-400">
@@ -1898,8 +2008,10 @@ export default function AdminDashboard() {
                   <Key size={20} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-zinc-900">Criar Acesso para Barbeiro</h3>
-                  <p className="text-xs text-zinc-500">Credenciais para login individual no painel da equipe</p>
+                  <h3 className="text-lg font-bold text-zinc-900">
+                    {barberAccessForm.roleAccess === 'gerente' ? 'Criar Acesso de Gerente (PDV)' : 'Criar Acesso para Barbeiro'}
+                  </h3>
+                  <p className="text-xs text-zinc-500">Credenciais para login restrito de equipe da unidade</p>
                 </div>
               </div>
               <button
@@ -1921,48 +2033,72 @@ export default function AdminDashboard() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
-                  Vincular a Barbeiro Existente ou Novo
+                  Nível de Acesso do Colaborador
                 </label>
                 <select
-                  value={barberAccessForm.barberId}
+                  value={barberAccessForm.roleAccess}
                   onChange={e => {
-                    const bId = e.target.value;
-                    const selectedB = barbers.find(b => b.id === bId);
-                    if (selectedB) {
-                      const cleanName = selectedB.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                      setBarberAccessForm({
-                        ...barberAccessForm,
-                        barberId: bId,
-                        name: selectedB.name,
-                        email: `${cleanName}@${activeShop.slug || 'barbearia'}.pt`,
-                        commissionPercent: selectedB.compensationValue || 50
-                      });
-                    } else {
-                      setBarberAccessForm({
-                        ...barberAccessForm,
-                        barberId: 'new',
-                        name: ''
-                      });
-                    }
+                    const role = e.target.value as 'barber' | 'gerente';
+                    setBarberAccessForm({
+                      ...barberAccessForm,
+                      roleAccess: role,
+                      email: role === 'gerente' && !barberAccessForm.email ? `gerente@${activeShop.slug || 'barbearia'}.pt` : barberAccessForm.email,
+                      password: barberAccessForm.password || (role === 'gerente' ? 'gerente123' : 'barber123')
+                    });
                   }}
-                  className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
+                  className="w-full px-4 py-2.5 border border-zinc-300 rounded-xl text-xs font-bold focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-amber-50/50"
                 >
-                  <option value="new">+ Cadastrar Novo Barbeiro com Login</option>
-                  {barbers.map(b => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.compensationValue || 50}% comissão)
-                    </option>
-                  ))}
+                  <option value="barber">💈 Barbeiro (Acesso Individual ao Painel /barber)</option>
+                  <option value="gerente">💼 Gerente / Balcão (Acesso ao Frente de Caixa / PDV /gerente)</option>
                 </select>
               </div>
 
+              {barberAccessForm.roleAccess === 'barber' && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
+                    Vincular a Barbeiro Existente ou Novo
+                  </label>
+                  <select
+                    value={barberAccessForm.barberId}
+                    onChange={e => {
+                      const bId = e.target.value;
+                      const selectedB = barbers.find(b => b.id === bId);
+                      if (selectedB) {
+                        const cleanName = selectedB.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        setBarberAccessForm({
+                          ...barberAccessForm,
+                          barberId: bId,
+                          name: selectedB.name,
+                          email: `${cleanName}@${activeShop.slug || 'barbearia'}.pt`,
+                          commissionPercent: selectedB.compensationValue || 50
+                        });
+                      } else {
+                        setBarberAccessForm({
+                          ...barberAccessForm,
+                          barberId: 'new',
+                          name: ''
+                        });
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
+                  >
+                    <option value="new">+ Cadastrar Novo Barbeiro com Login</option>
+                    {barbers.map(b => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.compensationValue || 50}% comissão)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
-                  Nome do Barbeiro
+                  Nome Completo do {barberAccessForm.roleAccess === 'gerente' ? 'Gerente' : 'Barbeiro'}
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Roger Santos"
+                  placeholder={barberAccessForm.roleAccess === 'gerente' ? "Ex: Carlos Gerência" : "Ex: Roger Santos"}
                   value={barberAccessForm.name}
                   onChange={e => setBarberAccessForm({ ...barberAccessForm, name: e.target.value })}
                   className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
@@ -1972,11 +2108,11 @@ export default function AdminDashboard() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
-                  Email de Login (Acesso do Barbeiro)
+                  Email de Login
                 </label>
                 <input
                   type="email"
-                  placeholder="Ex: roger@rogerx.pt"
+                  placeholder={barberAccessForm.roleAccess === 'gerente' ? "Ex: gerente@suabarbearia.pt" : "Ex: roger@suabarbearia.pt"}
                   value={barberAccessForm.email}
                   onChange={e => setBarberAccessForm({ ...barberAccessForm, email: e.target.value })}
                   className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
@@ -1984,14 +2120,14 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className={`grid grid-cols-1 ${barberAccessForm.roleAccess === 'barber' ? 'sm:grid-cols-2' : ''} gap-4`}>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
                     Senha Provisória
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: barber2026"
+                    placeholder="Ex: 123456"
                     value={barberAccessForm.password}
                     onChange={e => setBarberAccessForm({ ...barberAccessForm, password: e.target.value })}
                     className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs font-mono focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
@@ -1999,24 +2135,26 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
-                    Comissão por Corte (%)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      placeholder="50"
-                      value={barberAccessForm.commissionPercent}
-                      onChange={e => setBarberAccessForm({ ...barberAccessForm, commissionPercent: Number(e.target.value) })}
-                      className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
-                      required
-                    />
-                    <span className="absolute right-3 top-2.5 text-xs text-zinc-400 font-bold">%</span>
+                {barberAccessForm.roleAccess === 'barber' && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 mb-1.5">
+                      Comissão por Corte (%)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        placeholder="50"
+                        value={barberAccessForm.commissionPercent}
+                        onChange={e => setBarberAccessForm({ ...barberAccessForm, commissionPercent: Number(e.target.value) })}
+                        className="w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-xs focus:outline-none focus:border-[#d4a338] text-zinc-900 bg-white placeholder:text-zinc-400"
+                        required
+                      />
+                      <span className="absolute right-3 top-2.5 text-xs text-zinc-400 font-bold">%</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div>
@@ -2032,17 +2170,23 @@ export default function AdminDashboard() {
                 />
               </div>
 
-              <div className="p-3 border border-zinc-200 rounded-xl text-[11px] space-y-1 text-zinc-900 bg-white placeholder:text-zinc-400">
+              <div className="p-3 border border-zinc-200 rounded-xl text-[11px] space-y-1 text-zinc-900 bg-amber-50/40">
                 <p className="font-bold text-amber-900 flex items-center gap-1.5">
                   <Shield size={14} className="text-amber-600" />
-                  Privacidade e Isolamento da Equipe:
+                  {barberAccessForm.roleAccess === 'gerente' ? 'Permissões do Nível Gerente:' : 'Privacidade do Nível Barbeiro:'}
                 </p>
-                <p>
-                  • Este login dá acesso restrito à rota <strong className="text-zinc-900">/barber</strong>.
-                </p>
-                <p>
-                  • O barbeiro visualiza <strong>apenas seus próprios agendamentos e comissões</strong>, sem acesso a dados de outros profissionais ou faturamento geral da barbearia.
-                </p>
+                {barberAccessForm.roleAccess === 'gerente' ? (
+                  <>
+                    <p>• Acesso exclusivo ao <strong>Frente de Caixa / PDV (/gerente)</strong>.</p>
+                    <p>• Permite registrar agendamentos por encaixe, lançar cortes e vender produtos no balcão.</p>
+                    <p>• <strong>Sem acesso</strong> a métricas administrativas confidenciais ou configurações da barbearia.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>• Este login dá acesso restrito à rota <strong className="text-zinc-900">/barber</strong>.</p>
+                    <p>• O barbeiro visualiza <strong>apenas seus próprios agendamentos e comissões</strong>.</p>
+                  </>
+                )}
               </div>
 
               <div className="pt-4 border-t border-zinc-100 flex justify-end gap-3">

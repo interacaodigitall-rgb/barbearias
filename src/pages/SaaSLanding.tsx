@@ -40,12 +40,12 @@ const PARTNER_BARBERSHOPS = [
     quote: 'Os clientes adoram o agendamento PWA sem precisar baixar nada da App Store.'
   },
   {
-    name: 'Barbearia Seu Elias',
-    city: 'Lisboa & BH',
-    highlight: 'Padrão internacional',
+    name: 'Vintage Club Barber',
+    city: 'Aveiro & Viseu',
+    highlight: 'Estilo clássico',
     rating: '5.0',
-    initials: 'SE',
-    slug: 'seu-elias',
+    initials: 'VC',
+    slug: 'vintage-club',
     quote: 'O Quiet Service e o upsell de pomadas aumentaram nosso ticket médio logo no primeiro mês.'
   },
   {

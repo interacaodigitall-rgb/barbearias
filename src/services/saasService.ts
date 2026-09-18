@@ -479,6 +479,43 @@ export const saasService = {
     return newAccount;
   },
 
+  async createGerenteAccount(data: {
+    companyId: string;
+    name: string;
+    email: string;
+    password?: string;
+    phone?: string;
+  }): Promise<TenantAccount> {
+    const accounts = getStoredTenantAccounts();
+    const cleanEmail = data.email.toLowerCase().trim();
+    const shop = this.getBarbershopById(data.companyId);
+
+    const existingIndex = accounts.findIndex(a => a.email.toLowerCase() === cleanEmail && a.companyId === data.companyId);
+
+    const newAccount: TenantAccount = {
+      uid: `acc-gerente-${Date.now()}`,
+      email: cleanEmail,
+      password: data.password || 'gerente123',
+      name: data.name.trim(),
+      phone: data.phone || '',
+      role: 'gerente',
+      companyId: data.companyId,
+      companyName: shop?.name || 'Barbearia',
+      createdAt: Date.now()
+    };
+
+    let updated: TenantAccount[];
+    if (existingIndex >= 0) {
+      updated = [...accounts];
+      updated[existingIndex] = { ...updated[existingIndex], ...newAccount, uid: accounts[existingIndex].uid };
+    } else {
+      updated = [newAccount, ...accounts];
+    }
+
+    saveStoredTenantAccounts(updated);
+    return newAccount;
+  },
+
   getBarberAccount(barberId: string): TenantAccount | null {
     const accounts = getStoredTenantAccounts();
     return accounts.find(a => a.barberId === barberId && a.role === 'barber') || null;

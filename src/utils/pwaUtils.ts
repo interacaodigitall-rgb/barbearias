@@ -31,7 +31,7 @@ export function registerServiceWorker() {
 }
 
 function getAbsoluteUrl(url: string): string {
-  if (!url) return window.location.origin + '/logo-roger.png';
+  if (!url) return window.location.origin + '/logo_probarbearia.jpg';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
     return url;
   }
@@ -42,19 +42,19 @@ function getAbsoluteUrl(url: string): string {
   }
 }
 
-export const OFFICIAL_PWA_ICON = "https://iili.io/n34KhGf.jpg";
+export const OFFICIAL_PWA_ICON = "/logo_probarbearia.jpg";
 
 export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
   if (!shop || typeof document === 'undefined') return;
 
-  const shopName = shop.name || "Roger'X Barber";
+  const shopName = shop.name || "ProBarbearia";
   const tagline = shop.tagline || 'Agendamento Online de Barbearia';
 
   // 1. Page Title
   document.title = `${shopName} - Agendamento Online`;
 
   // 2. Absolute Icon URL strictly enforced for iOS Safari
-  const iconUrl = OFFICIAL_PWA_ICON;
+  const iconUrl = getAbsoluteUrl(shop.logoUrl || OFFICIAL_PWA_ICON);
 
   // Helper to upsert link tags
   const setLinkTag = (rel: string, href: string, sizes?: string) => {
