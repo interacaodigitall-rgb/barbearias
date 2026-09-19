@@ -74,6 +74,11 @@ export default function GerenteDashboard() {
 
   const activeShop = saasService.getActiveBarbershop();
 
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate('/login');
+  };
+
   const loadAllData = async () => {
     setIsLoading(true);
     try {
@@ -377,21 +382,29 @@ export default function GerenteDashboard() {
           </div>
 
           {/* Quick links & Caixa summary actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setIsSangriaModalOpen(true)}
-              className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <ArrowDownCircle size={14} className="text-amber-400" />
-              Sangria / Retirada
+              <span>Sangria</span>
             </button>
             <Link
               to="/admin"
               className="px-3 py-1.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
             >
               <Building2 size={14} />
-              Painel Admin
+              <span>Painel Admin</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 bg-rose-950/90 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+              title="Sair do Caixa e Fazer Logout"
+            >
+              <LogOut size={14} />
+              <span>Sair</span>
+            </button>
           </div>
         </div>
 
