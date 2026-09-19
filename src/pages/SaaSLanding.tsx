@@ -3,12 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { saasService } from '../services/saasService';
 import { useAuthStore } from '../store/authStore';
 import { SaaSPlan, SaaSBarbershop } from '../models';
-import { isStandalone } from '../utils/pwaUtils';
+import { isStandalone, updateProBarbeariaHead } from '../utils/pwaUtils';
 import { 
   Scissors, Smartphone, TrendingUp, DollarSign, Users, Sparkles, Check, 
   ArrowRight, ShieldCheck, Star, ChevronRight, Zap, CheckCircle2, 
   HelpCircle, Building2, Store, Phone, Award, MessageCircle, Clock, 
-  Calendar, Lock, ExternalLink, X, HeartHandshake, CheckCircle
+  Calendar, Lock, ExternalLink, X, HeartHandshake, CheckCircle, Menu, Wallet, ShoppingBag, Shield
 } from 'lucide-react';
 
 const PARTNER_BARBERSHOPS = [
@@ -73,6 +73,11 @@ export default function SaaSLanding() {
   const { user } = useAuthStore();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [plans] = useState<SaaSPlan[]>(saasService.getPlans());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    updateProBarbeariaHead();
+  }, []);
 
   // Allow accessing the root SaaS landing page at / without automatic redirect
   
@@ -164,11 +169,11 @@ export default function SaaSLanding() {
             </button>
           </nav>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          {/* Action Buttons & Mobile Hamburger Menu */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/login"
-              className="px-4 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors"
+              className="hidden sm:inline-flex px-4 py-2 text-xs font-bold text-zinc-300 hover:text-white transition-colors"
             >
               Login
             </Link>
@@ -178,12 +183,110 @@ export default function SaaSLanding() {
                 setSelectedPlanForSignup('pro');
                 setIsRegisterOpen(true);
               }}
-              className="px-5 py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_4px_16px_rgba(212,163,56,0.25)] hover:shadow-[0_6px_20px_rgba(212,163,56,0.35)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
+              className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-[#d4a338] hover:bg-[#c3922d] text-zinc-950 font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl shadow-[0_4px_16px_rgba(212,163,56,0.25)] hover:shadow-[0_6px_20px_rgba(212,163,56,0.35)] transition-all transform hover:-translate-y-0.5 cursor-pointer shrink-0"
             >
-              Começar 14 Dias Grátis
+              Começar Grátis
+            </button>
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800 rounded-xl transition-colors focus:outline-none"
+              aria-label="Abrir Menu Mobile"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu Drawer (Slide-over) */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-zinc-800 bg-[#0F0F10]/98 backdrop-blur-xl px-4 py-6 space-y-5 animate-in slide-in-from-top-4 shadow-2xl">
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#d4a338]">Navegação Comercial</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { scrollToSection('recursos'); setIsMobileMenuOpen(false); }}
+                  className="p-3 text-left bg-zinc-900/80 border border-zinc-800/80 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                >
+                  <Zap size={15} className="text-[#d4a338]" />
+                  Recursos
+                </button>
+                <button
+                  onClick={() => { scrollToSection('funcionalidades'); setIsMobileMenuOpen(false); }}
+                  className="p-3 text-left bg-zinc-900/80 border border-zinc-800/80 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                >
+                  <Sparkles size={15} className="text-[#d4a338]" />
+                  Funcionalidades
+                </button>
+                <button
+                  onClick={() => { scrollToSection('parceiros'); setIsMobileMenuOpen(false); }}
+                  className="p-3 text-left bg-zinc-900/80 border border-zinc-800/80 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                >
+                  <Store size={15} className="text-[#d4a338]" />
+                  Parceiros
+                </button>
+                <button
+                  onClick={() => { scrollToSection('precos'); setIsMobileMenuOpen(false); }}
+                  className="p-3 text-left bg-zinc-900/80 border border-zinc-800/80 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                >
+                  <DollarSign size={15} className="text-[#d4a338]" />
+                  Preços & Planos
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-zinc-800/80">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Módulos & Demonstrações do Sistema</span>
+              <div className="grid grid-cols-1 gap-2">
+                <Link
+                  to="/mister-navalha"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 flex items-center justify-between hover:bg-zinc-850"
+                >
+                  <div className="flex items-center gap-2">
+                    <Scissors size={15} className="text-[#d4a338]" />
+                    <span>Demo B2C: Mister Navalha</span>
+                  </div>
+                  <ChevronRight size={14} className="text-zinc-500" />
+                </Link>
+
+                <Link
+                  to="/admin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 flex items-center justify-between hover:bg-zinc-850"
+                >
+                  <div className="flex items-center gap-2">
+                    <Wallet size={15} className="text-emerald-400" />
+                    <span>Painel de Gestão Admin</span>
+                  </div>
+                  <ChevronRight size={14} className="text-zinc-500" />
+                </Link>
+
+                <Link
+                  to="/gerente"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 flex items-center justify-between hover:bg-zinc-850"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag size={15} className="text-amber-400" />
+                    <span>Frente de Caixa / PDV Gerente</span>
+                  </div>
+                  <ChevronRight size={14} className="text-zinc-500" />
+                </Link>
+
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3 bg-[#d4a338]/10 border border-[#d4a338]/30 rounded-xl text-xs font-bold text-[#d4a338] flex items-center justify-center gap-2 hover:bg-[#d4a338]/20"
+                >
+                  <Lock size={15} />
+                  <span>Entrar / Acessar Minha Conta</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Success Notification if a tenant was registered */}

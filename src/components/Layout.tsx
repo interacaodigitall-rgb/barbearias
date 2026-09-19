@@ -4,8 +4,8 @@ import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
 import { saasService } from '../services/saasService';
 import { SaaSBarbershop } from '../models';
-import { updateTenantHeadAndPWA } from '../utils/pwaUtils';
-import { Home, Scissors, Users, Calendar, User as UserIcon, LogOut, Award, Shield, Plus, Search, Globe, Wallet, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { updateTenantHeadAndPWA, updateProBarbeariaHead } from '../utils/pwaUtils';
+import { Home, Scissors, Users, Calendar, User as UserIcon, LogOut, Award, Shield, Plus, Search, Globe, Wallet, ArrowLeft, ShoppingBag, Menu, X, ChevronRight, Grid, Sparkles, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function Layout() {
@@ -16,6 +16,7 @@ export default function Layout() {
 
   // Reactive state for active barbershop to stay in sync with tenant routes
   const [activeShop, setActiveShop] = React.useState<SaaSBarbershop>(() => saasService.getActiveBarbershop());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   // Listen to active shop changes
   React.useEffect(() => {
@@ -27,10 +28,13 @@ export default function Layout() {
   }, []);
 
   React.useEffect(() => {
-    if (activeShop) {
+    const isSaaSPage = location.pathname === '/' || location.pathname === '/saas';
+    if (isSaaSPage) {
+      updateProBarbeariaHead();
+    } else if (activeShop) {
       updateTenantHeadAndPWA(activeShop);
     }
-  }, [activeShop]);
+  }, [activeShop, location.pathname]);
 
   const handleLogout = async () => {
     await authService.logout();
@@ -202,7 +206,7 @@ export default function Layout() {
       ) : (
         <div className="flex-1 flex flex-col md:flex-row">
           {/* Mobile Header */}
-          <div className="md:hidden bg-zinc-900/90 backdrop-blur-md text-white p-4 flex justify-between items-center sticky top-0 z-40">
+          <div className="md:hidden bg-zinc-950 text-white px-4 py-3 flex justify-between items-center sticky top-0 z-40 border-b border-zinc-800/80 shadow-md">
             <Link to={homePath} onClick={handleHomeClick} className="flex items-center space-x-2.5 group">
               <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-950 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
                 <img 
@@ -212,24 +216,231 @@ export default function Layout() {
                 />
               </div>
               <div>
-                <h1 className="text-base font-extrabold tracking-tight uppercase leading-none">{activeShop.name}</h1>
+                <h1 className="text-sm font-extrabold tracking-tight uppercase leading-none text-white">{activeShop.name}</h1>
                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">{activeShop.unit}</p>
               </div>
             </Link>
-            <div className="flex items-center space-x-3">
-              <button onClick={toggleLanguage} className="text-xl" title="Mudar Idioma">
+
+            <div className="flex items-center space-x-2">
+              <button onClick={toggleLanguage} className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-sm" title="Mudar Idioma">
                 {i18n.language === 'pt' ? '🇵🇹' : '🇪🇸'}
               </button>
-              {user && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-zinc-400 font-medium">{user.name.split(' ')[0]}</span>
-                  <button onClick={handleLogout} className="p-2 text-zinc-400 hover:text-white">
-                    <LogOut size={18} />
-                  </button>
-                </div>
-              )}
+
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="px-3 py-1.5 bg-[#d4a338] text-zinc-950 hover:bg-[#c3922d] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                aria-label="Abrir Menu Completo"
+              >
+                {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+                <span>Menu</span>
+              </button>
             </div>
           </div>
+
+          {/* Mobile Navigation Drawer (Unrestricted Access) */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col justify-end animate-in fade-in">
+              <div className="bg-zinc-950 border-t border-zinc-800 text-white rounded-t-3xl max-h-[85vh] overflow-y-auto p-5 space-y-6 shadow-2xl">
+                
+                {/* Drawer Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-[#d4a338]/60 bg-zinc-900 shrink-0">
+                      <img 
+                        src={activeShop.logoUrl || "https://iili.io/n34KhGf.jpg"}
+                        alt={activeShop.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-white">{activeShop.name}</h3>
+                      <p className="text-xs text-zinc-400">
+                        {user ? `Usuário: ${user.name} (${user.role.toUpperCase()})` : 'Acesso Geral de Navegação'}
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 text-zinc-400 hover:text-white bg-zinc-900 rounded-xl border border-zinc-800"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Section 1: Customer Application Navigation */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#d4a338] flex items-center gap-1.5">
+                    <Scissors size={14} />
+                    Navegação do Cliente / App
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      to={homePath}
+                      onClick={(e) => { handleHomeClick(e); setIsMobileMenuOpen(false); }}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                    >
+                      <Home size={16} className="text-[#d4a338]" />
+                      <span>Início</span>
+                    </Link>
+
+                    <Link
+                      to={bookingPath}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-[#d4a338] text-zinc-950 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm"
+                    >
+                      <Plus size={16} strokeWidth={3} />
+                      <span>+ Agendar</span>
+                    </Link>
+
+                    <Link
+                      to={servicesPath}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                    >
+                      <Scissors size={16} className="text-amber-400" />
+                      <span>Serviços & Preços</span>
+                    </Link>
+
+                    <Link
+                      to={`/${targetSlug}/barbers`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                    >
+                      <Users size={16} className="text-amber-400" />
+                      <span>Barbeiros</span>
+                    </Link>
+
+                    <Link
+                      to={appointmentsPath}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                    >
+                      <Calendar size={16} className="text-emerald-400" />
+                      <span>Agendamentos</span>
+                    </Link>
+
+                    <Link
+                      to={loyaltyPath}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center gap-2"
+                    >
+                      <Award size={16} className="text-amber-400" />
+                      <span>Fidelidade</span>
+                    </Link>
+
+                    <Link
+                      to={user ? '/profile' : '/login'}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="col-span-2 p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 hover:border-[#d4a338]/50 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <UserIcon size={16} className="text-indigo-400" />
+                        <span>{user ? 'Meu Perfil & Histórico' : 'Acessar Minha Conta / Login'}</span>
+                      </div>
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Section 2: Management & Staff Panels (Unrestricted Access) */}
+                <div className="space-y-2 pt-3 border-t border-zinc-800">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1.5">
+                    <Shield size={14} />
+                    Módulos da Equipe & Gestão
+                  </span>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-100 flex items-center justify-between hover:border-emerald-500/50"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Wallet size={16} className="text-emerald-400" />
+                        <div>
+                          <p className="font-bold text-white">Painel de Gestão Admin</p>
+                          <p className="text-[10px] text-zinc-400">Caixa, DRE, Serviços, Barbearias, Equipe & Comissões</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </Link>
+
+                    <Link
+                      to="/gerente"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-100 flex items-center justify-between hover:border-amber-500/50"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <ShoppingBag size={16} className="text-amber-400" />
+                        <div>
+                          <p className="font-bold text-white">Frente de Caixa / PDV (Gerente)</p>
+                          <p className="text-[10px] text-zinc-400">Lançar Encaixes, Produtos no Balcão e Sangrias</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </Link>
+
+                    <Link
+                      to="/barber-dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-100 flex items-center justify-between hover:border-amber-500/50"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Scissors size={16} className="text-[#d4a338]" />
+                        <div>
+                          <p className="font-bold text-white">Painel do Barbeiro</p>
+                          <p className="text-[10px] text-zinc-400">Minha Agenda Individual e Relatório de Comissões</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </Link>
+
+                    <Link
+                      to="/saas"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-200 flex items-center justify-between hover:border-amber-500/50"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Sparkles size={16} className="text-[#d4a338]" />
+                        <span>Plataforma ProBarbearia Comercial</span>
+                      </div>
+                      <ChevronRight size={14} className="text-zinc-500" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Section 3: Account Controls & Logout */}
+                <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
+                  <button 
+                    onClick={toggleLanguage}
+                    className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold text-zinc-300 flex items-center gap-2"
+                  >
+                    <Globe size={14} />
+                    <span>{i18n.language === 'pt' ? 'Português (PT)' : 'Español (ES)'}</span>
+                  </button>
+
+                  {user ? (
+                    <button
+                      onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                      className="px-4 py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"
+                    >
+                      <LogOut size={14} />
+                      <span>Sair da Conta</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-4 py-2 bg-[#d4a338] text-zinc-950 font-black rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+                    >
+                      <Lock size={14} />
+                      <span>Entrar</span>
+                    </Link>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          )}
 
           {/* Sidebar (Desktop) */}
           <div className="hidden md:flex flex-col w-64 bg-zinc-900 text-white min-h-[calc(100vh-37px)] p-4 sticky top-0 h-[calc(100vh-37px)] shrink-0">

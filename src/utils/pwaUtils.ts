@@ -44,6 +44,65 @@ function getAbsoluteUrl(url: string): string {
 
 export const OFFICIAL_PWA_ICON = "/logo_probarbearia.jpg";
 
+export function updateProBarbeariaHead() {
+  if (typeof document === 'undefined') return;
+
+  const appName = "ProBarbearia";
+  const appTitle = "ProBarbearia - Plataforma de Gestão & App do Cliente";
+
+  // 1. Page Title
+  document.title = appTitle;
+
+  // 2. Icon URL
+  const iconUrl = getAbsoluteUrl(OFFICIAL_PWA_ICON);
+
+  const setLinkTag = (rel: string, href: string, sizes?: string) => {
+    const selector = sizes 
+      ? `link[rel='${rel}'][sizes='${sizes}']` 
+      : `link[rel='${rel}']:not([sizes])`;
+    let el = document.querySelector(selector) as HTMLLinkElement;
+    if (!el) {
+      el = document.createElement('link');
+      el.rel = rel;
+      if (sizes) el.setAttribute('sizes', sizes);
+      document.head.appendChild(el);
+    }
+    el.href = href;
+  };
+
+  setLinkTag('apple-touch-icon', iconUrl, '180x180');
+  setLinkTag('apple-touch-icon', iconUrl);
+  setLinkTag('apple-touch-icon-precomposed', iconUrl, '180x180');
+  setLinkTag('apple-touch-icon-precomposed', iconUrl);
+  setLinkTag('icon', iconUrl);
+  setLinkTag('shortcut icon', iconUrl);
+
+  const metas = [
+    { name: 'apple-mobile-web-app-capable', content: 'yes' },
+    { name: 'mobile-web-app-capable', content: 'yes' },
+    { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+    { name: 'apple-mobile-web-app-title', content: appName },
+    { name: 'application-name', content: appName },
+    { name: 'theme-color', content: '#000000' }
+  ];
+
+  metas.forEach(({ name, content }) => {
+    let metaEl = document.querySelector(`meta[name='${name}']`) as HTMLMetaElement;
+    if (!metaEl) {
+      metaEl = document.createElement('meta');
+      metaEl.name = name;
+      document.head.appendChild(metaEl);
+    }
+    metaEl.content = content;
+  });
+
+  let ogTitle = document.querySelector("meta[property='og:title']") as HTMLMetaElement;
+  if (ogTitle) ogTitle.content = appTitle;
+
+  let ogImage = document.querySelector("meta[property='og:image']") as HTMLMetaElement;
+  if (ogImage) ogImage.content = iconUrl;
+}
+
 export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
   if (!shop || typeof document === 'undefined') return;
 
