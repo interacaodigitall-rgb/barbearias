@@ -22,6 +22,18 @@ export interface TenantAccount {
   createdAt: number;
 }
 
+export function normalizeDomain(domain: string): string {
+  if (!domain) return '';
+  let clean = domain.toLowerCase().trim();
+  clean = clean.replace(/^(https?:\/\/)/, '');
+  clean = clean.split('/')[0].split('?')[0];
+  clean = clean.split(':')[0];
+  if (clean.startsWith('www.')) {
+    clean = clean.substring(4);
+  }
+  return clean;
+}
+
 export function getStoredPasswordOverrides(): Record<string, string> {
   try {
     const raw = localStorage.getItem(SAAS_PASSWORD_OVERRIDES_KEY);
@@ -70,6 +82,28 @@ const defaultTenantAccounts: TenantAccount[] = [
     companyId: 'shop-mister-navalha',
     companyName: 'Mister Navalha',
     createdAt: Date.now() - 45 * 86400000
+  },
+  {
+    uid: 'acc-ernando-navalha',
+    email: 'ernando@misternavalha.pt',
+    password: 'navalha123',
+    name: 'Ernando Silva (Gestor)',
+    phone: '+351 925 112 334',
+    role: 'admin',
+    companyId: 'shop-mister-navalha',
+    companyName: 'Mister Navalha',
+    createdAt: Date.now() - 40 * 86400000
+  },
+  {
+    uid: 'acc-gerente-navalha',
+    email: 'gerente@misternavalha.pt',
+    password: 'gerente123',
+    name: 'Gerente Mister Navalha',
+    phone: '+351 925 112 334',
+    role: 'gerente',
+    companyId: 'shop-mister-navalha',
+    companyName: 'Mister Navalha',
+    createdAt: Date.now() - 35 * 86400000
   },
   // Real Roger'X Barbers
   {
@@ -293,10 +327,36 @@ export const saasService = {
     return getStoredShops();
   },
 
+  getBarbershopByDomainSync(domain: string): SaaSBarbershop | null {
+    const shops = getStoredShops();
+    const cleanHost = normalizeDomain(domain);
+    if (!cleanHost) return null;
+
+    return shops.find(s => {
+      const cd1 = normalizeDomain(s.customDomain || '');
+      const cd2 = normalizeDomain(s.custom_domain || '');
+      const slugClean = normalizeDomain(s.slug);
+      return (cd1 && cd1 === cleanHost) || (cd2 && cd2 === cleanHost) || slugClean === cleanHost;
+    }) || null;
+  },
+
+  async getBarbershopByDomain(domain: string): Promise<SaaSBarbershop | null> {
+    return this.getBarbershopByDomainSync(domain);
+  },
+
   getBarbershopBySlugSync(slug: string): SaaSBarbershop | null {
     const shops = getStoredShops();
     const cleanSlug = slug.toLowerCase().trim();
-    return shops.find(s => s.slug.toLowerCase() === cleanSlug || s.id.toLowerCase() === cleanSlug) || null;
+    const normSlug = normalizeDomain(slug);
+
+    return shops.find(s => {
+      const cd1 = normalizeDomain(s.customDomain || '');
+      const cd2 = normalizeDomain(s.custom_domain || '');
+      return s.slug.toLowerCase() === cleanSlug ||
+             s.id.toLowerCase() === cleanSlug ||
+             (cd1 && cd1 === normSlug) ||
+             (cd2 && cd2 === normSlug);
+    }) || null;
   },
 
   async getBarbershopBySlug(slug: string): Promise<SaaSBarbershop | null> {
@@ -311,6 +371,25 @@ export const saasService = {
 
   getActiveBarbershop(): SaaSBarbershop {
     const shops = getStoredShops();
+
+    // Check if running on browser with custom domain
+    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+      const host = window.location.hostname;
+      const cleanHost = normalizeDomain(host);
+      const isDefaultSaas = cleanHost.endsWith('vercel.app') || 
+                            cleanHost.endsWith('run.app') || 
+                            cleanHost === 'localhost' || 
+                            cleanHost === '127.0.0.1' ||
+                            cleanHost.includes('probarbearias');
+      
+      if (!isDefaultSaas && cleanHost) {
+        const domainShop = this.getBarbershopByDomainSync(cleanHost);
+        if (domainShop) {
+          return domainShop;
+        }
+      }
+    }
+
     const activeId = localStorage.getItem(SAAS_ACTIVE_SHOP_KEY);
     if (activeId) {
       const found = shops.find(s => s.id.toLowerCase() === activeId.toLowerCase() || s.slug.toLowerCase() === activeId.toLowerCase());
@@ -349,7 +428,7 @@ export const saasService = {
     if (target === 'shop-sherlocks' || target === 'sherlocks') {
       return demoServices;
     }
-    if (target === 'mister-navalha' || target === 'shop-1') {
+    if (target === 'mister-navalha' || target === 'shop-mister-navalha' || target === 'shop-1' || target.includes('navalha')) {
       return demoServices;
     }
 
@@ -370,7 +449,7 @@ export const saasService = {
       return rogerXBarbers;
     }
 
-    if (target === 'mister-navalha' || target === 'shop-1' || target === 'seu-elias') {
+    if (target === 'mister-navalha' || target === 'shop-mister-navalha' || target === 'shop-1' || target === 'seu-elias' || target.includes('navalha')) {
       const custom = getCustomBarbersForShop(target);
       if (custom && custom.length > 0) {
         return custom;
@@ -643,34 +722,46 @@ export const saasService = {
   findTenantAccount(email: string): TenantAccount | null {
     const accounts = getStoredTenantAccounts();
     const cleanEmail = email.toLowerCase().trim();
-    const username = cleanEmail.split('@')[0];
 
-    return accounts.find(a => 
-      a.email.toLowerCase() === cleanEmail || 
-      a.email.toLowerCase().split('@')[0] === username ||
-      (a.name && a.name.toLowerCase().replace(/[^a-z0-9]/g, '') === username)
-    ) || null;
+    // 1. First priority: Exact email match
+    const exactMatch = accounts.find(a => a.email.toLowerCase() === cleanEmail);
+    if (exactMatch) return exactMatch;
+
+    // 2. Fallback: username match if no exact email match
+    const username = cleanEmail.split('@')[0];
+    return accounts.find(a => {
+      const accUser = a.email.toLowerCase().split('@')[0];
+      const accName = a.name ? a.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+      return accUser === username || (accName && accName === username);
+    }) || null;
   },
 
   authenticateTenantUser(email: string, password?: string): TenantAccount | null {
     const accounts = getStoredTenantAccounts();
     const cleanEmail = email.toLowerCase().trim();
-    const username = cleanEmail.split('@')[0];
 
+    // 1. First priority: Exact email match
     let found = accounts.find(a => a.email.toLowerCase() === cleanEmail);
 
+    // 2. Fallback: username match if no exact email match
     if (!found) {
+      const username = cleanEmail.split('@')[0];
       found = accounts.find(a => {
         const accUser = a.email.toLowerCase().split('@')[0];
-        const accName = a.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-        return accUser === username || accName === username;
+        const accName = a.name ? a.name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        return accUser === username || (accName && accName === username);
       });
     }
 
     if (!found) return null;
 
     if (password) {
-      if (!found.password || found.password !== password) {
+      // Check stored password overrides
+      const overrides = getStoredPasswordOverrides();
+      const overridePassword = overrides[cleanEmail] || overrides[found.uid] || (found.barberId && overrides[found.barberId]);
+      const expectedPassword = overridePassword || found.password;
+
+      if (expectedPassword && expectedPassword !== password) {
         return null;
       }
     }
@@ -696,6 +787,8 @@ export const saasService = {
     plan: 'starter' | 'pro' | 'imperio';
     primaryColor?: string;
     storyText?: string;
+    customDomain?: string;
+    custom_domain?: string;
   }): Promise<SaaSBarbershop> {
     const shops = getStoredShops();
     
@@ -713,6 +806,7 @@ export const saasService = {
     }
 
     const monthlyFee = data.plan === 'starter' ? 29.00 : data.plan === 'pro' ? 59.00 : 99.00;
+    const cleanDomain = normalizeDomain(data.customDomain || data.custom_domain || '');
 
     const newShop: SaaSBarbershop = {
       id: `shop-${Date.now()}`,
@@ -733,7 +827,9 @@ export const saasService = {
       storyText: data.storyText || `A ${data.name} nasceu com o compromisso de trazer a verdadeira experiência clássica do cuidado masculino aliada às técnicas mais modernas.`,
       quietServiceEnabled: true,
       cashFlowBalance: 0,
-      active: true
+      active: true,
+      customDomain: cleanDomain || undefined,
+      custom_domain: cleanDomain || undefined
     };
 
     const updated = [newShop, ...shops];
@@ -747,9 +843,15 @@ export const saasService = {
     const index = shops.findIndex(s => s.id === id);
     if (index === -1) throw new Error('Barbearia não encontrada');
 
+    const cleanDomain = data.customDomain || data.custom_domain 
+      ? normalizeDomain(data.customDomain || data.custom_domain || '') 
+      : shops[index].customDomain;
+
     const updatedShop = {
       ...shops[index],
       ...data,
+      customDomain: cleanDomain,
+      custom_domain: cleanDomain,
       // If slug changed, sanitize it
       ...(data.slug ? { slug: this.generateSlug(data.slug) } : {})
     };

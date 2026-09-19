@@ -131,10 +131,12 @@ export default function AdminDashboard() {
     // Seed database if empty (only runs if collections are empty)
     await firestoreService.seedDatabase();
 
+    const currentTenant = saasService.getActiveBarbershop();
+
     const [appts, sList, bList, lPoints, uList, bTimes, pList] = await Promise.all([
-      appointmentService.getAllAppointments(),
-      firestoreService.getServices(),
-      firestoreService.getBarbers(),
+      appointmentService.getAllAppointments(currentTenant.id),
+      firestoreService.getServices(currentTenant.slug),
+      firestoreService.getBarbers(currentTenant.slug),
       loyaltyService.getAllLoyaltyPoints(),
       firestoreService.getUsers(),
       firestoreService.getBlockedTimes(),
@@ -150,29 +152,56 @@ export default function AdminDashboard() {
     
     // Filter appointments for barbers in the active shop
     const shopBarberIds = bList.map(b => b.id);
-    const shopAppts = appts.filter(a => shopBarberIds.includes(a.barberId));
+    const shopAppts = appts.filter(a => shopBarberIds.includes(a.barberId) || a.barbershopId === currentTenant.id);
     setAppointments(shopAppts);
     
     setLoyaltyPoints(lPoints);
     setBlockedTimes(bTimes);
 
     // Load barber accounts for the current tenant
-    const currentTenant = saasService.getActiveBarbershop();
-    const accs = saasService.getTenantAccounts().filter(a => a.companyId === currentTenant.id && a.role === 'barber');
+    const accs = saasService.getTenantAccounts().filter(a => a.companyId === currentTenant.id && (a.role === 'barber' || a.role === 'gerente'));
     setBarberAccounts(accs);
 
     const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-    const recentCancellations = appts.filter(a => a.status === 'cancelled' && a.createdAt > tenMinutesAgo);
+    const recentCancellations = shopAppts.filter(a => a.status === 'cancelled' && a.createdAt > tenMinutesAgo);
     setNewCancellations(recentCancellations);
 
     setLoading(false);
   };
 
   useEffect(() => {
+    const handleShopChange = () => {
+      const current = saasService.getActiveBarbershop();
+      setActiveShopState(current);
+      setCompanyForm({
+        name: current.name,
+        tagline: current.tagline || '',
+        unit: current.unit || '',
+        address: current.address || '',
+        phone: current.phone || '',
+        closingTime: current.closingTime || '20:30',
+        openingHours: current.openingHours || 'Segunda a Sábado | 9h–20h30',
+        city: current.city || '',
+        country: current.country || 'Portugal',
+        logoUrl: current.logoUrl || '',
+        coverImageUrl: current.coverImageUrl || '',
+        primaryColor: current.primaryColor || '#d4a338',
+        storyText: current.storyText || '',
+        customDomain: current.customDomain || current.custom_domain || '',
+        quietServiceEnabled: current.quietServiceEnabled ?? true
+      });
+      loadData();
+    };
+
+    window.addEventListener('barbersaas_active_shop_changed', handleShopChange);
+
     if (user && user.role !== 'superadmin' && user.companyId) {
       saasService.setActiveBarbershop(user.companyId);
+    } else {
+      handleShopChange();
     }
-    loadData();
+
+    return () => window.removeEventListener('barbersaas_active_shop_changed', handleShopChange);
   }, [user]);
 
   const handleStatusUpdate = async (id: string, status: Appointment['status'], customerId: string) => {

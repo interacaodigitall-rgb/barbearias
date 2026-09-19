@@ -181,15 +181,15 @@ export function updateTenantHeadAndPWA(shop: SaaSBarbershop) {
     theme_color: "#000000",
     icons: [
       {
-        src: OFFICIAL_PWA_ICON,
+        src: iconUrl,
         sizes: "192x192",
-        type: "image/jpeg",
+        type: "image/png",
         purpose: "any maskable"
       },
       {
-        src: OFFICIAL_PWA_ICON,
+        src: iconUrl,
         sizes: "512x512",
-        type: "image/jpeg",
+        type: "image/png",
         purpose: "any maskable"
       }
     ]

@@ -156,7 +156,9 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     storyText: 'Desde 2018, a Mister Navalha revoluciona o cuidado masculino com ambiente vintage, navalha quente e produtos de barboterapia de alta performance.',
     quietServiceEnabled: true,
     cashFlowBalance: 3840.50,
-    active: true
+    active: true,
+    customDomain: 'misternavalha.com',
+    custom_domain: 'misternavalha.com'
   },
   {
     id: 'shop-sherlocks',
@@ -178,7 +180,9 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     storyText: 'Inspirada nas barbearias londrinas do século XIX, a Sherlocks combina mistério, elegância britânica e cortes contemporâneos.',
     quietServiceEnabled: true,
     cashFlowBalance: 7120.00,
-    active: true
+    active: true,
+    customDomain: 'sherlocksbarber.pt',
+    custom_domain: 'sherlocksbarber.pt'
   },
   {
     id: 'shop-rogerx',
@@ -202,7 +206,9 @@ export const demoSaaSBarbershops: SaaSBarbershop[] = [
     storyText: 'Referência em Belas, Portugal. Especialistas em corte masculino contemporâneo, visagismo, arte capilar na lâmina, barboterapia relaxante, tattoos, piercings e formação de novos barbeiros profissionais.',
     quietServiceEnabled: true,
     cashFlowBalance: 0.00,
-    active: true
+    active: true,
+    customDomain: 'barbeariarogerx.pt',
+    custom_domain: 'barbeariarogerx.pt'
   }
 ];
 

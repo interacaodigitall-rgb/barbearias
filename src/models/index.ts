@@ -150,6 +150,8 @@ export interface SaaSBarbershop {
   active?: boolean;
   closingTime?: string;
   openingHours?: string;
+  customDomain?: string;
+  custom_domain?: string;
 }
 
 export interface SaaSPlan {

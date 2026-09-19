@@ -18,6 +18,13 @@ export default function Layout() {
   const [activeShop, setActiveShop] = React.useState<SaaSBarbershop>(() => saasService.getActiveBarbershop());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
+  // Determine active tenant slug dynamically from current URL or stored active barbershop
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const excludedPrefixes = ['login', 'register', 'saas', 'super-admin', 'services', 'barbers', 'booking', 'loyalty', 'appointments', 'profile', 'admin', 'gerente', 'barber-dashboard'];
+  
+  const routeSlug = pathParts[0] && !excludedPrefixes.includes(pathParts[0]) ? pathParts[0] : null;
+  const targetSlug = routeSlug || activeShop?.slug || 'rogerx-barbershop';
+
   // Listen to active shop changes
   React.useEffect(() => {
     const handleShopChange = () => {
@@ -26,6 +33,16 @@ export default function Layout() {
     window.addEventListener('barbersaas_active_shop_changed', handleShopChange);
     return () => window.removeEventListener('barbersaas_active_shop_changed', handleShopChange);
   }, []);
+
+  // Sync active shop if user visits a tenant route slug directly (e.g. /mister-navalha)
+  React.useEffect(() => {
+    if (routeSlug) {
+      const shop = saasService.getBarbershopBySlugSync(routeSlug);
+      if (shop && shop.id !== activeShop?.id) {
+        saasService.setActiveBarbershop(shop.id);
+      }
+    }
+  }, [routeSlug, activeShop?.id]);
 
   React.useEffect(() => {
     const isSaaSPage = location.pathname === '/' || location.pathname === '/saas';
@@ -45,13 +62,6 @@ export default function Layout() {
     const newLang = i18n.language === 'pt' ? 'es' : 'pt';
     i18n.changeLanguage(newLang);
   };
-
-  // Determine active tenant slug dynamically from current URL or stored active barbershop
-  const pathParts = location.pathname.split('/').filter(Boolean);
-  const excludedPrefixes = ['login', 'register', 'saas', 'super-admin', 'services', 'barbers', 'booking', 'loyalty', 'appointments', 'profile', 'admin', 'gerente', 'barber-dashboard'];
-  
-  const routeSlug = pathParts[0] && !excludedPrefixes.includes(pathParts[0]) ? pathParts[0] : null;
-  const targetSlug = routeSlug || activeShop?.slug || 'rogerx-barbershop';
 
   // Navigation targets are always scoped to the active barbershop tenant - NEVER to '/'
   const homePath = `/${targetSlug}`;

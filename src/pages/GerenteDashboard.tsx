@@ -82,12 +82,13 @@ export default function GerenteDashboard() {
   const loadAllData = async () => {
     setIsLoading(true);
     try {
+      const shop = saasService.getActiveBarbershop();
       const [appts, srvs, barbs, prods, txs] = await Promise.all([
-        appointmentService.getAllAppointments(activeShop.id),
-        firestoreService.getServices(),
-        firestoreService.getBarbers(),
+        appointmentService.getAllAppointments(shop.id),
+        firestoreService.getServices(shop.slug),
+        firestoreService.getBarbers(shop.slug),
         productService.getProducts(),
-        cashFlowService.getTransactions(activeShop.id)
+        cashFlowService.getTransactions(shop.id)
       ]);
       setAppointments(appts);
       setServices(srvs);
@@ -110,8 +111,19 @@ export default function GerenteDashboard() {
   };
 
   useEffect(() => {
-    loadAllData();
-  }, [activeShop.id]);
+    const handleShopChange = () => {
+      loadAllData();
+    };
+    window.addEventListener('barbersaas_active_shop_changed', handleShopChange);
+
+    if (user && user.role !== 'superadmin' && user.companyId) {
+      saasService.setActiveBarbershop(user.companyId);
+    } else {
+      loadAllData();
+    }
+
+    return () => window.removeEventListener('barbersaas_active_shop_changed', handleShopChange);
+  }, [user, activeShop.id]);
 
   // Handle Quick Demo Login as Gerente if unauthenticated
   const handleQuickLoginGerente = async () => {
